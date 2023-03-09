@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+<web-app version="2.5"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/nsdwe.frameworkeb-app_2_5.xsd">
+-->
+<web-app version="2.5"
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+  <display-name>cmas</display-name>
+  <description>daewooenc-cmas</description>
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:spring/context-*.xml</param-value>
+  </context-param>
+  <listener>
+    <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+  </listener>
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+  <listener>
+    <listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
+  </listener>
+  <filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+    <init-param>
+      <param-name>forceEncoding</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </filter>
+  <filter>
+    <filter-name>WebContextFilter</filter-name>
+    <filter-class>docfbaro.common.WebContextFilter</filter-class>
+  </filter>
+  <filter>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+  </filter>
+  <filter>
+    <filter-name>UrlRewriteFilter</filter-name>
+    <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+    <init-param>
+      <param-name>logLevel</param-name>
+      <param-value>ERROR</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>WebContextFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>UrlRewriteFilter</filter-name>
+    <url-pattern>*.xpl</url-pattern>
+  </filter-mapping>
+
+
+  <servlet>
+    <servlet-name>co</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/config/co-servlet.xml</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>co</servlet-name>
+    <url-pattern>*.co</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>info</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/config/info-servlet.xml</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>info</servlet-name>
+    <url-pattern>*.info</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>trip</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/config/trip-servlet.xml</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>trip</servlet-name>
+    <url-pattern>*.trip</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>acws</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/config/acws-servlet.xml</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>acws</servlet-name>
+    <url-pattern>*.acws</url-pattern>
+  </servlet-mapping>
+
+	<servlet>
+    <servlet-name>id</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/config/id-servlet.xml</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>id</servlet-name>
+    <url-pattern>*.id</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>baro</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/config/baronet-servlet.xml</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>baro</servlet-name>
+    <url-pattern>*.baro</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>tech</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/config/tech-servlet.xml</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>tech</servlet-name>
+    <url-pattern>*.tech</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>sample</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/config/sample-servlet.xml</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>sample</servlet-name>
+    <url-pattern>*.sample</url-pattern>
+  </servlet-mapping>
+
+  <session-config>
+    <session-timeout>1440</session-timeout>
+  </session-config>
+  <error-page>
+    <error-code>404</error-code>
+    <location>/common/jsp/comm/error/404.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/common/jsp/comm/error/500.jsp</location>
+  </error-page>
+  <error-page>
+    <exception-type>java.lang.Throwable</exception-type>
+    <location>/common/jsp/comm/error/error.jsp</location>
+  </error-page>
+  <security-constraint>
+    <display-name>JSP Page Protection</display-name>
+    <web-resource-collection>
+      <web-resource-name>SecureJSPPages</web-resource-name>
+      <url-pattern>*.jspf</url-pattern>
+    </web-resource-collection>
+    <auth-constraint/>
+  </security-constraint>
+
+  <welcome-file-list>
+      <welcome-file>index.html</welcome-file>
+      <welcome-file>index.htm</welcome-file>
+  </welcome-file-list>
+
+
+	<jsp-config>
+		<taglib>
+			<taglib-uri>/c_rt</taglib-uri>
+			<taglib-location>/WEB-INF/tlds/c_rt.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>/fn</taglib-uri>
+			<taglib-location>/WEB-INF/tlds/fn.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>/ut</taglib-uri>
+			<taglib-location>/WEB-INF/tlds/ut.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>/fmt</taglib-uri>
+			<taglib-location>/WEB-INF/tlds/fmt.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+
+	<mime-mapping>
+        <extension>exe</extension>
+        <mime-type>application/unknown</mime-type>
+    </mime-mapping>
+</web-app>

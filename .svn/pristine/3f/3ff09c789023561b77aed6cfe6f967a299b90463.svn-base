@@ -1,0 +1,1230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CVA0201
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveGroupCodeList 조건에 의한 그룹 코드 조회
+
+*************************************************************************************-->
+<sqlMap namespace="InnerTrip">
+
+    <!-- 코드 그룹 조회 -->
+    <select id="retrieveInnerTripList" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.InnerTrip" >
+        <![CDATA[ /* InnerTrip.retrieveInnerTripList */ ]]>
+        <![CDATA[ /* 20150724 */ ]]>
+		  SELECT
+				CDB.DOC_NO,
+				CDB.REF_NO,
+				CDB.DUTY_AGNC_USER_ID,
+				CU1.USER_KNM AS DUTY_AGNC_USER_NM,
+        		CO1.ORG_CD AS DUTY_AGNC_ORG_CD,
+        		CO1.ORG_NM AS DUTY_AGNC_ORG_NM,
+         		CDB.DOC_STS,
+		        CDB.FST_REG_DT,
+		        CDB.FST_REG_USER_ID,
+		        CDB.FNL_EDIT_DT,
+		        CDB.FNL_EDIT_USER_ID,
+		        (SELECT USER_KNM FROM CO_USER WHERE USER_ID = CDB.FNL_EDIT_USER_ID) FNL_EDIT_USER_NM,
+		        CDB.USER_ID,
+		        (SELECT USER_KNM FROM CO_USER WHERE USER_ID = CDB.USER_ID) USER_NM,
+		        CDB.USER_ORG_CD,
+		        (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CDB.USER_ORG_CD) USER_ORG_NM,
+		        CDB.ST_YMD,
+		        CDB.ED_YMD,
+		        CDB.ACCT_STS,
+		        CDB.RET_RESN,
+		        (SELECT DISTINCT SIGN_ID FROM CMAA_SIGN WHERE DOC_NO = CDB.DOC_NO AND DUTY_CLS = '01') SIGN_ID,
+		        CDB.IF_PARAM,
+		        CCS.APPER_ORG_CD,
+		        (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CCS.APPER_ORG_CD) APPER_ORG_NM
+		      FROM CMAA_DMST_BUSTR CDB
+		      	LEFT JOIN CO_USER CU1 ON CU1.USER_ID = CDB.FST_REG_USER_ID
+		      	LEFT JOIN CO_ORG CO1 ON CO1.ORG_CD = CU1.ORG_CD
+		      	LEFT JOIN (SELECT * FROM CMAA_SIGN CS WHERE CS.SIGN_SEQ = (SELECT MAX(SIGN_SEQ) FROM CMAA_SIGN WHERE DOC_NO = CS.DOC_NO AND SIGN_TP_CD = 'T03' AND DUTY_CLS = '01')) CCS
+            		ON (CCS.DOC_NO = CDB.DOC_NO AND CCS.SIGN_TP_CD = 'T03' AND CCS.DUTY_CLS = '01')
+		      WHERE CDB.DOC_STS IS NOT NULL
+	        	<isNotEmpty prepend="AND" property="userId">
+	        		CDB.FST_REG_USER_ID = #userId#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="orgNm">
+	        		CO1.ORG_NM LIKE '%' || #orgNm# || '%'
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="signStsCd">
+	        		CDB.DOC_STS = #signStsCd#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="loginUserId">
+		        	(CDB.USER_ID = #loginUserId#
+		        	OR CO1.ORG_CD IN (
+		              	SELECT ORG_CD
+		                FROM CO_APPT
+		                WHERE USER_ID = #loginUserId#
+		                AND TO_CHAR(SYSDATE, 'YYYYMMDD') &gt;= APPT_ST_YMD
+		                AND (TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APPT_ED_YMD OR APPT_ED_YMD IS NULL))
+	                OR CCS.APPER_ORG_CD IN (
+		              	SELECT ORG_CD
+		                FROM CO_APPT
+		                WHERE USER_ID = #loginUserId#
+		                AND TO_CHAR(SYSDATE, 'YYYYMMDD') &gt;= APPT_ST_YMD
+		                AND (TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APPT_ED_YMD OR APPT_ED_YMD IS NULL))
+
+					<isEqual property="divYn" compareValue="Y">
+					OR CO1.HDOFC_ORG_CD = (
+						SELECT HDOFC_ORG_CD
+						FROM CO_ORG WHERE ORG_CD = (SELECT ORG_CD FROM CO_USER WHERE USER_ID = #loginUserId#))
+					</isEqual>
+
+	                )
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="refNo">
+		        	CDB.REF_NO = #refNo#
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="tripUser">
+		        	CDB.USER_ID = #tripUser#
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="stDate">
+		        	(CDB.ST_YMD BETWEEN TO_DATE(#stDate#, 'YYYY-MM-DD') AND TO_DATE(#edDate#, 'YYYY-MM-DD') AND CDB.ED_YMD BETWEEN TO_DATE(#stDate#, 'YYYY-MM-DD') AND TO_DATE(#edDate#, 'YYYY-MM-DD'))
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="edDate">
+		        	(CDB.ST_YMD BETWEEN TO_DATE(#stDate#, 'YYYY-MM-DD') AND TO_DATE(#edDate#, 'YYYY-MM-DD') AND CDB.ED_YMD BETWEEN TO_DATE(#stDate#, 'YYYY-MM-DD') AND TO_DATE(#edDate#, 'YYYY-MM-DD'))
+	           </isNotEmpty>
+	           <isNotEmpty  property="simpleDt">
+			      	  <isNotEqual property="simpleDt" prepend="AND" compareValue="DT"> <!-- 기안일 상세검색이 아닌 조건 최근 1달, 2달, 3달-->
+			      	  	CDB.FNL_EDIT_DT >= SYSDATE - #simpleDt#
+			      	  </isNotEqual>
+			      	  <isEqual property="simpleDt" compareValue="DT"> <!-- 기안일 상세검색인 조건 -->
+					      <isNotEmpty property="docStart">
+					      	<isNotEmpty prepend="AND" property="docEnd">
+					          CDB.FNL_EDIT_DT BETWEEN TO_DATE(#docStart#, 'YYYY-MM-DD') AND TO_DATE(#docEnd# || '235959', 'YYYY-MM-DDHH24MISS')
+					        </isNotEmpty>
+					      </isNotEmpty>
+				      </isEqual>
+			      </isNotEmpty>
+			   ORDER BY FNL_EDIT_DT DESC
+
+    </select>
+
+        <!-- 코드 그룹 조회 -->
+    <select id="retrieveInnerTripError" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.InnerTrip" >
+        <![CDATA[ /* InnerTrip.retrieveInnerTripError */ ]]>
+		  SELECT
+				CDB.DOC_NO,
+				CDB.REF_NO,
+				CDB.DUTY_AGNC_USER_ID,
+				CU1.USER_KNM AS DUTY_AGNC_USER_NM,
+        		CO1.ORG_CD AS DUTY_AGNC_ORG_CD,
+        		CO1.ORG_NM AS DUTY_AGNC_ORG_NM,
+         		CDB.DOC_STS,
+		        CDB.FST_REG_DT,
+		        CDB.FST_REG_USER_ID,
+		        CDB.FNL_EDIT_DT,
+		        CDB.FNL_EDIT_USER_ID,
+		        (SELECT USER_KNM FROM CO_USER WHERE USER_ID = CDB.FNL_EDIT_USER_ID) FNL_EDIT_USER_NM,
+		        CDB.USER_ID,
+		        (SELECT USER_KNM FROM CO_USER WHERE USER_ID = CDB.USER_ID) USER_NM,
+		        CDB.USER_ORG_CD,
+		        (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CDB.USER_ORG_CD) USER_ORG_NM,
+		        CDB.ST_YMD,
+		        CDB.ED_YMD,
+		        CDB.ACCT_STS,
+		        CDB.RET_RESN,
+		        (SELECT DISTINCT SIGN_ID FROM CMAA_SIGN WHERE DOC_NO = CDB.DOC_NO AND DUTY_CLS = '01') SIGN_ID,
+		        CDB.IF_PARAM,
+		        CCS.APPER_ORG_CD,
+		        (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CCS.APPER_ORG_CD) APPER_ORG_NM
+		      FROM CMAA_DMST_BUSTR CDB
+		      	LEFT JOIN CO_USER CU1 ON CU1.USER_ID = CDB.FST_REG_USER_ID
+		      	LEFT JOIN CO_ORG CO1 ON CO1.ORG_CD = CU1.ORG_CD
+		      	LEFT JOIN (SELECT * FROM CMAA_SIGN CS WHERE CS.SIGN_SEQ = (SELECT MAX(SIGN_SEQ) FROM CMAA_SIGN WHERE DOC_NO = CS.DOC_NO AND SIGN_TP_CD = 'T03' AND DUTY_CLS = '01')) CCS
+            		ON (CCS.DOC_NO = CDB.DOC_NO AND CCS.SIGN_TP_CD = 'T03' AND CCS.DUTY_CLS = '01')
+		      WHERE CDB.DOC_STS IS NOT NULL
+		      AND CDB.DOC_STS = 'D03' AND CDB.ACCT_STS IS NULL
+	        	<isNotEmpty prepend="AND" property="userId">
+	        		CDB.FST_REG_USER_ID = #userId#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="orgNm">
+	        		CO1.ORG_NM LIKE '%' || #orgNm# || '%'
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="signStsCd">
+	        		CDB.DOC_STS = #signStsCd#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="loginUserId">
+		        	(CDB.USER_ID = #loginUserId#
+		        	OR CO1.ORG_CD IN (
+		              	SELECT ORG_CD
+		                FROM CO_APPT
+		                WHERE USER_ID = #loginUserId#
+		                AND TO_CHAR(SYSDATE, 'YYYYMMDD') &gt;= APPT_ST_YMD
+		                AND (TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APPT_ED_YMD OR APPT_ED_YMD IS NULL))
+	                OR CCS.APPER_ORG_CD IN (
+		              	SELECT ORG_CD
+		                FROM CO_APPT
+		                WHERE USER_ID = #loginUserId#
+		                AND TO_CHAR(SYSDATE, 'YYYYMMDD') &gt;= APPT_ST_YMD
+		                AND (TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APPT_ED_YMD OR APPT_ED_YMD IS NULL))
+	                )
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="refNo">
+		        	CDB.REF_NO = #refNo#
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="tripUser">
+		        	CDB.USER_ID = #tripUser#
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="stDate">
+		        	(CDB.ST_YMD BETWEEN TO_DATE(#stDate#, 'YYYY-MM-DD') AND TO_DATE(#edDate#, 'YYYY-MM-DD') AND CDB.ED_YMD BETWEEN TO_DATE(#stDate#, 'YYYY-MM-DD') AND TO_DATE(#edDate#, 'YYYY-MM-DD'))
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="edDate">
+		        	(CDB.ST_YMD BETWEEN TO_DATE(#stDate#, 'YYYY-MM-DD') AND TO_DATE(#edDate#, 'YYYY-MM-DD') AND CDB.ED_YMD BETWEEN TO_DATE(#stDate#, 'YYYY-MM-DD') AND TO_DATE(#edDate#, 'YYYY-MM-DD'))
+	           </isNotEmpty>
+			   ORDER BY FST_REG_DT DESC
+
+    </select>
+
+    <!-- 코드 그룹 조회 -->
+    <select id="getMaxCmasId" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* InnerTrip.getMaxCmasId */ ]]>
+		  SELECT DOC_NO FROM CMAA_DMST_BUSTR
+			WHERE DOC_NO LIKE 'CMAS' || '-' || TO_CHAR(SYSDATE, 'YYYY') || '%'
+			AND ROWNUM = 1
+			ORDER BY DOC_NO DESC
+			FOR UPDATE WAIT 100
+    </select>
+
+    <!-- 코드 그룹 조회 -->
+    <select id="getCmasId" parameterClass="map" resultClass="string" >
+        <![CDATA[ /* InnerTrip.getCmasId */ ]]>
+	  	<isEmpty property="docNo">
+		SELECT 'CMAS' || '-' || TO_CHAR(SYSDATE, 'YYYY') || '-' || '000001' AS DOC_NO
+  		FROM DUAL
+  		</isEmpty>
+  		<isNotEmpty property="docNo">
+  		SELECT SUBSTR(#docNo#, 1, 4) || '-' || TO_CHAR(SYSDATE, 'YYYY') || '-' ||
+			LPAD(NVL(TO_NUMBER(SUBSTR(#docNo#, 11))+1, '1'),6, '0') AS DOC_NO
+  		FROM DUAL
+  		</isNotEmpty>
+    </select>
+
+
+    <insert id="saveInnerTripDraft" parameterClass="map" >
+        <![CDATA[ /* InnerTrip.saveInnerTripDraft */ ]]>
+		  INSERT INTO CMAA_DMST_BUSTR
+    	         (
+    	            DOC_NO
+				   ,REF_NO
+				   ,DUTY_AGNC_USER_ID
+				   ,DUTY_AGNC_ORG_CD
+				   ,DOC_STS
+				   ,FST_REG_DT
+				   ,FST_REG_USER_ID
+				   ,FNL_EDIT_DT
+				   ,FNL_EDIT_USER_ID
+				   ,USER_ID
+		           ,ST_YMD
+		           ,ED_YMD
+		           ,USER_ORG_CD
+				   ,DD_EXPN_EXCL
+				   ,ACCOMO_EXPN_EXCL
+				   ,EDU_BUSTR_YN
+				   ,IF_PARAM
+				 )
+          VALUES (
+          		   #docNo#
+          		 , #refNo#
+    	         , #dutyAgncUserId#
+		         , #dutyAgncOrgCd#
+		         , #signStsCd#
+		         , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+                 , #userId#
+                 , #stYmd#
+                 , #edYmd#
+                 , #userOrgCd#
+				 , #ddExpnExcl#
+				 , #accomoExpnExcl#
+				 , #eduBustrYn#
+				 , #ifParam#
+				)
+    </insert>
+
+    <insert id="insertInnerTripDtl" parameterClass="map" >
+        <![CDATA[ /* InnerTrip.insertInnerTripDtl */ ]]>
+		  INSERT INTO CMAA_DMST_BUSTR_DTL
+    	         (
+    	            DOC_NO,
+					SEQ,
+					DPT_PLACE,
+					ARR_PLACE,
+					TRAFFIC_CLS,
+					RUNTRP_ONEWAY,
+					MV_DIST,
+					AMT,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID,
+					CAR_USE_AMT,
+					CAR_USE_QTY
+				 )
+          VALUES (
+          		    #docNo#,
+					NVL(LPAD((SELECT (MAX(SEQ)+1) FROM CMAA_DMST_BUSTR_DTL), 6, '0'), '000000'),
+					#dptPlace#,
+					#arrPlace#,
+					#trafficCls#,
+					#runtrpOneway#,
+					#mvDist#,
+					#amt#,
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#carUseAmt#,
+					#carUseQty#
+				)
+    </insert>
+
+     <select id="retrieveViewDocInfo" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* InnerTrip.retrieveViewDocInfo */ ]]>
+			SELECT
+				DOC_NO,
+				REF_NO,
+				DUTY_AGNC_USER_ID,
+        		(SELECT USER_KNM FROM CO_USER WHERE USER_ID = CDB.DUTY_AGNC_USER_ID) DUTY_AGNC_USER_NM,
+				DUTY_AGNC_ORG_CD,
+				(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CDB.DUTY_AGNC_ORG_CD) DUTY_AGNC_ORG_NM,
+				(SELECT SIGN_ID FROM CMAA_SIGN WHERE DOC_NO = CDB.DOC_NO AND DUTY_CLS = '01' GROUP BY SIGN_ID) SIGN_ID,
+         		DOC_STS,
+		        FST_REG_DT,
+		        FST_REG_USER_ID,
+		        FNL_EDIT_DT,
+		        FNL_EDIT_USER_ID,
+		        (SELECT USER_KNM FROM CO_USER WHERE USER_ID = CDB.FNL_EDIT_USER_ID) FNL_EDIT_USER_NM,
+		        USER_ID,
+		        (SELECT USER_KNM FROM CO_USER WHERE USER_ID = CDB.USER_ID) USER_NM,
+		        ST_YMD,
+		        ED_YMD,
+		        ACCT_STS,
+		        RET_RESN,
+		        USER_ORG_CD,
+		        (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CDB.USER_ORG_CD) USER_ORG_NM,
+				DD_EXPN_EXCL,
+				ACCOMO_EXPN_EXCL,
+				EDU_BUSTR_YN,
+				IF_PARAM,
+				FILE_ATCH_ID,
+			    GEN_ACCOMO_DCNT,
+			    ACCOMO_AMT,
+			    EEXP_AMT,
+			    ETC_AMT,
+			    TOT_AMT,
+			    REM
+		      FROM CMAA_DMST_BUSTR CDB
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="cmasId">
+	        	DOC_NO = #cmasId#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <select id="retrieveViewDocInfoDtl" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.InnerTripDetail" >
+	  	<![CDATA[ /* InnerTrip.retrieveViewDocInfoDtl */ ]]>
+			SELECT
+				DOC_NO,
+				SEQ,
+				DPT_PLACE,
+				ARR_PLACE,
+				TRAFFIC_CLS,
+				RUNTRP_ONEWAY,
+				MV_DIST,
+				AMT,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				CAR_USE_AMT,
+				CAR_USE_QTY
+		      FROM CMAA_DMST_BUSTR_DTL
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="cmasId">
+	        	DOC_NO = #cmasId#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <update id="deleteInnerTripByDocNo" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.deleteInnerTripDtlByDocNo */ ]]>
+    	DELETE FROM CMAA_DMST_BUSTR WHERE DOC_NO = #docNo#
+	</update>
+
+    <update id="deleteInnerTripDtlByDocNo" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.deleteInnerTripDtlByDocNo */ ]]>
+    	DELETE FROM CMAA_DMST_BUSTR_DTL WHERE DOC_NO = #docNo#
+	</update>
+
+    <select id="retrieveIsSpotMgmt" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.IsSpot" >
+        <![CDATA[ /* InnerTrip.retrieveIsSpotMgmt */ ]]>
+		  SELECT
+		  	A.USER_ID,
+		  	B.USER_KNM,
+			A.APPT_SEQ,
+			A.APPT_CLS,
+			A.INPUT_CLS,
+			A.ORG_CD,
+			A.USER_POSIT_CD,
+			A.USER_RPSWRK_CD,
+			A.USER_JOBSP_CD,
+			A.USER_DUTY_CD,
+			A.APPT_ST_YMD,
+			A.APPT_ED_YMD,
+			A.PRIV_RFL_YN,
+			A.FST_REG_DT,
+			A.FST_REG_USER_ID,
+			A.FNL_EDIT_DT,
+			A.FNL_EDIT_USER_ID
+		  FROM CSYS.CO_APPT A
+			, CSYS.CO_USER B
+			WHERE A.USER_ID = B.USER_ID
+			AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+			AND B.USE_YN = 'Y'
+			AND A.USER_RPSWRK_CD = 'PFM'
+	        <isNotEmpty property="orgCd">
+	        	AND A.ORG_CD = #orgCd#
+	        </isNotEmpty>
+    </select>
+
+    <select id="retrieveIsSpotMgmtBoss" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.IsSpot" >
+        <![CDATA[ /* InnerTrip.retrieveIsSpotMgmtBoss */ ]]>
+    	  SELECT
+            A.USER_ID,
+            B.USER_KNM,
+            A.APPT_SEQ,
+            A.APPT_CLS,
+            A.INPUT_CLS,
+            A.ORG_CD,
+            A.USER_POSIT_CD,
+            A.USER_RPSWRK_CD,
+            A.USER_JOBSP_CD,
+            A.USER_DUTY_CD,
+            A.APPT_ST_YMD,
+            A.APPT_ED_YMD,
+            A.PRIV_RFL_YN,
+            A.FST_REG_DT,
+            A.FST_REG_USER_ID,
+            A.FNL_EDIT_DT,
+            A.FNL_EDIT_USER_ID
+          FROM CSYS.CO_APPT A
+            , CSYS.CO_USER B
+            WHERE A.USER_ID = B.USER_ID
+            AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+            AND B.USE_YN = 'Y'
+            AND (A.USER_RPSWRK_CD = '현장팀장' OR A.USER_RPSWRK_CD = '현장소장')
+            <isNotEmpty property="orgCd">
+	        	AND A.ORG_CD = #orgCd#
+	        </isNotEmpty>
+	 </select>
+
+	 <!-- 팀장 조회 쿼리 -->
+	 <select id="retrieveOrgTeamBoss" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.IsSpot" >
+	 <![CDATA[ /* InnerTrip.retrieveOrgTeamBoss */ ]]>
+	 	SELECT
+            A.USER_ID,
+            B.USER_KNM,
+            A.APPT_SEQ,
+            A.APPT_CLS,
+            A.INPUT_CLS,
+            A.ORG_CD,
+            A.USER_POSIT_CD,
+            A.USER_RPSWRK_CD,
+            A.USER_JOBSP_CD,
+            A.USER_DUTY_CD,
+            A.APPT_ST_YMD,
+            A.APPT_ED_YMD,
+            A.PRIV_RFL_YN,
+            A.FST_REG_DT,
+            A.FST_REG_USER_ID,
+            A.FNL_EDIT_DT,
+            A.FNL_EDIT_USER_ID
+          FROM CSYS.CO_APPT A
+            , CSYS.CO_USER B
+            WHERE A.USER_ID = B.USER_ID
+            AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+            AND B.USE_YN = 'Y'
+            AND A.USER_RPSWRK_CD = '팀장'
+            AND A.INPUT_CLS = 'A'
+            AND Rownum = 1
+            <isNotEmpty property="orgCd">
+	        	AND A.ORG_CD = #orgCd#
+	        </isNotEmpty>
+            ORDER BY A.APPT_CLS DESC
+      </select>
+
+      <!-- 팀장 조회 쿼리 -->
+	 <select id="retrieveDrafterOrgTeamBoss" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.IsSpot" >
+	 <![CDATA[ /* InnerTrip.retrieveDrafterOrgTeamBoss */ ]]>
+	 	SELECT
+            A.USER_ID,
+            B.USER_KNM,
+            A.APPT_SEQ,
+            A.APPT_CLS,
+            A.INPUT_CLS,
+            A.ORG_CD,
+            A.USER_POSIT_CD,
+            A.USER_RPSWRK_CD,
+            A.USER_JOBSP_CD,
+            A.USER_DUTY_CD,
+            A.APPT_ST_YMD,
+            A.APPT_ED_YMD,
+            A.PRIV_RFL_YN,
+            A.FST_REG_DT,
+            A.FST_REG_USER_ID,
+            A.FNL_EDIT_DT,
+            A.FNL_EDIT_USER_ID
+          FROM CSYS.CO_APPT A
+            , CSYS.CO_USER B
+            WHERE A.USER_ID = B.USER_ID
+            AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+            AND B.USE_YN = 'Y'
+            AND A.USER_RPSWRK_CD = '팀장'
+            AND A.INPUT_CLS = 'A'
+            AND Rownum = 1
+            <isNotEmpty property="drafterOrgCd">
+	        	AND A.ORG_CD = #drafterOrgCd#
+	        </isNotEmpty>
+            ORDER BY A.APPT_CLS DESC
+      </select>
+
+      <select id="retrieveIsOfficer" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.IsSpot" >
+        <![CDATA[ /* InnerTrip.retrieveIsOfficer */ ]]>
+		   SELECT
+            A.USER_ID,
+            B.USER_KNM,
+            A.APPT_SEQ,
+            A.APPT_CLS,
+            A.INPUT_CLS,
+            A.ORG_CD,
+            A.USER_POSIT_CD,
+            A.USER_RPSWRK_CD,
+            A.USER_JOBSP_CD,
+            A.USER_DUTY_CD,
+            A.APPT_ST_YMD,
+            A.APPT_ED_YMD,
+            A.PRIV_RFL_YN,
+            A.FST_REG_DT,
+            A.FST_REG_USER_ID,
+            A.FNL_EDIT_DT,
+            A.FNL_EDIT_USER_ID
+          FROM CSYS.CO_APPT A
+            , CSYS.CO_USER B
+            WHERE A.USER_ID = B.USER_ID
+            AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+            AND B.USE_YN = 'Y'
+            AND REGEXP_LIKE(A.USER_ID, '^A|^E')
+            AND A.INPUT_CLS = 'A'
+	        <isNotEmpty property="userId">
+	        	AND A.USER_ID = #userId#
+	        </isNotEmpty>
+    </select>
+
+    <select id="retrieveIsOrgBoss" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.IsSpot" >
+        <![CDATA[ /* InnerTrip.retrieveIsOrgBoss */ ]]>
+		   SELECT
+            A.USER_ID,
+            B.USER_KNM,
+            A.APPT_SEQ,
+            A.APPT_CLS,
+            A.INPUT_CLS,
+            A.ORG_CD,
+            A.USER_POSIT_CD,
+            A.USER_RPSWRK_CD,
+            A.USER_JOBSP_CD,
+            A.USER_DUTY_CD,
+            A.APPT_ST_YMD,
+            A.APPT_ED_YMD,
+            A.PRIV_RFL_YN,
+            A.FST_REG_DT,
+            A.FST_REG_USER_ID,
+            A.FNL_EDIT_DT,
+            A.FNL_EDIT_USER_ID
+          FROM CSYS.CO_APPT A
+            , CSYS.CO_USER B
+            WHERE A.USER_ID = B.USER_ID
+            AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+            AND B.USE_YN = 'Y'
+            AND A.INPUT_CLS = 'A'
+	        <isNotEmpty property="userId">
+	        	AND A.USER_ID = #userId#
+	        </isNotEmpty>
+	        <isNotEmpty property="orgCd">
+	        	AND A.ORG_CD = #orgCd#
+	        </isNotEmpty>
+    </select>
+
+      <select id="retrieveCoUserInfo" parameterClass="map" resultClass="map" >
+      <![CDATA[ /* InnerTrip.retrieveCoUserInfo */ ]]>
+	 	SELECT (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD=A.ORG_CD) ORG_NM, A.* FROM CO_USER A WHERE USER_ID = #userId#
+      </select>
+
+      <select id="retrievePABC1UserInfo" parameterClass="map" resultClass="map" >
+      <![CDATA[ /* InnerTrip.retrievePABC1UserInfo */ ]]>
+	 	SELECT * FROM CO_USER WHERE ORG_CD = 'PABCM' AND USER_RPSWRK_CD = 'PCM'
+      </select>
+
+      <select id="retrieveCoUserInfo2_old" parameterClass="map" resultClass="map" >
+      <![CDATA[ /* InnerTrip.retrieveCoUserInfo2_old */ ]]>
+	 	<!-- SELECT * FROM CO_USER WHERE USER_ID = #userId# AND ORG_CD = #orgCd#  -->
+   	  SELECT
+            A.USER_ID,
+            B.USER_KNM,
+            A.APPT_SEQ,
+            A.APPT_CLS,
+            A.INPUT_CLS,
+            A.ORG_CD,
+            A.USER_POSIT_CD,
+            A.USER_RPSWRK_CD,
+            A.USER_JOBSP_CD,
+            A.USER_DUTY_CD,
+            A.APPT_ST_YMD,
+            A.APPT_ED_YMD,
+            A.PRIV_RFL_YN,
+            A.FST_REG_DT,
+            A.FST_REG_USER_ID,
+            A.FNL_EDIT_DT,
+            A.FNL_EDIT_USER_ID
+          FROM CSYS.CO_APPT A
+            , CSYS.CO_USER B
+            WHERE A.USER_ID = B.USER_ID
+            AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+            AND B.USE_YN = 'Y'
+            <isNotEmpty property="userId">
+	        	AND A.USER_ID = #userId#
+	        </isNotEmpty>
+            <isNotEmpty property="orgCd">
+	        	AND A.ORG_CD = #orgCd#
+	        </isNotEmpty>
+      </select>
+
+      <select id="retrieveCoUserInfo2_old2" parameterClass="map" resultClass="map" >
+      <![CDATA[ /* InnerTrip.retrieveCoUserInfo2_old2 */ ]]>
+	 	<!-- SELECT * FROM CO_USER WHERE USER_ID = #userId# AND ORG_CD = #orgCd#  -->
+   	  SELECT
+            A.USER_ID,
+            B.USER_KNM,
+            A.APPT_SEQ,
+            A.APPT_CLS,
+            A.INPUT_CLS,
+            A.ORG_CD,
+            A.USER_POSIT_CD,
+            A.USER_RPSWRK_CD,
+            A.USER_JOBSP_CD,
+            A.USER_DUTY_CD,
+            A.APPT_ST_YMD,
+            A.APPT_ED_YMD,
+            A.PRIV_RFL_YN,
+            A.FST_REG_DT,
+            A.FST_REG_USER_ID,
+            A.FNL_EDIT_DT,
+            A.FNL_EDIT_USER_ID
+          FROM CSYS.CO_APPT A
+            , CSYS.CO_USER B
+            WHERE A.USER_ID = B.USER_ID
+            AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+            AND B.USE_YN = 'Y'
+        	AND A.USER_ID = #userId#
+        	AND A.ORG_CD = #orgCd#
+      </select>
+
+      <select id="retrieveCoUserInfo2" parameterClass="map" resultClass="map" >
+      <![CDATA[ /* InnerTrip.retrieveCoUserInfo2 */ ]]>
+	 	<!-- SELECT * FROM CO_USER WHERE USER_ID = #userId# AND ORG_CD = #orgCd#  -->
+		SELECT * FROM (
+			   	  SELECT
+			            A.USER_ID,
+			            B.USER_KNM,
+			            A.APPT_SEQ,
+			            A.APPT_CLS,
+			            A.INPUT_CLS,
+			            A.ORG_CD,
+			            A.USER_POSIT_CD,
+			            A.USER_RPSWRK_CD,
+			            A.USER_JOBSP_CD,
+			            A.USER_DUTY_CD,
+			            A.APPT_ST_YMD,
+			            A.APPT_ED_YMD,
+			            A.PRIV_RFL_YN,
+			            A.FST_REG_DT,
+			            A.FST_REG_USER_ID,
+			            A.FNL_EDIT_DT,
+			            A.FNL_EDIT_USER_ID
+			          FROM CSYS.CO_APPT A
+			            , CSYS.CO_USER B
+			            WHERE A.USER_ID = B.USER_ID
+			            AND NVL(A.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+			            AND B.USE_YN = 'Y'
+			        	AND A.USER_ID = #userId#
+			        	AND A.ORG_CD = #orgCd#
+			           ORDER BY  A.INPUT_CLS
+       			 )
+		WHERE ROWNUM = 1
+      </select>
+
+      <update id="updateInnerTripInfo" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.updateInnerTripInfo */ ]]>
+    	UPDATE CMAA_DMST_BUSTR
+				SET DOC_STS	= #docStsCd#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="saveCmasDocUpdateSignId" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.saveCmasDocUpdateSignId */ ]]>
+    	UPDATE CMAA_DMST_BUSTR
+				SET SIGN_ID	= #signId#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="updateEHRInfo" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.updateEHRInfo */ ]]>
+	INSERT INTO ODM_VACATION(
+			EMP_ID,
+			START_YMD,
+			END_YMD,
+			VACAT_QTY,
+			APP_YMD,
+			APPROVAL_YN,
+			VACA_ID,
+			VACA_APP_ID,
+			MOD_USER_ID,
+			MOD_DATE,
+			MOD_LOC_ID)
+		VALUES (
+			#userId#,
+			TO_CHAR(TO_DATE(#startDate#, 'YYYY-MM-DD'), 'YYYYMMDD'),
+			TO_CHAR(TO_DATE(#endDate#, 'YYYY-MM-DD'), 'YYYYMMDD'),
+			(TO_DATE(#endDate#, 'YYYY-MM-DD') - TO_DATE(#startDate#, 'YYYY-MM-DD'))+1,
+			TO_CHAR(SYSDATE, 'YYYYMMDD'),
+			#approvalYn#,
+			#vacaId#,
+			#vacaAppId#,
+			#userId#,
+			TO_CHAR(SYSDATE, 'YYYYMMDD'),
+			#modLocId#
+		)
+	</update>
+
+	<update id="updateUpdateEHRInfo" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.updateUpdateEHRInfo */ ]]>
+    	UPDATE ODM_VACATION
+				SET VACAT_QTY = ((TO_DATE(#endDate#, 'YYYY-MM-DD') - TO_DATE(#endDate#, 'YYYY-MM-DD')))+1,
+					APP_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD'),
+					APPROVAL_YN = #approvalYn#,
+					VACA_ID = #vacaId#,
+					MOD_USER_ID = #userId#,
+					MOD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD'),
+					MOD_LOC_ID = #modLocId#
+   		 	WHERE EMP_ID = #userId#
+			AND APPROVAL_YN = #approvalYn#
+			AND START_YMD = TO_CHAR(TO_DATE(#startDate#, 'YYYY-MM-DD'), 'YYYYMMDD')
+			AND END_YMD = TO_CHAR(TO_DATE(#endDate#, 'YYYY-MM-DD'), 'YYYYMMDD')
+			AND VACA_APP_ID = #vacaAppId#
+	</update>
+
+	<update id="deleteEHRInfo" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.deleteEHRInfo */ ]]>
+    	DELETE FROM ODM_VACATION
+   		 	WHERE EMP_ID = #userId#
+			AND APPROVAL_YN = #approvalYn#
+			AND START_YMD = TO_CHAR(TO_DATE(#startDate#, 'YYYY-MM-DD'), 'YYYYMMDD')
+			AND END_YMD = TO_CHAR(TO_DATE(#endDate#, 'YYYY-MM-DD'), 'YYYYMMDD')
+			AND VACA_APP_ID = #vacaAppId#
+	</update>
+
+	<select id="selectEHRInfo" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* InnerTrip.retrieveSavedDocInfo */ ]]>
+		SELECT COUNT(EMP_ID) as COUNT from ODM_VACATION
+			WHERE EMP_ID = #userId#
+			AND APPROVAL_YN = #approvalYn#
+			AND START_YMD = TO_CHAR(TO_DATE(#startDate#, 'YYYY-MM-DD'), 'YYYYMMDD')
+			AND END_YMD = TO_CHAR(TO_DATE(#endDate#, 'YYYY-MM-DD'), 'YYYYMMDD')
+			AND VACA_APP_ID = #vacaAppId#
+    </select>
+
+	<select id="selectEHRInfo2" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* InnerTrip.selectEHRInfo2 */ ]]>
+		SELECT COUNT(EMP_ID) as COUNT from ODM_VACATION
+			WHERE EMP_ID = #userId#
+			AND APPROVAL_YN = #approvalYn#
+			AND START_YMD = TO_CHAR(TO_DATE(#startDate#, 'YYYY-MM-DD'), 'YYYYMMDD')
+			AND END_YMD = TO_CHAR(TO_DATE(#endDate#, 'YYYY-MM-DD'), 'YYYYMMDD')
+			AND (
+				   VACA_APP_ID = #vacaAppId1#
+				OR VACA_APP_ID = #vacaAppId2#
+				OR VACA_APP_ID = #vacaAppId3#
+				)
+    </select>
+
+	<select id="selectCoFileCount" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* InnerTrip.selectCoFileCount */ ]]>
+		SELECT COUNT(FILE_ATCH_ID) as COUNT from CO_FILE
+			WHERE FILE_ATCH_ID = #fileAtchId#
+			AND USE_YN = 'Y'
+    </select>
+
+	<insert id="saveInnerTripDocSave" parameterClass="map" >
+        <![CDATA[ /* InnerTrip.saveInnerTripDocSave */ ]]>
+		  INSERT INTO CMAA_DMST_BUSTR
+    	         (
+    	            DOC_NO
+				   ,DOC_STS
+				   ,FST_REG_DT
+				   ,FST_REG_USER_ID
+				   ,FNL_EDIT_DT
+				   ,FNL_EDIT_USER_ID
+				   ,IF_PARAM
+				 )
+          VALUES (
+          		   #docNo#
+		          ,#docSts#
+		          ,SYSDATE
+				  ,#fstRegUserId#
+				  ,SYSDATE
+				  ,#fnlEditUserId#
+                  ,#ifParam#
+				)
+    </insert>
+
+    <update id="updateInnerTripDocSave" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.updateInnerTripDocSave */ ]]>
+    	UPDATE CMAA_DMST_BUSTR
+				SET DOC_STS = #docSts#,
+					FNL_EDIT_DT = SYSDATE,
+				    FNL_EDIT_USER_ID = #fnlEditUserId#,
+				    IF_PARAM = #ifParam#,
+				    FILE_ATCH_ID = #fileAtchId#,
+				    GEN_ACCOMO_DCNT = #genAccomoDcnt#,
+				    ACCOMO_AMT = #accomoAmt#,
+				    EEXP_AMT = #eexpAmt#,
+				    ETC_AMT = #etcAmt#,
+				    TOT_AMT = #totAmt#,
+				    REM = #rem#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrieveSavedDocInfo" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* InnerTrip.retrieveSavedDocInfo */ ]]>
+			SELECT
+				DOC_NO,
+         		DOC_STS,
+		        FST_REG_DT,
+		        FST_REG_USER_ID,
+		        FNL_EDIT_DT,
+		        FNL_EDIT_USER_ID,
+		        IF_PARAM,
+		        FILE_ATCH_ID,
+			    GEN_ACCOMO_DCNT,
+			    ACCOMO_AMT,
+			    EEXP_AMT,
+			    ETC_AMT,
+			    TOT_AMT,
+			    REM
+		      FROM CMAA_DMST_BUSTR
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="docNo">
+	        	DOC_NO = #docNo#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <update id="updateInnerTripDraftDoc" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.updateInnerTripDraftDoc */ ]]>
+    	UPDATE CMAA_DMST_BUSTR
+				SET REF_NO = #refNo#
+				   ,DUTY_AGNC_USER_ID = #dutyAgncUserId#
+				   ,DUTY_AGNC_ORG_CD = #dutyAgncOrgCd#
+				   ,DOC_STS = #signStsCd#
+				   ,FNL_EDIT_DT = SYSDATE
+				   ,FNL_EDIT_USER_ID = #fnlEditUserId#
+				   ,USER_ID = #userId#
+		           ,ST_YMD = #stYmd#
+		           ,ED_YMD = #edYmd#
+		           ,USER_ORG_CD = #userOrgCd#
+				   ,DD_EXPN_EXCL = #ddExpnExcl#
+				   ,ACCOMO_EXPN_EXCL = #accomoExpnExcl#
+				   ,EDU_BUSTR_YN = #eduBustrYn#
+				   ,IF_PARAM = #ifParam#
+				   ,FILE_ATCH_ID = #fileAtchId#
+				   ,GEN_ACCOMO_DCNT = #genAccomoDcnt#
+				   ,ACCOMO_AMT = #accomoAmt#
+				   ,EEXP_AMT = #eexpAmt#
+				   ,ETC_AMT = #etcAmt#
+				   ,TOT_AMT = #totAmt#
+				   ,REM = #rem#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="insertSignInfoInnerTrip" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.insertSignInfoInnerTrip */ ]]>
+    	INSERT INTO CMAA_SIGN
+    	         (
+    	            SIGN_ID,
+					SIGN_SEQ,
+					SIGN_USER_ID,
+					SIGN_USER_NM,
+					SIGN_TP_CD,
+					SIGN_STS_CD,
+					SIGN_DT,
+					APPER_POSIT_CD,
+					APPER_POSIT_NM,
+					APPER_RPSWRK_CD,
+					APPER_RPSWRK_NM,
+					APPER_ORG_CD,
+					APPER_ORG_NM,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID,
+					DOC_NO,
+					DUTY_CLS
+				 )
+          VALUES (
+          		    #signId#,
+					#signSeq#,
+					#signUserId#,
+					(SELECT USER_KNM FROM CO_USER WHERE USER_ID = #signUserId#),
+					#signTpCd#,
+					#signStsCd#,
+					<isEqual property="signDt" compareValue="Y">
+						SYSDATE,
+					</isEqual>
+					<isEqual property="signDt" compareValue="N">
+						'',
+					</isEqual>
+					(SELECT USER_POSIT_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_POSIT_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_RPSWRK_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_RPSWRK_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					#apperOrgCd#,
+					(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = #apperOrgCd#),
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#docNo#,
+					#dutyCls#
+				)
+	</update>
+
+	<select id="retrieveSignInfo" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Sign" >
+        <![CDATA[ /* InnerTrip.retrieveSignInfo */ ]]>
+		   SELECT
+				SIGN_ID,
+				SIGN_SEQ,
+				SIGN_USER_ID,
+				SIGN_USER_NM,
+				SIGN_TP_CD,
+				SIGN_STS_CD,
+				SIGN_DT,
+				APPER_POSIT_CD,
+				APPER_POSIT_NM,
+				APPER_RPSWRK_CD,
+				APPER_RPSWRK_NM,
+				APPER_ORG_CD,
+				APPER_ORG_NM,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				DOC_NO,
+				DUTY_CLS
+		      FROM CMAA_SIGN
+		      WHERE DUTY_CLS = '01'
+		    	<isNotEmpty property="docNo">
+	        		AND DOC_NO = #docNo#
+	        	</isNotEmpty>
+	        	ORDER BY SIGN_SEQ ASC
+    </select>
+
+    <update id="updateSignDt" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.updateSignDt */ ]]>
+    	 UPDATE CMAA_SIGN SET SIGN_DT = SYSDATE
+		 WHERE SIGN_ID = #signId#
+		 	AND SIGN_SEQ = (SELECT MIN(SIGN_SEQ) FROM CMAA_SIGN WHERE SIGN_ID = #signId# AND SIGN_DT IS NULL)
+	</update>
+
+	<update id="updateSgnsReject" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.updateSgnsReject */ ]]>
+    	 UPDATE CMAA_DMST_BUSTR SET
+    	 		DOC_STS = #docSts#,
+    	 		ACCT_STS = #acctSts#,
+    	 		RET_RESN = #retResn#
+		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="saveCmasDocUpdateFail" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.saveCmasDocUpdateFail */ ]]>
+    	 UPDATE CMAA_DMST_BUSTR SET
+    	 		DOC_STS = #docSts#
+		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="insertInnerTripTempDoc" parameterClass="map" >
+    	<![CDATA[ /* InnerTrip.insertInnerTripTempDoc */ ]]>
+    	 INSERT INTO CMAA_DMST_BUSTR(
+    	            DOC_NO,
+    	            FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          		    #docNo#,
+          		    SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#
+				)
+	</update>
+
+	<select id="retrieveDocInfo" parameterClass="map" resultClass="java.util.HashMap" >
+        <![CDATA[ /* InnerTrip.retrieveDocInfo */ ]]>
+		   SELECT
+				CDB.DOC_NO,
+				CDB.REF_NO,
+				CDB.DUTY_AGNC_USER_ID,
+				CDB.DUTY_AGNC_ORG_CD,
+				CDB.FST_REG_DT,
+				CDB.FST_REG_USER_ID,
+				CDB.FNL_EDIT_DT,
+				CDB.FNL_EDIT_USER_ID,
+				CDB.USER_ID,
+				CDB.ST_YMD,
+				CDB.ED_YMD,
+				CDB.ACCT_STS,
+				CDB.RET_RESN,
+				CDB.USER_ORG_CD,
+				CDB.DD_EXPN_EXCL,
+				CDB.ACCOMO_EXPN_EXCL,
+				CDB.EDU_BUSTR_YN,
+				CDB.SL_NO,
+				CDB.IF_PARAM,
+				CDB.DOC_STS,
+				(SELECT DISTINCT SIGN_ID FROM CMAA_SIGN WHERE DOC_NO = CDB.DOC_NO AND DUTY_CLS = '01') SIGN_ID
+		      FROM CMAA_DMST_BUSTR CDB
+		      WHERE CDB.DOC_STS IS NOT NULL
+		    	<isNotEmpty property="docNo">
+	        		AND CDB.DOC_NO = #docNo#
+	        	</isNotEmpty>
+    </select>
+
+    <select id="retrievelegacyInfo" parameterClass="map" resultClass="java.util.HashMap" >
+        <![CDATA[ /* InnerTrip.retrievelegacyInfo */ ]]>
+           SELECT
+           		SIGN_ID,
+				DUTY_LNK_CD,
+				CLBK_TP_CD,
+				CLBK_PATH,
+				CLBK_PARAM,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				OGG_CD,
+				OGG_TIME
+           FROM SG_SIGN_DUTY_LNK
+           <dynamic prepend="WHERE">
+		        <isNotEmpty property="signId">
+		        	SIGN_ID = #signId#
+		        </isNotEmpty>
+	       </dynamic>
+    </select>
+
+    <update id="updateEvgBarnetInfo" parameterClass="map">
+        <![CDATA[ /* InnerTrip.updateEvgBarnetInfo */ ]]>
+			INSERT INTO ICMS.EVG_IF_BARNET_INFO
+				( 	 CRIT_YMD
+			     , STAFF_ID
+			     , ORG_CD
+			     , HDOFC_ORG_CD
+			     , SDOC_ID
+			     , DMST_BUSTR_TRAFFIC_MEANS_NM_1
+			     , DMST_BUSTR_TRAFFIC_MEANS_NM_2
+			     , DMST_BUSTR_TRAFFIC_MEANS_NM_3
+			     , DMST_BUSTR_TRAFFIC_MEANS_NM_4
+			     , DMST_BUSTR_TRAFFIC_MEANS_NM_5
+			     , RUNTRP_ONEWAY_CLSNM_1
+			     , RUNTRP_ONEWAY_CLSNM_2
+			     , RUNTRP_ONEWAY_CLSNM_3
+			     , RUNTRP_ONEWAY_CLSNM_4
+			     , RUNTRP_ONEWAY_CLSNM_5
+			     , MV_DIST_QTY_1
+			     , MV_DIST_QTY_2
+			     , MV_DIST_QTY_3
+			     , MV_DIST_QTY_4
+			     , MV_DIST_QTY_5
+			     , CALC_YN
+			     , FST_REG_USER_ID
+			     , FNL_EDIT_USER_ID
+			  )
+			WITH BASE_TB AS
+			     (SELECT
+			            CASE
+			                WHEN MOD(ROW_SEQ, 5) = 0 THEN 5
+			                ELSE MOD(ROW_SEQ, 5)
+			            END AS MOD_SEQ
+			          , ROW_SEQ
+			          , DOC_NO
+			          , SEQ
+			          , TRAFFIC_CLS
+			          , RUNTRP_ONEWAY
+			          , MV_DIST
+			       FROM
+			            (SELECT ROW_NUMBER() OVER(PARTITION BY DOC_NO ORDER BY SEQ) AS ROW_SEQ
+			                 , DOC_NO
+			                 , SEQ
+			                 , TRAFFIC_CLS
+			                 , CASE
+			                       WHEN RUNTRP_ONEWAY = 'R' THEN '2'
+			                       ELSE '1'
+			                   END AS RUNTRP_ONEWAY
+			                 , MV_DIST
+			              FROM CMAS.CMAA_DMST_BUSTR_DTL
+			              WHERE DOC_NO = #docNo#
+			            )
+			     )
+			SELECT  A.ST_YMD AS CRIT_YMD
+			     , A.USER_ID AS STAFF_ID
+			     , A.USER_ORG_CD AS ORG_CD
+			     , C.HDOFC_ORG_CD AS HDOFC_ORG_CD
+			     , A.DOC_NO
+			     , B.TRAFFIC_CLS1     AS DMST_BUSTR_TRAFFIC_MEANS_NM_1
+			     , B.TRAFFIC_CLS2     AS DMST_BUSTR_TRAFFIC_MEANS_NM_2
+			     , B.TRAFFIC_CLS3     AS DMST_BUSTR_TRAFFIC_MEANS_NM_3
+			     , B.TRAFFIC_CLS4     AS DMST_BUSTR_TRAFFIC_MEANS_NM_4
+			     , B.TRAFFIC_CLS5     AS DMST_BUSTR_TRAFFIC_MEANS_NM_5
+			     , B.RUNTRP_ONEWAY1   AS RUNTRP_ONEWAY_CLSNM_1
+			     , B.RUNTRP_ONEWAY2   AS RUNTRP_ONEWAY_CLSNM_2
+			     , B.RUNTRP_ONEWAY3   AS RUNTRP_ONEWAY_CLSNM_3
+			     , B.RUNTRP_ONEWAY4   AS RUNTRP_ONEWAY_CLSNM_4
+			     , B.RUNTRP_ONEWAY5   AS RUNTRP_ONEWAY_CLSNM_5
+			     , B.MV_DIST1         AS MV_DIST_QTY_1
+				 , B.MV_DIST2         AS MV_DIST_QTY_2
+				 , B.MV_DIST3         AS MV_DIST_QTY_3
+				 , B.MV_DIST4         AS MV_DIST_QTY_4
+				 , B.MV_DIST5         AS MV_DIST_QTY_5
+			     , 'N'                AS CALC_YN
+			     , A.FST_REG_USER_ID
+			     , A.FNL_EDIT_USER_ID
+			  FROM (SELECT ST_YMD
+			             , USER_ID
+			             , USER_ORG_CD
+			             , DOC_NO
+			             , FST_REG_USER_ID
+			             , FNL_EDIT_USER_ID
+			          FROM
+			               (SELECT TO_CHAR(TO_DATE(A.ST_YMD, 'YYYYMMDD'), 'YYYY-MM-DD') AS ST_YMD
+			                    , A.USER_ID
+			                    , A.USER_ORG_CD
+			                    , A.DOC_NO
+			                    , TO_CHAR(SUBSTR(IF_PARAM, INSTR(IF_PARAM, 'compCar') + 10, 1)) AS COMP_CAR
+			                    , A.FST_REG_USER_ID
+			                    , A.FNL_EDIT_USER_ID
+			                 FROM CMAS.CMAA_DMST_BUSTR A
+			                WHERE A.USER_ID IS NOT NULL
+			                  AND A.ST_YMD IS NOT NULL
+			                AND A.DOC_NO  = #docNo#
+			               )
+			         WHERE COMP_CAR != 'Y'
+			        )  A
+			   LEFT JOIN
+			       (SELECT DOC_NO
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS1
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY1
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN MV_DIST ELSE NULL END) AS MV_DIST1
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS2
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY2
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN MV_DIST ELSE NULL END) AS MV_DIST2
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS3
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY3
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN MV_DIST ELSE NULL END) AS MV_DIST3
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS4
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY4
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN MV_DIST ELSE NULL END) AS MV_DIST4
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS5
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY5
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN MV_DIST ELSE NULL END) AS MV_DIST5
+			         FROM BASE_TB
+			        WHERE ROW_SEQ BETWEEN 1 AND 5
+			        GROUP BY DOC_NO
+			           UNION ALL
+			       SELECT DOC_NO
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS1
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY1
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN MV_DIST ELSE NULL END) AS MV_DIST1
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS2
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY2
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN MV_DIST ELSE NULL END) AS MV_DIST2
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS3
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY3
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN MV_DIST ELSE NULL END) AS MV_DIST3
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS4
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY4
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN MV_DIST ELSE NULL END) AS MV_DIST4
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS5
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY5
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN MV_DIST ELSE NULL END) AS MV_DIST5
+			         FROM BASE_TB
+			        WHERE ROW_SEQ BETWEEN 6 AND 10
+			        GROUP BY DOC_NO
+			           UNION ALL
+			       SELECT DOC_NO
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS1
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY1
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN MV_DIST ELSE NULL END) AS MV_DIST1
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS2
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY2
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN MV_DIST ELSE NULL END) AS MV_DIST2
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS3
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY3
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN MV_DIST ELSE NULL END) AS MV_DIST3
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS4
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY4
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN MV_DIST ELSE NULL END) AS MV_DIST4
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS5
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY5
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN MV_DIST ELSE NULL END) AS MV_DIST5
+			         FROM BASE_TB
+			        WHERE ROW_SEQ BETWEEN 11 AND 15
+			        GROUP BY DOC_NO
+			           UNION ALL
+			       SELECT DOC_NO
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS1
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY1
+			             , MAX(CASE WHEN MOD_SEQ =1 THEN MV_DIST ELSE NULL END) AS MV_DIST1
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS2
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY2
+			             , MAX(CASE WHEN MOD_SEQ =2 THEN MV_DIST ELSE NULL END) AS MV_DIST2
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS3
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY3
+			             , MAX(CASE WHEN MOD_SEQ =3 THEN MV_DIST ELSE NULL END) AS MV_DIST3
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS4
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY4
+			             , MAX(CASE WHEN MOD_SEQ =4 THEN MV_DIST ELSE NULL END) AS MV_DIST4
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN TRAFFIC_CLS ELSE NULL END) AS TRAFFIC_CLS5
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN RUNTRP_ONEWAY ELSE NULL END) AS RUNTRP_ONEWAY5
+			             , MAX(CASE WHEN MOD_SEQ =5 THEN MV_DIST ELSE NULL END) AS MV_DIST5
+			         FROM BASE_TB
+			        WHERE ROW_SEQ BETWEEN 16 AND 20
+			        GROUP BY DOC_NO
+			       ) B
+			       ON B.DOC_NO = A.DOC_NO
+			   LEFT JOIN CSYS.CO_ORG C
+			     ON C.ORG_CD = A.USER_ORG_CD
+
+	    </update>
+
+</sqlMap>

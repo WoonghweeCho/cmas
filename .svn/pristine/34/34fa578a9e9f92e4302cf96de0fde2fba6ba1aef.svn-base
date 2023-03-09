@@ -1,0 +1,454 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@include file="/common/jsp/comm/include/baseSetting.jsp"%>
+<html>
+<head>
+
+<!-- Common Library 처리 -->
+<jsp:include page="/common/jsp/comm/include/clientLib.jsp">
+	<jsp:param value="특별ID 신청" name="title" />
+	<jsp:param value="proxy" name="popupType"/>
+</jsp:include>
+
+<!-- 공통 : 세션정보 -->
+<jsp:include page="/common/jsp/comm/include/sessionInfo.jsp" />
+
+<!-- JavaScript Logic 처리  -->
+<ut:script src="${contextPath}/id/idAppn/idAppnDraft.js"></ut:script>
+
+<!-- 공통 : 첨부컴포넌트 -->
+<jsp:include page="/common/jsp/comp/fileupload/uploadComp.jsp" />
+
+<!-- 디자인 적용 CSS -->
+<link href="${contextPath}/common/css/base.css" type="text/css"
+	rel="stylesheet" />
+
+<script type="text/javascript">
+	var datas = ${param.datas};
+	var v_userId = gv_userId;
+	var v_userNm = gv_userNm;
+	var v_orgCd = gv_orgCd;
+	var v_orgNm = gv_orgNm;
+	var v_userPositCd = gv_userPositCd;
+	var v_userRpswrkCd = gv_userRpswrkCd;
+</script>
+</head>
+
+
+<body id="popup_body">
+	<!-- POPUP_WRAP -->
+	<div id="popup_wrap">
+
+		<!-- CONTENT -->
+		<div id="content">
+
+			<!--BTN-->
+			<div class="btn-area">
+				<!-- a class="btn s1" id="btnReadtn"><span>사전검토/회람지정</span></a-->
+				<!-- a class="btn s1" id="btnSignln"><span>결재선지정</span></a-->
+				<a class="btn s1" id="btnSave"><span>저장</span></a>
+				<a class="btn s1" id="btnDraft"><span>상신</span></a>
+				<a class="btn s1" id="btnSignln" style="display:none"><span>결재선지정</span></a>
+				<a class="btn s2" id="btnDelete" style="display:none"><span>삭제</span></a>
+				<a class="btn s5" id="btnCancle"><span>닫기</span></a>
+			</div>
+			<!--//BTN-->
+
+			<div class="clear"></div>
+
+			<br>
+
+			<!-- 양식명칭 -->
+			<div id="viewTitle" class="form_title" align="center">
+				<h6>
+					<span id="signFormTitle">특별ID 신규 신청</span>
+				</h6>
+			</div>
+			<!-- //양식명칭 -->
+
+			<br> <br>
+
+			<!--결재선-->
+			<div id="appr_line1">
+				<table id="left_signln" border="0" cellspacing="0" cellpadding="0">
+					<tbody>
+						<tr class="signln_pos">
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+						</tr>
+						<tr class="signln_nm">
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+						</tr>
+						<tr class="signln_dt">
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<!--//결재선-->
+
+
+			<!--결재선-->
+			<div id="appr_line2">
+				<table id="right_signln" border="0" cellspacing="0" cellpadding="0">
+					<tbody>
+						<tr class="signln_pos">
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+							<th>&nbsp;</th>
+						</tr>
+						<tr class="signln_nm">
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+						</tr>
+						<tr class="signln_dt">
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+							<td>&nbsp;</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<!--//결재선-->
+
+			<!--문서정보-->
+			<div id="infoDiv" class="box">
+				<h3>문서정보</h3>
+				<div class="list_st1">
+					<form>
+						<table width="100%" border="0" cellspacing="3" cellpadding="0">
+							<col width="13%" />
+							<col width="87%" />
+							<tr>
+								<td class="tit">문서번호</td>
+								<td class="inpt" name="docNo" id="docNo"></td>
+							</tr>
+
+							<!-- IF 기안자 존재 -->
+							<tr id="signDrafter">
+								<td class="tit">기안자</td>
+								<!-- td class="inpt"><select name="authCd" id="authCd" class="txts1"></select>
+								<span id="signDrafterVal"></span>
+								</td-->
+								<td class="inpt" style="padding:0;">
+									<span id="drftUserNm"></span>
+									<select name="authCd" id="authCd" style="width:120px;height:15px;font:normal 12px Dotum,'돋움',arial,helvetica,sans-serif;border:0px solid;background-color:#eee;padding:0;"></select>
+								</td>
+							</tr>
+							<!-- //IF 협의자 존재 -->
+
+							<!-- IF 협의자 존재 -->
+							<tr id="signAssistor">
+								<td class="tit">협의자</td>
+								<td class="inpt" id="signAssistorVal"></td>
+							</tr>
+							<!-- //IF 협의자 존재 -->
+							<tr>
+								<td></td>
+								<td>※ 상신 시, 협의자로 인사팀 담당자가 자동추가됩니다.<br>
+								&nbsp;&nbsp; 그리고 메일, 바로미, 바로콘, 모바일, SVPN, DRM, 분양관리, 프로젝트 외주인력 보안 사용여부에 따라 협의자로 해당 담당자가 자동추가됩니다.<br>
+								<span class="s4" style="color:red;">
+								※ 종료일자 도래 시, 신청한 각 시스템ID 및 메일이 삭제되니 종료 전에 연장신청하시기 바랍니다.(복구불가능)
+								</span></td>
+							</tr>
+						</table>
+					</form>
+				</div>
+			</div>
+			<!--//문서정보-->
+
+			<br>
+
+			<div class="box">
+				<h3>대상자 리스트</h3>
+				<div class="btn-area">
+					<a class="btn s1" id="addBtn"><span>추가</span></a>
+					<a class="btn s1" id="delBtn"><span>삭제</span></a>
+				</div>
+				<div class="list_st2" style="min-height: 70px;">
+					<table id="idAppnDtlList" style="width: 750px;"></table>
+				</div>
+			</div>
+
+			<!--본문-->
+			<div class="box">
+				<h3>대상자 리스트 상세내용</h3>
+				<div class="list_st1" id="idAppnDtl">
+				<form id='idAppnDtlForm'>
+					<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='23%' />
+						<col width='10%' />
+						<col width='23%' />
+						<col width='10%' />
+						<col width='23%' />
+						<tr>
+							<td class='tit'>* 조직명</td>
+							<td class='inpt'><input name='orgNm' id='orgNm'
+								type='text' style='width: 88%' class='int_s1' />
+								<a href="#0" class="f_r" id="orgNmBtn"><img src="${contextPath}/common/images/common/btn_search.png" ></a></td>
+							<td class='tit'>* 조직코드</td>
+							<td class='inpt'><input name='orgCd' id='orgCd'
+								type='text' style='width: 98%' class='int_s1'/></td>
+							<td class='inpt' colspan=2></td>
+
+
+						</tr>
+						<tr>
+							<td class='tit'>시작일자(자동)</td>
+							<td class='inpt'><input type="text" name="stYmd" id="stYmd" style="width: 98%" readonly=true class="int_s1 f_l"></td>
+							<td class='tit'>* 종료일자</td>
+							<td class='inpt'><input type="text" name="edYmd" id="edYmd" style="width: 98%" class="int_s1 f_l"></td>
+						 	<td class='inpt' colspan=2>※ 사용기간 : 1년이내로 신청가능</td>
+						</tr>
+						<tr>
+							<td class='tit'>* 사용자명</td>
+							<td class='inpt'><input name='userNm' id='userNm'
+								type='text' style='width: 98%' class='int_s1' /></td>
+							<td class='tit'>* 영문사용자명</td>
+							<td class='inpt'><input name='userNmEn' id='userNmEn'
+								type='text' style='width: 98%' class='int_s1' /></td>
+							<td class='tit'>* 직급</td>
+							<td class='inpt'><input name='grd' id='grd'
+						 	type='text' style='width: 98%' class='int_s1' /></td>
+						</tr>
+						<tr>
+							<td class='tit'>* 휴대폰번호</td>
+							<td class='inpt'><input name='mphoneNo' id='mphoneNo'
+						 	type='text' style='width: 98%' class='int_s1' /></td>
+							<td class='tit'>회사전화번호</td>
+							<td class='inpt'><input name='compTelno' id='compTelno'
+						 	type='text' style='width: 98%' class='int_s1' /></td>
+							<td class='tit'>팩스번호</td>
+							<td class='inpt'><input name='faxno' id='faxno'
+						 	type='text' style='width: 98%' class='int_s1' /></td>
+						</tr>
+						<tr>
+							<td class='tit'>* 회사메일</td>
+							<td class='inpt'><input name='compMail' id='compMail'
+						 	type='text' style='width: 98%; text-transform: lowercase;ime-mode: disabled;' class='int_s1'  /></td>
+							<td class='inpt' colspan=4>※ 메일 사용신청 시, 사용하게 될 메일주소입니다. (기본 : 특별ID@daewooenc.com 또는 특별ID@dwenc.com)</td>
+						</tr>
+						<tr>
+							<td class='tit'>고용번호</td>
+							<td class='inpt'><input name='empmtNo' id='empmtNo'
+						 	type='text' style='width: 98%' class='int_s1' /></td>
+						 	<td class='inpt' style="color:red;" colspan=4>※ 바로콘 해외노무 모듈 사용을 위해 삼국인/현지인의 특별 ID 신청 시 Employee No.  작성 필수</td>
+						</tr>
+						<tr>
+							<td class='tit'>* 사용목적<br>(메모)</td>
+							<td class='inpt' colspan=5><textarea name='memo' id='memo'
+						 	type='text' style='width: 98%' class='int_s1'></textarea>
+							<span class="s4" style="color:red;">※ 사용목적 자세히 서술 요망</span></td>
+							</td>
+						</tr>
+						</table>
+					</form>
+					<form id='idAppnSysMail'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							<td class='tit'>* 메일</td>
+							<td class='inpt' id='mail' name='mail'></td>
+							<td class='inpt'>
+
+
+											<b>[미사용]</b><br>
+											 &nbsp;※ 개인 이메일 입력시<br>
+											<b>[daewooenc.com]</b><br>
+											 &nbsp;※ 바로넷 이메일 또는 아웃룩 사용 시(SVPN 연결 필요)<br>
+											 &nbsp;※ 접속경로: 바로넷 또는 http://mail.daewooenc.com<br>
+											 &nbsp;※ 담당자: IT운영팀 이진혁 대리 (02-2288-3464)<br>
+											<b>[dwenc.com]</b><br>
+											 &nbsp;※ 외국인 전용 메일 (SVPN 연결 없이도 웹,아웃룩 사용 가능)<br>
+											 &nbsp;※ 접속경로: https://mail.dwenc.com<br>
+											 &nbsp;※ 담당자: IT운영팀 이진혁 대리 (02-2288-3464)
+
+							</td>
+						</tr>
+					</table>
+					</form>
+					<form id='idAppnSysBaronet'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							<td class='tit'>* 바로넷</td>
+							<td class='inpt' id='baronet' name='baronet'></td>
+							<td class='inpt'>※ 담당자: 인사팀 윤은진 대리 (02-2288-3813)
+
+							</td>
+						</tr>
+						</table>
+					</form>
+					<form id='idAppnSysBaromi'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							<td class='tit'>* 바로미</td>
+							<td class='inpt' id='baromi' name='baromi'></td>
+							<td class='inpt'>※ ID는 대소문자 구분하며, 대문자로 로그인<br>
+											※ 바로넷 사용시 : 바로넷 - My Work - 환경설정 - 바로미 비밀번호 동기화<br>
+   											&nbsp;&nbsp;&nbsp;&nbsp;바로넷 미사용시 : 사번 / 사번<br>
+   											※ 담당자: IT운영팀 제창현 차장 (02-2288-4063)
+   							</td>
+						</tr>
+					</table>
+					</form>
+					<form id='idAppnSysBarocon'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							<td class='tit'>* 바로콘</td>
+						 	<td class='inpt' id='barocon' name='barocon'></td>
+						 	<td class='inpt'>※ 바로콘시스템 접속경로 : http://barocon.daewooenc.com<br>
+						 					   ※ 담당자: IT운영팀 신동길 과장 (02-2288-2068)
+						 	</td>
+						</tr>
+					</table>
+					</form>
+					<form id='idAppnSysMobile'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							<td class='tit'>* 모바일<br>(One Touch HSE-Q)</td>
+						 	<td class='inpt' id='mobile' name='mobile'></td>
+						 	<td class='inpt'>※ 사용 선택 시, 협의자로 모바일(One Touch HSE-Q) 담당자 추가됨<br>
+						 					※ 설치 페이지(모바일 전용)<br>&nbsp;&nbsp;&nbsp;http://mobile.daewooenc.com/imms/dn.jsp<br>
+						 					※ 담당자: HSE기획팀 박진석 대리 (02-2288-4435)
+						 	</td>
+						</tr>
+					</table>
+					</form>
+					<form id='idAppnSysSVPN'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							<td class='tit'>* SVPN</td>
+						 	<td class='inpt' id='SVPN' name='SVPN'></td>
+						 	<td class='inpt'>
+						 					<b>※ SAP 사용이 가능한 SVPN을 원하시면</b><br>
+						 					&nbsp;&nbsp;&nbsp;&nbsp;<b>SVPN을 "사용(SAP사용 포함)"으로 선택 요망</b><br>
+						 					※ 사용 선택 시, 협의자로 SVPN 담당자 추가됨<br>
+						 					※ 외부 사무실 근무자는 반드시 SVPN 신청 필요<br>
+						 					※ SVPN 웹페이지 로그인 후 업무시스템 사용 가능<br>
+						 					※ 접속경로: https://svpn.dwconst.co.kr<br>
+						 					※ ID: za사번, PW : za사번(최초 로그인 후 패스워드 변경)<br>
+						 					※ 담당자: IT기획팀 장승호 차장 (02-2288-4357)<br>
+						 	</td>
+						</tr>
+					</table>
+					</form>
+
+				<!--*****DRM 과 외주인력보안 테이블 통합  20210630***	<form id='idAppnSysDRM'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							 <td class='tit'>* DRM<br>(문서보안)</td>
+						 	<td class='inpt' id='DRM' name='DRM'></td>
+						 	<td class='inpt'>
+						 					※ 사용 선택 시, 협의자로 DRM 담당자 추가됨<br>
+						 					※ DRM 프로그램 설치 후 사용 가능<br>
+						 					※ 설치 경로: http://dwdrm.daewooenc.com:1440/help.jsp(SVPN 연결 필요)<br>
+						 					※ DRM ID/PW는 사전에 발급된 것으로 사용(담당자 문의)<br>
+						 					※ 담당자: 정보보호팀 조예진 대리(02-2288-5901)<br>
+						 	</td>
+						</tr>
+					</table>
+					</form>		***DRM 과 외주인력보안 테이블 통합  20210630***-->
+					<form id='idAppnSysPOMS'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							<td class='tit'>* 분양관리</td>
+						 	<td class='inpt' id='POMS' name='POMS'></td>
+						 	<td class='inpt'>
+						 					※ 분양관리 선택시 아래 담당자에게 문의후 신청요망<br>
+						 					<b>※ 분양관리 선택시 메일 미사용 선택 <br>
+						 					&nbsp;&nbsp;&nbsp;이메일 주소, 휴대폰 번호 필수 입력</b><br>
+						 					※ 담당자: 영업관리팀 이혜용 과장(02-2288-4461)<br>
+						 	</td>
+						</tr>
+					</table>
+					</form>
+					<form id='idAppnSysITS'>
+						<table width='100%' border='0' cellspacing='3' cellpadding='0'>
+						<col width='10%' />
+						<col width='40%' />
+						<col width='50%' />
+						<tr>
+							<td class='tit'>* 프로젝트<br>외주인력<br>보안</td>
+						 	<td class='inpt' id='ITS' name='ITS'></td>
+						 	<td class='inpt'>
+						 					※ 외주인력 대상 DRM등 보안 프로그램, 본사 내부망 접속 네트워크 계정 생성<br>
+						 					&nbsp;&nbsp;&nbsp;&nbsp;(내부망 접속 불필요 시, Guest 계정으로 인터넷 사용 가능)<br>
+						 					※ 바로넷 등 당사 업무 시스템 사용 시, 보안 프로그램 설치 필수<br>
+						 					&nbsp;&nbsp;&nbsp;&nbsp;보안 프로그램 설치파일 다운로드 : <br>
+						 					&nbsp;&nbsp;&nbsp;&nbsp;ECM > 협업폴더 > 공용자료 > 소프트웨어 다운로드 > 보안 프로그램 다운로드<br>
+											※ 외부 사무실 근무자는 SVPN 사용 체크 필요<br>
+						 					※ 관련 표준: 외주인력 보안(DTMS-PU-307)<br>
+						 					※ 담당자: 정보보호팀 조예진 대리(02-2288-5901)<br>
+						 	</td>
+						</tr>
+					</table>
+					</form>
+				</div>
+			</div>
+			<!--//본문-->
+		</div>
+		<!-- CONTENT -->
+	</div>
+	<!-- //POPUP_WRAP -->
+</body>
+</html>

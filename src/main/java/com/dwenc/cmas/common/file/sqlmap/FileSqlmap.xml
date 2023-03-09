@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 	: 첨부파일 컴포넌트
+* 설    명 	: 첨부파일 컴포넌트 관련 쿼리
+* 작 성 자 	: 변형구
+* 작성일자 	: 2013-03-21
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+
+*************************************************************************************-->
+<sqlMap namespace="commonFile">
+
+
+	<!--***************************************************************
+    * 설명    	: 파일정보 result map
+    * 작성일자	: 2031.03.20
+    * 작성자  	: 변형구
+    ****************************************************************-->
+    <resultMap class="java.util.HashMap" id="fileInfo">
+    	<result property="rownum" 			column="ROWNUM"/>
+		<result property="fileAtchId" 		column="FILE_ATCH_ID"/>
+		<result property="fileId" 			column="FILE_ID"/>
+		<result property="filePath" 		column="FILE_PATH"/>
+		<result property="fileNm" 			column="FILE_NM"/>
+		<result property="fileSize" 		column="FILE_SIZE"/>
+		<result property="useYn" 			column="USE_YN"/>
+		<result property="ecmNo" 			column="ECM_NO"/>
+		<result property="fstRegDt" 		column="FST_REG_DT"/>
+		<result property="fstRegUserId"		column="FST_REG_USER_ID"/>
+		<result property="fnlEditDt" 		column="FNL_EDIT_DT"/>
+		<result property="fnlEditUserId" 	column="FNL_EDIT_USER_ID"/>
+	</resultMap>
+	<!--***************************************************************
+    * 설명            : 파일 마스터 정보
+    * 작성일자      	: 2013.03.20
+    * 작성자         	: 변형구
+    ****************************************************************-->
+	<select id="retrieveMasterFileInfo" parameterClass="map" resultMap="fileInfo" >
+	  <![CDATA[ /* commonFile.retrieveMasterFileInfo */ ]]>
+	  	SELECT 	ROWNUM,
+	  			FILE_ATCH_ID    ,
+			 	USE_YN          ,
+			 	TO_CHAR(FST_REG_DT, 'YYYY-MM-DD') AS FST_REG_DT ,
+			 	FST_REG_USER_ID ,
+			 	TO_CHAR(FNL_EDIT_DT, 'YYYY-MM-DD') AS FNL_EDIT_DT ,
+			 	FNL_EDIT_USER_ID
+         FROM   CO_FILE_ATCH
+       	WHERE
+             	FILE_ATCH_ID = #fileAtchId#
+          AND 	USE_YN = 'Y'
+	</select>
+
+    <!--***************************************************************
+    * 설명            : 파일정보의 조회
+    * 작성일자      	: 2013.03.20
+    * 작성자         	: 변형구
+    ****************************************************************-->
+	<select id="retrieveFileList" parameterClass="map" resultMap="fileInfo" >
+	  <![CDATA[ /* commonFile.retrieveFileList */ ]]>
+	  	SELECT 	ROWNUM			,
+	  			FILE_ATCH_ID    ,
+			 	FILE_ID         ,
+			 	FILE_PATH       ,
+			 	FILE_NM         ,
+			 	FILE_SIZE       ,
+			 	USE_YN          ,
+			 	ECM_NO          ,
+			 	TO_CHAR(FST_REG_DT, 'YYYY-MM-DD') AS FST_REG_DT ,
+			 	FST_REG_USER_ID ,
+			 	TO_CHAR(FNL_EDIT_DT, 'YYYY-MM-DD') AS FNL_EDIT_DT ,
+			 	FNL_EDIT_USER_ID
+         FROM   CO_FILE
+       	WHERE
+             	FILE_ATCH_ID = #fileAtchId#
+          AND 	USE_YN = 'Y'
+	</select>
+
+    <!--***************************************************************
+    * 설명            : 파일정보의 조회
+    * 작성일자      	: 2013.03.20
+    * 작성자         	: 변형구
+    ****************************************************************-->
+	<select id="retrieveFileInfo" parameterClass="map" resultMap="fileInfo" >
+	  <![CDATA[ /* commonFile.retrieveFileInfo */ ]]>
+	  	SELECT 	ROWNUM			,
+	  			FILE_ATCH_ID    ,
+			 	FILE_ID         ,
+			 	FILE_PATH       ,
+			 	FILE_NM         ,
+			 	FILE_SIZE       ,
+			 	USE_YN          ,
+			 	ECM_NO          ,
+			 	TO_CHAR(FST_REG_DT, 'YYYY-MM-DD') AS FST_REG_DT ,
+			 	FST_REG_USER_ID ,
+			 	TO_CHAR(FNL_EDIT_DT, 'YYYY-MM-DD') AS FNL_EDIT_DT ,
+			 	FNL_EDIT_USER_ID
+         FROM   CO_FILE
+       	WHERE
+             	FILE_ATCH_ID = #fileAtchId#
+          AND 	USE_YN = 'Y'
+    	<isNotEmpty property="fileId" prepend="AND">
+          FILE_ID = #fileId#
+       	</isNotEmpty>
+       	<isEmpty property="fileId" prepend="AND">
+          ROWNUM = 1
+       	</isEmpty>
+	</select>
+
+
+	<!--***************************************************************
+    * 설명            : 웹파일 업로드용 FILE_ATHC_ID 생성
+    * 작성일자      	: 2013.03.20
+    * 작성자         	: 변형구
+    ****************************************************************-->
+	<select id="retrieveWebFileAtchId" parameterClass="map" resultClass="java.lang.String" >
+	  <![CDATA[ /* commonFile.retrieveWebFileAtchId */ ]]>
+	  SELECT '100'||CO_FILE_ATCH_SQ_01.NEXTVAL AS FILE_ATCH_ID
+        FROM DUAL
+	</select>
+
+	<!-- <select id="retrieveWebFileAtchId" parameterClass="map" resultClass="java.lang.String" >
+	  <![CDATA[ /* commonFile.retrieveWebFileAtchId */ ]]>
+	  SELECT MAX(NVL(0, FILE_ATCH_ID))+1 FROM CMAA_ABRD_BUSTR
+	</select>-->
+
+	<!--***************************************************************
+    * 설명            : 웹 파일 마스터 정보 추가
+    * 작성일자     	: 2013.03.20
+    * 작성자        	: 변형구
+    ****************************************************************-->
+	<insert id="insertWebCoFileAtch" parameterClass="map">
+	  <![CDATA[ /* commonFile.insertWebCoFileAtch */ ]]>
+	  INSERT INTO CO_FILE_ATCH
+       (
+       		FILE_ATCH_ID    ,
+			USE_YN          ,
+			FST_REG_DT      ,
+			FST_REG_USER_ID ,
+			FNL_EDIT_DT     ,
+			FNL_EDIT_USER_ID,
+			OGG_CD          ,
+			OGG_TIME
+		)
+        VALUES
+        (
+       		#fileAtchId#,
+  			#useYn#,
+          	SYSDATE,
+          	#fstRegUserId#,
+          	SYSDATE,
+          	#fstRegUserId#,
+			#oggCd#,
+			TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	    )
+	</insert>
+
+
+	<!--***************************************************************
+    * 설명            : 웹 파일 정보 추가
+    * 작성일자     	: 2013.03.20
+    * 작성자        	: 변형구
+    ****************************************************************-->
+	<insert id="insertWebCoFile" parameterClass="map">
+	  <![CDATA[ /* commonFile.insertWebCoFile */ ]]>
+	  INSERT INTO CO_FILE
+       (
+         	FILE_ATCH_ID    ,
+			FILE_ID         ,
+			FILE_PATH       ,
+			FILE_NM         ,
+			FILE_SIZE       ,
+			USE_YN          ,
+			ECM_NO          ,
+			FST_REG_DT      ,
+			FST_REG_USER_ID ,
+			FNL_EDIT_DT     ,
+			FNL_EDIT_USER_ID,
+			OGG_CD          ,
+			OGG_TIME
+		)
+       SELECT
+       		#fileAtchId#,
+       		NVL(MAX(FILE_ID)+1, 1),
+       		#filePath#,
+       		#fileNm#,
+            #fileSize#,
+  			#useYn#,
+  			#ecmNo#,
+          	SYSDATE,
+          	#fstRegUserId#,
+          	SYSDATE,
+          	#fstRegUserId#,
+			#oggCd#,
+			TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	     FROM
+	        CO_FILE
+	    WHERE
+	    	FILE_ATCH_ID = #fileAtchId#
+	</insert>
+
+	<!--***************************************************************
+    * 설명            : 신규 web file Id 조회
+    * 작성일자     	: 2011.09.29
+    * 작성자        	: 변형구
+    ****************************************************************-->
+	<select id="retrieveWebFileId" parameterClass="map" resultClass="java.lang.Integer" >
+	  <![CDATA[ /* commonFile.retrieveWebFileId */ ]]>
+	  SELECT NVL(MAX(FILE_ID)+1, 1) AS FILE_ID
+	    FROM CO_FILE
+	   WHERE FILE_ATCH_ID = #fileAtchId#
+	</select>
+
+
+
+	<!--***************************************************************
+    * 설명   	: 파일 Master 정보 삭제
+    * 작성일자 	: 2013.03.20
+    * 작성자   	: 변형구
+    ****************************************************************-->
+	<delete id="deleteMasterFileInfo" parameterClass="map">
+	  <![CDATA[ /* commonFile.deleteMasterFileInfo */ ]]>
+	  	UPDATE 	CO_FILE_ATCH
+		   SET 	USE_YN 				= 'N' ,
+				FNL_EDIT_USER_ID 	= #fnlEditUserId#,
+				OGG_TIME  			= TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+		 WHERE
+		 		FILE_ATCH_ID 		= #fileAtchId#
+	</delete>
+
+	<!--***************************************************************
+    * 설명   	: 파일 정보 삭제
+    * 작성일자 	: 2013.03.20
+    * 작성자   	: 변형구
+    ****************************************************************-->
+	<delete id="deleteFileInfo" parameterClass="map">
+	  <![CDATA[ /* commonFile.deleteFileInfo */ ]]>
+      UPDATE 	CO_FILE
+		   SET 	USE_YN 				= 'N' ,
+				FNL_EDIT_USER_ID 	= #fnlEditUserId#,
+				OGG_TIME  			= TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+		 WHERE
+		 		FILE_ATCH_ID 		= #fileAtchId#
+		<isNotEmpty property="fileId" prepend="AND">
+             	FILE_ID = #fileId#
+       	</isNotEmpty>
+	</delete>
+
+	<insert id="copyFileAtch" parameterClass="map">
+	  <![CDATA[ /* commonFile.copyFileAtch */ ]]>
+	  INSERT INTO CO_FILE_ATCH
+       (
+       		FILE_ATCH_ID    ,
+			USE_YN          ,
+			FST_REG_DT      ,
+			FST_REG_USER_ID ,
+			FNL_EDIT_DT     ,
+			FNL_EDIT_USER_ID,
+			OGG_CD          ,
+			OGG_TIME
+		)
+        SELECT
+            #newFileAtchId#    ,
+			USE_YN          ,
+			FST_REG_DT      ,
+			FST_REG_USER_ID ,
+			FNL_EDIT_DT     ,
+			FNL_EDIT_USER_ID,
+			OGG_CD          ,
+			OGG_TIME
+        FROM CO_FILE_ATCH
+        WHERE FILE_ATCH_ID = #fileAtchId#
+	</insert>
+	<insert id="copyFile" parameterClass="map">
+	  <![CDATA[ /* commonFile.insertWebCoFile */ ]]>
+	  INSERT INTO CO_FILE
+       (
+         	FILE_ATCH_ID    ,
+			FILE_ID         ,
+			FILE_PATH       ,
+			FILE_NM         ,
+			FILE_SIZE       ,
+			USE_YN          ,
+			FST_REG_DT      ,
+			FST_REG_USER_ID ,
+			FNL_EDIT_DT     ,
+			FNL_EDIT_USER_ID,
+			OGG_CD          ,
+			OGG_TIME
+		)
+       SELECT
+       		#newFileAtchId#,
+       		FILE_ID,
+       		FILE_PATH,
+       		FILE_NM,
+            FILE_SIZE,
+  			USE_YN,
+          	SYSDATE,
+          	FST_REG_USER_ID,
+          	SYSDATE,
+          	FNL_EDIT_USER_ID,
+			OGG_CD,
+			OGG_TIME
+	     FROM
+	        CO_FILE
+	    WHERE
+	    	FILE_ATCH_ID = #fileAtchId#
+	</insert>
+
+	<select id="retrieveZipFileAtch" parameterClass="map"  resultClass="java.lang.String">
+	  <![CDATA[ /* commonFile.retrieveZipFileAtch */ ]]>
+	  	SELECT COUNT(*)
+	  	  FROM CO_FILE
+        WHERE FILE_ATCH_ID = #fileAtchId#
+            AND FILE_NM LIKE '%.zip'
+	</select>
+</sqlMap>
+
+

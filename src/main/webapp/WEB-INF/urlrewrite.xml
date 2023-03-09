@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 3.1//EN" "http://tuckey.org/res/dtds/urlrewrite3.1.dtd">
+<urlrewrite default-match-type="wildcard">
+
+	<rule match-type="wildcard">
+		<note>Template 서블릿 매핑</note>
+		<from>/pattern/*/*/*.xpl</from>
+		<to>/pattern/$1/$2/$3.pattern</to>
+	</rule>
+    <rule match-type="wildcard">
+		<note>업무공통</note>
+		<from>/co*/*/*/*/*/*/*.xpl</from>
+		<to>/co$1/$2/$3/$4/$5/$6/$7.co</to>
+	</rule>
+	<rule match-type="wildcard">
+		<note>공통</note>
+		<from>/co/*/*/*.xpl</from>
+		<to>/co/$1/$2/$3.co</to>
+	</rule>
+
+	<rule match-type="wildcard">
+		<note>공통화면</note>
+		<from>/co*/*/*/*.xpl</from>
+		<to>/co$1/$2/$3/$4.co</to>
+	</rule>
+
+	<rule match-type="wildcard">
+		<note>특별ID</note>
+		<from>/id*/*/*.xpl</from>
+		<to>/id$1/$2/$3.id</to>
+	</rule>
+
+	<rule match-type="wildcard">
+		<note>정보성화면</note>
+		<from>/info*/*.xpl</from>
+		<to>/info$1/$2.info</to>
+	</rule>
+
+	<rule match-type="wildcard">
+		<note>출장</note>
+		<from>/trip*/*/*.xpl</from>
+		<to>/trip$1/$2/$3.trip</to>
+	</rule>
+
+	<rule match-type="wildcard">
+		<note>회계웹시스템</note>
+		<from>/acws*/*/*.xpl</from>
+		<to>/acws$1/$2/$3.acws</to>
+	</rule>
+
+	<rule match-type="wildcard">
+		<note>웹앱</note>
+		<from>/baronet*/*/*.xpl</from>
+		<to>/baronet$1/$2/$3.baro</to>
+	</rule>
+
+	<rule match-type="wildcard">
+		<note>웹앱</note>
+		<from>/tech*/*/*.xpl</from>
+		<to>/tech$1/$2/$3.tech</to>
+	</rule>
+
+	<rule match-type="wildcard">
+		<note>sample</note>
+		<from>/sample*/*.xpl</from>
+		<to>/sample$1/$2.sample</to>
+	</rule>
+
+    <rule>
+        <from>/favicon.ico</from>
+        <to last="true">/favicon.ico</to>
+    </rule>
+
+	<rule>
+		<from>/common/**</from>
+		<to last="true">/common/$1</to>
+	</rule>
+
+	<rule>
+		<from>/common/images/**</from>
+		<to last="true">/common/images/$1</to>
+	</rule>
+
+</urlrewrite>

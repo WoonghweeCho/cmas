@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:oauth="http://spring-security-oauth.codehaus.org/3.0"
+             xmlns:jcfiam="http://www.daewoobrenic.co.kr/schema/jcfiam"
+             xsi:schemaLocation="
+                http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
+                http://www.daewoobrenic.co.kr/schema/jcfiam http://www.daewoobrenic.co.kr/schema/jcfiam/jcf-iam-1.0.xsd">
+
+	<!-- HTTP security configurations 인증/인가 관련 세팅 -->
+    <http auto-config="true" access-decision-manager-ref="accessDecisionManager">
+		<custom-filter ref="autoLoginProcessingFilter" after="FIRST"/>
+		<!-- 보안예외사항등록 시작 -->
+		<!-- 파비콘 : 보안확인없음 -->
+		<intercept-url pattern="/favicon.ico" filters="none"/>
+		<!-- 초기화면 html, htm : 보안확인없음 -->
+        <intercept-url pattern="/*.htm" filters="none"/>
+        <intercept-url pattern="/*.html" filters="none"/>
+        <!-- 초기화면 : Sso check 를 위한 jsp 보안 확인 없음  -->
+        <intercept-url pattern="/index.jsp" filters="none"/>
+
+        <!-- 설치 : Activex 설치 파일 -->
+        <intercept-url pattern="/common/install/**/*" filters="none"/>
+
+	    <!-- css 파일 보안 확인 없음  -->
+        <intercept-url pattern="/common/css/*" filters="none"/>
+        <intercept-url pattern="/common/css/framework/*" filters="none"/>
+        <intercept-url pattern="/common/css/framework/elrte/*" filters="none"/>
+
+	    <!-- 이미지  : 보안확인없음 -->
+        <intercept-url pattern="/common/images/*" filters="none"/>
+        <intercept-url pattern="/common/images/**/*" filters="none"/>
+
+		<!-- 자바스크립트 js 파일  : 보안확인없음 -->
+        <intercept-url pattern="/common/js/**/*" filters="none"/>
+        <intercept-url pattern="/common/js/**/**/*" filters="none"/>
+        <intercept-url pattern="/common/js/**/**/**/*" filters="none"/>
+
+
+		<!-- error페이지 : 보안확인없음 -->
+		<intercept-url pattern="/common/jsp/comm/error/*" filters="none"/>
+		<!-- jsp include : 보안확인 없음  -->
+        <intercept-url pattern="/common/jsp/comm/include/*" filters="none"/>
+        <!-- jsp Login : 보안확인 없음  -->
+        <intercept-url pattern="/common/jsp/comm/login/*" filters="none"/>
+        <!-- jsp Login : 보안확인 없음  -->
+        <intercept-url pattern="/common/jsp/comm/LoginXpl.jsp" filters="none"/>
+        <!-- jsp SSO Login : 보안확인 없음  -->
+        <intercept-url pattern="/common/jsp/comm/SsoOpenXpl.jsp" filters="none"/>
+        <!-- jsp Login : 보안확인 없음  -->
+        <intercept-url pattern="/common/jsp/comm/proxyDialog.jsp" filters="none"/>
+        <intercept-url pattern="/common/jsp/comm/proxyDialogSSO.jsp" filters="none"/>
+        <!-- 파일 download용 response view  : 보안확인 없음  -->
+        <intercept-url pattern="/common/jsp/dummy2.jsp" filters="none"/>
+        <!-- sso client  : 보안확인 없음  -->
+		<intercept-url pattern="/common/jsp/ssoclient/*" filters="none"/>
+		<intercept-url pattern="/RexServer30/**/*" filters="none"/>
+
+
+		<!-- 인증처리를 위한 servlet  : 보안확인 없음  -->
+        <intercept-url pattern="/co/common/login/existUserId.xpl" filters="none"/>
+        <intercept-url pattern="/co/common/login/loginPageSvc.xpl" filters="none"/>
+        <intercept-url pattern="/co/common/login/loginRSAKey.xpl" filters="none"/>
+
+        <intercept-url pattern="/in/info/*" filters="none"/>
+
+		<!-- Login  화면  : 보안확인 없음   -->
+        <intercept-url pattern="/co/common/login/login*" filters="none"/>
+        <!-- Message get 서비스   : 보안확인 없음   -->
+        <intercept-url pattern="/co/common/message/get*" filters="none"/>
+        <!-- 파일 다운로드  서비스   : 보안확인 없음   -->
+        <intercept-url pattern="/co/common/file/downloadUploadedFile.*" filters="none"/>
+        <intercept-url pattern="/co/common/file/downloadFileStream.*" filters="none"/>
+        <intercept-url pattern="/co/common/file/downloadDext*" filters="none"/>
+
+		<!-- 배치잡 -->
+		<intercept-url pattern="/id/idAppn/expInfo.*" filters="none"/>
+
+		<!-- 결재 콜백 -->
+		<intercept-url pattern="/id/idAppn/SignCallBack.*" filters="none"/>
+		<intercept-url pattern="/co/common/utils/SignCallBack.*" filters="none"/>
+        <intercept-url pattern="/trip/innerTrip/CallBackServlet.*" filters="none"/>
+        <intercept-url pattern="/sample/SignCallBack.*" filters="none"/>
+
+        <!-- ??? : 보안확인없음 -->
+		<intercept-url pattern="/html_templet/*" filters="none"/>
+
+		<intercept-url pattern="/sample/transaction/communication/testLogin.xpl" filters="none"/>
+
+		<intercept-url pattern="/baronet/css/base.css" filters="none"/>
+		<intercept-url pattern="/baronet/sgn/baronetDocViewer.*" filters="none"/>
+		<intercept-url pattern="/baronet/sgn/baronetDocContents.*" filters="none"/>
+		<intercept-url pattern="/baronet/sgn/baronetDummy.*" filters="none"/>
+
+        <!-- 보안예외사항등록 종료 -->
+        <custom-filter ref="externalAuthenticationProcessingFilter" position="FIRST"/>
+        <custom-filter ref="filterSecurityInterceptor" before="FILTER_SECURITY_INTERCEPTOR"/>
+
+        <!-- 인증 위한 login 처리 화면 설정 -->
+        <form-login authentication-success-handler-ref="successHandler" authentication-failure-handler-ref="failureHandler"
+        			login-page="/index.html"/>
+		<access-denied-handler ref="accessDeniedHandler"/><!-- 인가 거부시 처리설정 -->
+        <!-- logout url 설정 -->
+        <logout logout-url="/j_spring_security_checkout" invalidate-session="true" />
+    </http>
+
+    <!-- 인증관리 빈정의 -->
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider user-service-ref="authService">
+            <password-encoder ref="dwePasswordEncoder"/><!-- 비밀번호 암호화 처리 빈 -->
+        </authentication-provider>
+    </authentication-manager>
+
+	<!-- JCF-IAM관련 정의 -->
+	<jcfiam:iam-config query-executor-id="queryExecutor"
+		user-service-id="authService" authentication-manager-id="authenticationManager"
+		access-decision-manager-id="accessDecisionManager" use-security-event="false">
+		<jcfiam:filter-security-interceptor id="filterSecurityInterceptor"/>
+		<jcfiam:custom-security-model use-acl="false" use-default-model="false">
+			<!-- 사용자 정보 -->
+			<jcfiam:security-class type="USER" 	class="docfbaro.iam.authentication.UserDefinition" />
+			<!-- 사용자가 시스템에 가진 권한(ROLE) -->
+			<jcfiam:security-class type="AUTHORITY"	class="docfbaro.iam.authentication.AuthorityDefinition" />
+			<!-- 시스템이 관리하는 권한(ROLE) -->
+			<jcfiam:security-class type="ROLE" class="docfbaro.iam.authentication.RoleDefinition" />
+			<!-- 시스템 관점에서 보호해야 할 자원정의 -->
+			<jcfiam:security-class type="SECURED_RESOURCES_ROLES" class="docfbaro.iam.authorization.SecuredResourcesDefinitionByRole" />
+			<!-- 사용자가 접근 가능한 자원정의 -->
+			<jcfiam:security-class type="PERMISSION_ROLES" class="docfbaro.iam.authorization.GrantedResourcesDefinitionByRole" />
+		</jcfiam:custom-security-model>
+	</jcfiam:iam-config>
+
+    <!-- 인증처리 빈 정의 -->
+    <beans:bean id="authService" class="docfbaro.iam.authentication.IntegratedAuthenticationUserDetailsService" >
+    	<beans:property name="queryExecutor" ref="queryExecutor" />
+    </beans:bean>
+
+    <!-- 비밀번호 암호화 처리 빈 -->
+    <beans:bean id="dwePasswordEncoder" class="docfbaro.security.DwePasswordEncoder"/>
+
+	<beans:bean id="externalAuthenticationProcessingFilter" class="jcf.iam.core.filter.ExternalAuthenticationProcessingFilter">
+		<beans:property name="riaParameterProcessingHandler">
+			<beans:bean class="docfbaro.iam.handler.IntegratedAuthenticationParameterExtHandler" />
+		</beans:property>
+	</beans:bean>
+
+	<!-- 인증성공시 처리해야 하는 작업들을 정의한다. -->
+	<beans:bean id="successHandler" class="docfbaro.iam.handler.IntegratedAuthenticationSuccessHandler">
+		<beans:property name="defaultTargetUrl" value="/common/jsp/frame/frame.jsp" /><!-- 인증성공시 전환되는 페이지 정의 -->
+		<beans:property name="alwaysUseDefaultTargetUrl" value="true" /><!-- true : 무조건 defaultTargetUrl,false : 입력한 페이지 url -->
+	</beans:bean>
+
+	<!-- 로그인 사용자의 추가 정보 처리를 위한 빈 정의 -->
+	<beans:bean id="addUserService" class="com.dwenc.cmas.common.security.service.AdditionalUserInfoServiceImpl" />
+
+	<!-- 인증실패시 처리해야 하는 작업들을 정의한다. -->
+	<beans:bean id="failureHandler" class="docfbaro.iam.handler.IntegratedAuthenticationFailureHandler">
+		<beans:property name="defaultFailureUrl" value="/co/common/login/loginPageSvc.xpl?error=1" />
+	</beans:bean>
+
+	<!-- 인가 거부된 경우 처리해야 하는 작업들을 정의한다. -->
+	<beans:bean id="accessDeniedHandler" class="docfbaro.iam.handler.IntegratedAccessDeniedHandler">
+		<!-- errorPage 가 500byte 미만인 경우 브라우저에서 처리 안 됨 -->
+		<beans:property name="errorPage" value="/common/jsp/comm/error/403.jsp" />
+	</beans:bean>
+
+	<!-- 자동로그인 설정 -->
+	<beans:bean id="autoLoginProcessingFilter" class="docfbaro.iam.filter.AutoLoginFilter" depends-on="configLoader">
+		<beans:property name="username" value="" />
+		<beans:property name="password" value="" />
+	</beans:bean>
+
+	<!-- 보안자원재설정 -->
+	<beans:bean id="securityReloader" class="docfbaro.iam.authorization.AutorizationReloader" />
+
+</beans:beans>

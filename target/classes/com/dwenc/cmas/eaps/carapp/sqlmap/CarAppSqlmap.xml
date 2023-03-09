@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<!--************************************************************************************
+* 프로그램 :
+* 설      명 : DocfBaro iBatis Sqlmap
+* 작 성 자  : 이은숙
+* 작성일자 : 2013-06-03
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* insertCarApp : DB Table에 데이터를 저장한다.
+* updateCarApp : DB Table에 데이터를 수정한다.
+* deleteCarApp : DB Table에 데이터를 삭제한다.
+* retrieveCarApp : DB Table에 데이터를 조회한다.
+*************************************************************************************-->
+
+<!--
+	- 해당 SQLMap을 다른 Java 소스에서 불러 쓸수 있도록 이름을 정한다.
+	- 규칙 : 물리적인 파일명에서 .xml 확장자를 뺀 이름
+-->
+<sqlMap namespace="CarAppSqlmap">
+
+	<!--
+		Insert CarApp
+		1. Copy <insert> </insert>
+		2. ID 변경
+		3. 주석 부분 NameSpace, ID 변경
+		4. 해당 업무 DB Table에 맞게
+			- INTO 절 Field 명 변경
+			- VALUES 절 변수 명 변경
+	  -->
+    <insert id="insertCarApp" parameterClass="map" >
+    	<![CDATA[ /* CarAppSqlmap.insertCarApp */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO BRN_RNCR_APPN_BAS
+    	         (
+    	           RNCR_APPN_NO
+				 , SIGN_ID		 	<!-- 결재문서번호 -->
+				 , USER_ID			<!-- 신청자 ID -->
+			     , USER_NM			<!-- 탐승자 성명 -->
+			     , DEPT_CD			<!-- 신청자 부서 -->
+				 , RNCR_ST_DT		<!-- 배차기간(시작일) -->
+				 , RNCR_ED_DT		<!-- 배차기간(종료일) -->
+				 , CAR_APPN_CLSCD	<!-- 신청용도 -->
+				 , APPN_RESN		<!-- 신청 사유 -->
+				 , DEST_NM			<!-- 행선지 -->
+				 , DRV_CLSCD		<!-- 운전구분 -->
+				 , CAR_KIND_EXPL 	<!-- 차종 -->
+
+			     , FST_REG_DT		<!-- 최초 등록일 -->
+    	         , FST_REG_USER_ID  <!-- 최초 등록자 -->
+    	         , FNL_EDIT_DT		<!-- 최종 수정일 -->
+    	         , FNL_EDIT_USER_ID <!-- 최종 수정자 -->
+				 )
+		  SELECT
+		  		   NVL((SELECT MAX(RNCR_APPN_NO) FROM BRN_RNCR_APPN_BAS) + 1, 1)
+                 , #signId#
+                 , #userId#
+                 , #userNm#
+                 , #deptCd#
+                 , TO_DATE(#rncrStDt# ||' '|| #rncrStTm#,'YYYY-MM-DD hh24:mi:ss')
+                 , TO_DATE(#rncrEdDt# ||' '|| #rncrEdTm#,'YYYY-MM-DD hh24:mi:ss')
+                 , #carAppnClscd#
+                 , #appnResn#
+                 , #destNm#
+                 , #drvClscd#
+                 , #carKindExpl#
+
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+            FROM DUAL
+    </insert>
+	<!--
+		Update CarApp
+		1. Copy <update> </update>
+		2. ID 변경
+		3. 주석 부분 NameSpace, ID 변경
+		4. 해당 업무 DB Table에 맞게
+			- UPDATE 대상 Field, 변수명 변경
+	  -->
+    <update id="updateCarApp" parameterClass="map" >
+    	<![CDATA[ /* CarAppSqlmap.updateCarApp */ ]]>
+    	UPDATE BRN_RNCR_APPN_BAS
+				SET RNCR_APPN_NO	= #rncrAppnNo#
+					, SIGN_ID		= #signId# 				<!-- 결재문서번호 -->
+					, USER_ID		= #userId#				<!-- 신청자 ID -->
+					, USER_NM		= #userNm#				<!-- 탐승자 성명 -->
+					, DEPT_CD		= #deptCd#				<!-- 신청자 부서 -->
+					, RNCR_ST_DT		= #rncrStDt#		<!-- 배차기간(시작일) -->
+					, RNCR_ED_DT		= #rncrEdDt#		<!-- 배차기간(종료일) -->
+					, CAR_APPN_CLSCD	= #carAppnClscd#	<!-- 신청용도 -->
+					, APPN_RESN		= #appnResn#			<!-- 신청 사유 -->
+					, DEST_NM		= #destNm#				<!-- 행선지 -->
+					, DRV_CLSCD		= #drvClscd#			<!-- 운전구분 -->
+					, CAR_KIND_EXPL 	= #carKindExpl#		<!-- 차종 -->
+					, FST_REG_DT		= SYSDATE			<!-- 최초 등록일 -->
+					, FST_REG_USER_ID  	= #fstRegUserId#	<!-- 최초 등록자 -->
+					, FNL_EDIT_DT		= SYSDATE			<!-- 최종 수정일 -->
+					, FNL_EDIT_USER_ID 	= #fnlEditUserId#	<!-- 최종 수정자 -->
+   		 WHERE SIGN_ID = #signId#
+	</update>
+
+    <!--
+		Update CarApp
+		1. Copy <delete> </delete>
+		2. ID 변경
+		3. 주석 부분 NameSpace, ID 변경
+		4. 해당 업무 DB Table에 맞게
+			- DELETE 대상 Field, 변수명 변경
+	  -->
+    <delete id="deleteCarApp" parameterClass="map" >
+    	<![CDATA[ /* CarAppSqlmap.deleteCarApp */ ]]>
+    	DELETE * FROM BRN_RNCR_APPN_BAS
+   		 WHERE SIGN_ID = #signId#
+    </delete>
+
+     <!--
+		Select CarApp
+		1. Copy <select> </select>
+		2. ID 변경
+		3. 주석 부분 NameSpace, ID 변경
+		4. 해당 업무 DB Table에 맞게
+			- SELECT 대상 Field, 변수명 변경
+			- dynamic 조건 처리
+	  -->
+    <select id="selectCarApp" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* CarAppSqlmap.selectCarApp */ ]]>
+	  	    SELECT * FROM
+	  	    (
+			SELECT
+					RNCR_APPN_NO
+					, USER_ID
+					, DEPT_CD
+					, TO_CHAR(RNCR_ST_DT, 'YYYY-MM-DD') RNCR_ST_DT
+					, TO_CHAR(RNCR_ST_DT, 'hh24:mi') 	RNCR_ST_TM
+					, TO_CHAR(RNCR_ED_DT, 'YYYY-MM-DD') RNCR_ED_DT
+					, TO_CHAR(RNCR_ED_DT, 'hh24:mi') 	RNCR_ED_TM
+					, CAR_APPN_CLSCD
+					, APPN_RESN
+					, DEST_NM
+					, USER_NM
+					, DRV_CLSCD
+					, CAR_KIND_EXPL
+					, FST_REG_DT
+					, FST_REG_USER_ID
+					, FNL_EDIT_DT
+					, FNL_EDIT_USER_ID
+					, SIGN_ID
+
+			  FROM BRN_RNCR_APPN_BAS
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="rncrAppnNo">
+	        	RNCR_APPN_NO = #rncrAppnNo#
+	        </isNotEmpty>
+	        <isNotEmpty property="signId">
+	        	SIGN_ID = #signId#
+	        </isNotEmpty>
+	    </dynamic>
+	    ORDER BY RNCR_APPN_NO DESC
+	    ) WHERE ROWNUM = 1
+    </select>
+
+     <select id="selectTest" resultClass="map" parameterClass="map"  >
+			SELECT NAME FROM v$$database
+    </select>
+</sqlMap>

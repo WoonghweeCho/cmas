@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="euc-kr" standalone="no"?>
+<project basedir="." default="deploy.incremental" name="daewooenc">
+
+	<property name="ant.test.skip" value="true" />
+
+	<property name="project.name" value="${deploy.system}" />
+	<property name="target.dir" value="target" />
+	<property name="web.dir" value="src/main/webapp" />
+
+	<property name="package.target" value="${deploy.target}" />
+<!-- 	<property name="overwrite.dir" value="src/deploy/overwrite/${package.target}" /> -->
+
+	<property name="keep.dir" value="${target.dir}/keep-war-${package.target}" />
+
+	<property name="reports.dir" value="${target.dir}/test-reports" />
+
+	<target name="src.properties.init">
+		<!-- build-path 수정시 추가 필요! -->
+		<property name="co.src.dir" value="src/main/java" />
+	</target>
+
+	<target name="compiler.properties.init">
+		<property name="debuglevel" value="source,lines,vars" />
+		<property name="target" value="1.6" />
+		<property name="source" value="1.6" />
+		<property name="failonerror" value="true" />
+		<property name="src.encoding" value="UTF-8" />
+		<property name="debug" value="true" />
+		<property name="lib.dir" value="${web.dir}/WEB-INF/lib" />
+		<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
+
+		<property name="build.class.dir" value="${target.dir}/classes" />
+		<path id="build.classpath">
+			<fileset dir="${lib.dir}" includes="**/*.jar" />
+		</path>
+
+		<property name="test.class.dir" value="${target.dir}/test-classes" />
+		<path id="test.classpath">
+			<path refid="build.classpath" />
+			<path location="${build.class.dir}" />
+		</path>
+	</target>
+
+	<target name="init">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<tstamp>
+			<format property="init.time" pattern="yyyyMMdd-HHmmss" />
+		</tstamp>
+		<echo message="init.time ${init.time}" />
+
+		<!--
+		Jenkins Environment Adaptor
+		 -->
+		<property environment="env" />
+
+		<property name="build.number" value="${env.BUILD_ID}" />
+		<property name="build.version" value="${env.BUILD_TAG}" />
+		<property name="source.revision" value="${env.SVN_REVISION}" />
+		<echo message="build.number ${env.BUILD_ID}" />
+		<echo message="build.version ${env.BUILD_TAG}" />
+		<echo message="source.revision ${env.SVN_REVISION}" />
+
+		<mkdir dir="${target.dir}" />
+		<mkdir dir="${keep.dir}" />
+		<mkdir dir="${keep.dir}/WEB-INF/classes" />
+
+	</target>
+
+	<target name="clean" description="clean target directory">
+		<delete dir="${target.dir}" />
+	</target>
+
+
+	<target name="duplicate.compile" depends="compile">
+		<!--
+		always clean up target directory
+		 -->
+		<delete dir="${target.dir}/duplicate" />
+
+		<antcall target="compile">
+			<param name="build.class.dir">${target.dir}/duplicate</param>
+		</antcall>
+	</target>
+
+	<target name="compile" depends="init, src.properties.init, compiler.properties.init">
+		<mkdir dir="${build.class.dir}" />
+
+		<javac debug="true" debuglevel="${debuglevel}" destdir="${build.class.dir}" source="${source}" target="${target}" encoding="${src.encoding}" includeantruntime="false" failonerror="${failonerror}">
+			<!-- build-path 수정시 추가 필요! -->
+			<src path="${co.src.dir}" />
+			<classpath refid="build.classpath" />
+			<compilerarg line="-warn:none" />
+		</javac>
+		<copy todir="${build.class.dir}" preservelastmodified="true" encoding="${src.encoding}">
+			<!-- build-path 수정시 추가 필요! -->
+			<fileset dir="${co.src.dir}" excludes="**/*.java" />
+		</copy>
+	</target>
+
+
+	<target name="make.version.page">
+		<copy todir="${target.dir}" overwrite="true" encoding="${src.encoding}" description="version page tag processing">
+			<fileset dir="${web.dir}" includes="version.*" />
+			<filterset>
+				<filter token="BUILD_ID" value="${build.number}" />
+				<filter token="BUILD_TAG" value="${build.version}" />
+				<filter token="SVN_REVISION" value="${source.revision}" />
+			</filterset>
+		</copy>
+	</target>
+
+	<!--
+	Full WAR package, ftp transfer, deploy
+	 -->
+	<target name="package" depends="clean" description="make war package">
+		<antcall target="make.version.page" />
+		<property name="package.name" value="${project.name}-${init.time}.war" />
+
+		<war destfile="${target.dir}/${package.name}">
+			<fileset dir="${web.dir}">
+				<exclude name="version.*" />
+				<exclude name="WEB-INF/lib/**" />
+				<exclude name="WEB-INF/classes/**" />
+<!-- 				<present present="srconly" targetdir="${overwrite.dir}" /> -->
+			</fileset>
+<!-- 			<lib dir="${lib.dir}"> -->
+<!-- 				<present present="srconly" targetdir="${overwrite.dir}/WEB-INF/lib" /> -->
+<!-- 			</lib> -->
+<!-- 			<classes dir="${build.class.dir}"> -->
+<!-- 				<present present="srconly" targetdir="${overwrite.dir}/WEB-INF/classes" /> -->
+<!-- 			</classes> -->
+
+<!-- 			<fileset dir="${overwrite.dir}" /> -->
+
+			<fileset dir="${target.dir}" includes="version.*" />
+		</war>
+	</target>
+
+
+
+
+	<property file="build.properties" />
+
+
+ <!-- ftp 로 해당 서버에 압축파일 전속한 후에 keep 폴더에 넣음 -->
+	<target name="ftp" depends="package" description="ftp to transfer war package">
+		<ftp.macro deploy.host="${deploy.host}" package.name="${package.name}" />
+	</target>
+
+
+	<!-- 호스트별 반복작업 마크로 -->
+	<macrodef name="ftp.macro">
+		<attribute name="deploy.host" />
+		<attribute name="package.name" />
+		<sequential>
+			<touch file="${target.dir}/@{package.name}.FIN" />
+			<echo message="sending files to @{deploy.host}" />
+			<retry retrycount="3">
+				<scp remoteTodir="${deploy.user}@${deploy.host}:${deploy.dir}" password="${deploy.password}" trust="yes" sftp="true">
+					<fileset dir="${target.dir}">
+						<include name="@{package.name}" />
+						<include name="@{package.name}.DEL" />
+						<include name="@{package.name}.FIN" />
+					</fileset>
+				</scp>
+			</retry>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="deploy.macro">
+		<attribute name="deploy.host" />
+		<attribute name="shell.command" />
+		<attribute name="stage.file" />
+		<element name="telnet.elements" implicit="no" />
+		<sequential>
+			<sshexec host="@{deploy.host}"
+				username="${deploy.user}"
+				password="${deploy.password}"
+				port="22"
+				trust="yes"
+				command="${deploy.dir}/@{shell.command} @{stage.file} ${deploy.system} ${deploy.server}"
+			/>
+		</sequential>
+	</macrodef>
+
+	<!--
+	이전 전송 형상(keep.dir)과 비교하여 변경사항을 zip 압축. 해당 파일이 없으면 파일이 비게 되며, 변경 없는 상태가 되어  has.modifications 가 거짓이 된다.
+	이에 따라 FTP파일 전송 및 리모트 압축해제 태스크 실행 여부가 결정된다.
+	-->
+
+	<target name="init.incremental" depends="init">
+		<property name="stage.file" value="stage-${project.name}-${init.time}.tar.gz" />
+	</target>
+
+	<target name="check.modifications" depends="init.incremental, compile">
+		<fileset id="war.modifications" dir="${web.dir}">
+			<exclude name="version.*" />
+			<exclude name="WEB-INF/classes/**" />
+<!-- 			<present present="srconly" targetdir="${overwrite.dir}" /> -->
+			<depend targetdir="${keep.dir}" granularity="1000" />
+		</fileset>
+		<pathconvert refid="war.modifications" property="has.war.modifications" setonempty="false" />
+
+		<fileset id="classes.modifications" dir="${build.class.dir}">
+<!-- 			<present present="srconly" targetdir="${overwrite.dir}/WEB-INF/classes" /> -->
+			<depend targetdir="${keep.dir}/WEB-INF/classes" granularity="1000" />
+		</fileset>
+		<pathconvert refid="classes.modifications" property="has.classes.modifications" setonempty="false" />
+
+<!-- 		<fileset id="overwrite.modifications" dir="${overwrite.dir}"> -->
+<!-- 			<depend targetdir="${keep.dir}" granularity="1000" /> -->
+<!-- 		</fileset> -->
+<!-- 		<pathconvert refid="overwrite.modifications" property="has.overwrite.modifications" setonempty="false" /> -->
+
+		<condition property="has.modifications">
+			<or>
+				<isset property="has.war.modifications" />
+				<isset property="has.classes.modifications" />
+<!-- 				<isset property="has.overwrite.modifications" /> -->
+			</or>
+		</condition>
+	</target>
+
+	<target name="check.deletions" depends="init.incremental, duplicate.compile">
+		<fileset id="war.deletions" dir="${keep.dir}">
+			<exclude name="version.*" />
+			<exclude name="WEB-INF/classes/**" />
+			<and>
+				<present present="srconly" targetdir="${web.dir}" />
+<!-- 				<present present="srconly" targetdir="${overwrite.dir}" /> -->
+			</and>
+		</fileset>
+		<pathconvert refid="war.deletions" property="has.war.deletions" setonempty="false" />
+
+		<!--
+		java compiler does not delete class files for erased source .java files.
+		 -->
+		<delete>
+			<fileset dir="${build.class.dir}">
+				<present present="srconly" targetdir="${target.dir}/duplicate" />
+			</fileset>
+		</delete>
+
+		<fileset id="classes.deletions" dir="${keep.dir}/WEB-INF/classes">
+			<and>
+				<present present="srconly" targetdir="${build.class.dir}" />
+<!-- 				<present present="srconly" targetdir="${overwrite.dir}/WEB-INF/classes" /> -->
+			</and>
+		</fileset>
+		<pathconvert refid="classes.deletions" property="has.classes.deletions" setonempty="false" />
+
+		<condition property="has.deletions">
+			<or>
+				<isset property="has.war.deletions" />
+				<isset property="has.classes.deletions" />
+			</or>
+		</condition>
+	</target>
+
+	<target name="zip.modifications" depends="check.modifications" if="has.modifications">
+		<antcall target="make.version.page" />
+		<tar destfile="${target.dir}/${stage.file}" compression="gzip">
+			<fileset dir="${target.dir}" includes="version.*" />
+			<fileset refid="war.modifications" />
+			<zipfileset prefix="WEB-INF/classes" refid="classes.modifications" />
+<!-- 			<fileset refid="overwrite.modifications" /> -->
+		</tar>
+	</target>
+
+	<!--삭제된 파일  tar 로 묶기-->
+	<target name="zip.deletions" depends="check.deletions" if="has.deletions">
+		<property name="delete.file" value="${stage.file}.DEL" />
+		<tar destfile="${target.dir}/${delete.file}" compression="gzip">
+			<zipfileset refid="classes.deletions" prefix="WEB-INF/classes" />
+			<fileset refid="war.deletions" />
+		</tar>
+	</target>
+
+	<target name="check.incremental" depends="zip.deletions, zip.modifications">
+		<condition property="has.incremental">
+			<or>
+				<isset property="has.deletions" />
+				<isset property="has.modifications" />
+			</or>
+		</condition>
+	</target>
+
+	<!--ftp 로 해당 서버에 압축파일 전속한 후에 keep 폴더에 넣음 -->
+	<!--삭제된 파일 Keep 디렉토리에서 지워줌
+		# rm 'tar ftz ${target.dir}/${stage.file}.gz'-->
+	<target name="ftp.incremental" depends="check.incremental" if="has.incremental" description="ftp to transfer modifications">
+		<echo message="has incremental" />
+		<ftp.macro deploy.host="${deploy.host}" package.name="${stage.file}" />
+
+		<antcall target="keep.changes"/>
+		<antcall target="keep.deletions" inheritrefs="true"/>
+	</target>
+
+	<target name="keep.changes" if="has.modifications">
+		<untar src="${target.dir}/${stage.file}" dest="${keep.dir}" compression="gzip" />
+	</target>
+
+	<target name="keep.deletions" if="has.deletions">
+		<delete failonerror="false" verbose="true">
+			<fileset refid="war.deletions"/>
+		</delete>
+		<delete failonerror="false" verbose="true">
+			<fileset refid="classes.deletions" />
+		</delete>
+	</target>
+
+	<target name="deploy.incremental" depends="ftp.incremental" if="has.incremental" description="telnet to deploy modifications">
+		<deploy.macro deploy.host="${deploy.host}" shell.command="incre-deploy.sh" stage.file="${stage.file}">
+			<telnet.elements>
+			</telnet.elements>
+		</deploy.macro>
+	</target>
+
+
+</project>

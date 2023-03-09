@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CVA0101
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveGroupCodeList 조건에 의한 그룹 코드 조회
+
+*************************************************************************************-->
+<sqlMap namespace="Floor">
+	<resultMap class="java.util.HashMap" id="rmGroupCodeList">
+	   <result property="sysCd" column="SYS_CD"/>
+	   <result property="commGrpCd" column="COMM_GRP_CD"/>
+	   <result property="hgrCommGrpCd" column="HGR_COMM_GRP_CD"/>
+	   <result property="commGrpCdNm" column="COMM_GRP_CD_NM"/>
+	   <result property="dutySysCd" column="duty_sys_cd"/>
+	   <result property="useYn" column="USE_YN"/>
+	   <result property="fstRegDt1" column="FST_REG_DT1"/>
+	   <result property="fstRegUserId" column="FST_REG_USER_ID"/>
+	   <result property="fnlEditDt1" column="FNL_EDIT_DT1"/>
+	   <result property="fnlEditUserId" column="FNL_EDIT_USER_ID"/>
+	   <result property="fstRegUserIdName" column="FST_REG_USER_ID_NAME"/>
+	   <result property="fnlEditUserIdName" column="FNL_EDIT_USER_ID_NAME"/>
+	</resultMap>
+
+    <!-- 코드 그룹 조회 -->
+    <select id="floorList" parameterClass="map" resultClass="com.dwenc.cmas.info.domain.FloorDomain" >
+        <![CDATA[ /* info.floorList */ ]]>
+		  SELECT SUBSTR(FLR,1,LENGTH(FLR)-1) FLR,
+       			ORG_NM,
+       			DTL_INFO
+  			FROM CMAA_FLR_INFO
+		ORDER BY TO_NUMBER(REPLACE(FLR,'B','-')) DESC
+    </select>
+
+
+
+     <!--층별정보 insert  -->
+    <insert id="insertFloor" parameterClass="map" >
+    	<![CDATA[ /* info.insertFloor */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO CMAS.CMAA_FLR_INFO
+    			(
+					FLR
+					, ORG_NM
+					, DTL_INFO
+			 	)
+		VALUES (
+					#flr#
+		  		 	, #orgNm#
+				 	, #dtlInfo#
+				)
+    </insert>
+
+
+    <!--층별정보 update -->
+    <update id="updateFloor" parameterClass="map" >
+    	<![CDATA[ /* info.updateFloor */ ]]>
+    	UPDATE CMAS.CMAA_FLR_INFO
+			SET  ORG_NM        = #orgNm#
+			   , DTL_INFO      = #dtlInfo#
+   		 WHERE FLR = #flr#
+   	</update>
+
+   	<!--층별정보 delete -->
+    <update id="deleteFloor" parameterClass="map" >
+    	<![CDATA[ /* info.deleteFloor */ ]]>
+    	DELETE FROM CMAS.CMAA_FLR_INFO
+   		WHERE FLR = #flr#
+   	</update>
+
+</sqlMap>

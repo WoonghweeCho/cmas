@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CVA0201
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveGroupCodeList 조건에 의한 그룹 코드 조회
+
+*************************************************************************************-->
+<sqlMap namespace="Sample">
+    <!-- 리스트 -->
+    <select id="retrieveDraftList" parameterClass="map" resultClass="com.dwenc.cmas.sample.domain.Draft">
+        <![CDATA[ /* Sample.retrieveDraftList */ ]]>
+        SELECT SIGN_ID,
+        		DOC_STS_CD,
+        		FST_REG_DT,
+        		FST_REG_USER_ID,
+        		FNL_EDIT_DT,
+        		FNL_EDIT_USER_ID
+        FROM CMAS.CMAA_SAMPL
+    </select>
+
+    <insert id="saveDraft" parameterClass="map" >
+        <![CDATA[ /* Sample.saveDraft */ ]]>
+        MERGE INTO CMAS.CMAA_SAMPL
+        USING DUAL
+        ON (SIGN_ID=#signId#)
+        WHEN MATCHED THEN
+        	UPDATE SET
+        		DOC_STS_CD = #docStsCd#,
+        		FNL_EDIT_DT = SYSDATE,
+        		FNL_EDIT_USER_ID = #fnlEditUserId#
+        WHEN NOT MATCHED THEN
+			INSERT
+			(
+				SIGN_ID,
+				DOC_STS_CD,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID
+			)
+			VALUES
+			(
+				#signId#,
+				#docStsCd#,
+				SYSDATE,
+				#fstRegUserId#,
+				SYSDATE,
+				#fnlEditUserId#
+			)
+    </insert>
+</sqlMap>

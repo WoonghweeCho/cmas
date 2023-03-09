@@ -1,0 +1,1471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CVA0201
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveGroupCodeList 조건에 의한 그룹 코드 조회
+
+*************************************************************************************-->
+<sqlMap namespace="OuterTrip">
+
+	<select id="retrieveOuterTripList" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.OuterTrip" >
+        <![CDATA[ /* OuterTrip.retrieveOuterTripList */ ]]>
+			SELECT CAB.DOC_NO,
+			       CAB.REF_NO,
+			       (SELECT REF_NO
+			         FROM CMAA_ABRD_BUSTR_RPTDOC
+			        WHERE DOC_NO = CAB.DOC_NO
+			       ) RPT_REF_NO,
+			       CAB.USER_KNM,
+			       CAB.USER_ENM,
+			       CAB.SEAT_GRADE,
+			       CAB.AFARE,
+			       CAB.DEM_ITM,
+			       CAB.PPORT_ISSUE_YMD,
+			       CAB.PPORT_EXPRTN_YMD,
+			       CAB.REM,
+			       CAB.LCL_AFARE,
+			       CAB.LCL_TRAFFIC_EXPN,
+			       CAB.VISA_FEE,
+			       CAB.EXCS_EXPN,
+			       CAB.FST_REG_DT,
+			       CAB.FST_REG_USER_ID,
+			       CAB.FNL_EDIT_DT,
+			       CAB.FNL_EDIT_USER_ID,
+			       (SELECT USER_KNM
+			         FROM CO_USER
+			        WHERE USER_ID = CAB.FNL_EDIT_USER_ID
+			       ) FNL_EDIT_USER_NM,
+			       CAB.FILE_ATCH_ID,
+			       CAB.USER_ID,
+			       (SELECT USER_KNM
+			         FROM CO_USER
+			        WHERE USER_ID = CAB.USER_ID
+			       ) USER_NM,
+			       (SELECT ORG_CD
+			         FROM CO_USER
+			        WHERE USER_ID = CAB.USER_ID
+			       ) ORG_CD,
+			       (SELECT ORG_NM
+			         FROM CO_ORG
+			        WHERE ORG_CD =
+			              (SELECT ORG_CD
+			                FROM CO_USER
+			               WHERE USER_ID = CAB.USER_ID
+			              )
+			       ) ORG_NM,
+			       CAB.ACCT_STS,
+			       CAB.RET_RESN,
+			       CAB.SL_NO,
+			       CAB.IF_PARAM,
+			       SUBSTR(CAB.IF_PARAM, INSTR(CAB.IF_PARAM , 'endDate"')+10,8) AS STAY_ED_YMD,
+			       SUBSTR(CAB.IF_PARAM, INSTR(CAB.IF_PARAM , 'tripUserPositCd')+18, INSTR(CAB.IF_PARAM, 'tripUserRpswrkCd"')-INSTR(CAB.IF_PARAM ,'tripUserPositCd')-21) AS TRIP_USER_POSIT_CD,
+			       CAB.DOC_STS,
+			       CAB.WEF,
+			       CAB.SVC_EXPN,
+			       CAB.BUSTR_GL,
+			       CAB.PECUL,
+			       CAB.INCHRG_AIR,
+			       (SELECT DISTINCT SIGN_ID
+			         FROM CMAA_SIGN
+			        WHERE DOC_NO = CAB.DOC_NO
+			              AND DUTY_CLS = '02'
+			       ) SIGN_ID,
+			       (SELECT DISTINCT SIGN_ID
+			         FROM CMAA_SIGN
+			        WHERE DOC_NO = CAB.DOC_NO
+			              AND DUTY_CLS = '04'
+			       ) ADJUST_SIGN_ID,
+			       (SELECT DOC_STS
+			         FROM CMAA_ABRD_BUSTR_RPTDOC
+			        WHERE DOC_NO = CAB.DOC_NO
+			       ) ADJUST_DOC_STS,
+			       (SELECT NAT_NM
+			         FROM CMAA_ABRD_BUSTR_NAT_RFR N1
+			         WHERE N1.NAT_CD=T1.NAT_CD
+			       )  NAT_NM,
+			       (SELECT NAT_NM
+			         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+			         WHERE N2.NAT_CD=T3.NAT_CD
+			        )  NAT_NM2,
+			        /*두번째 출장국가*/
+			       (SELECT STL_CLS
+			         FROM CMAA_ABRD_BUSTR_RPTDOC
+			         WHERE DOC_NO = CAB.DOC_NO
+			        ) STL_CLS,
+			        (SELECT MIN(STAY_ST_YMD)
+			          FROM CMAA_ABRD_BUSTR_AREA
+			          WHERE DOC_NO = CAB.DOC_NO
+			          AND VISA_OWN_YN IS NULL
+			        ) STAY_ST_YMD
+			     FROM CMAA_ABRD_BUSTR CAB
+			      LEFT JOIN CO_USER CU1
+			          ON CU1.USER_ID = CAB.FST_REG_USER_ID
+			      LEFT JOIN CO_ORG CO1
+			          ON CO1.ORG_CD = CU1.ORG_CD
+			      LEFT JOIN
+			          (SELECT ROW_NUMBER() OVER (PARTITION BY DATA1.DOC_NO ORDER BY DATA1.SEQ ASC) RM1,
+			                 DATA1.NAT_CD,
+			                 DATA1.DOC_NO
+			            FROM CMAA_ABRD_BUSTR_AREA DATA1
+			           WHERE DATA1.VISA_OWN_YN IS NULL
+			          ) T1
+			          ON ( T1.DOC_NO = CAB.DOC_NO AND RM1 = 1  )
+			      LEFT JOIN
+			          (SELECT ROW_NUMBER() OVER (PARTITION BY DATA2.DOC_NO ORDER BY DATA2.SEQ ASC) RM2,
+			                 DATA2.NAT_CD,
+			                 DATA2.DOC_NO
+			            FROM CMAA_ABRD_BUSTR_AREA DATA2
+			           WHERE DATA2.VISA_OWN_YN IS NULL
+			          ) T3
+			          ON ( T3.DOC_NO = CAB.DOC_NO AND RM2 = 2  )
+			    WHERE CAB.DOC_STS IS NOT NULL
+	        	<isNotEmpty prepend="AND" property="userNm">
+	        		(SELECT USER_KNM FROM CO_USER WHERE USER_ID = CAB.USER_ID) LIKE '%' || #userNm# || '%'
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="orgNm">
+	        		(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = (SELECT ORG_CD FROM CO_USER WHERE USER_ID = CAB.USER_ID)) LIKE '%' || #orgNm# || '%'
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="refNo">
+	       			UPPER(CAB.REF_NO) LIKE '%' || UPPER(#refNo#) || '%'
+	      		</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="signStsCd">
+	        		CAB.DOC_STS = #signStsCd#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="adjustStsCd">
+	        		(SELECT DOC_STS FROM CMAA_ABRD_BUSTR_RPTDOC WHERE DOC_NO = CAB.DOC_NO) = #adjustStsCd#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="loginUserId">
+	        		( CO1.HDOFC_ORG_CD = (SELECT HDOFC_ORG_CD FROM CO_ORG WHERE ORG_CD = (SELECT ORG_CD FROM CO_USER WHERE USER_ID = #loginUserId#)) OR CAB.USER_ID = #loginUserId#)
+	        	</isNotEmpty>
+	        	<isNotEmpty  property="simpleDt">
+			      	  <isNotEqual property="simpleDt" prepend="AND" compareValue="DT"> <!-- 기안일 상세검색이 아닌 조건 최근 1달, 2달, 3달-->
+			      	  	CAB.FNL_EDIT_DT &gt;= SYSDATE - #simpleDt#
+			      	  </isNotEqual>
+			      	  <isEqual property="simpleDt" compareValue="DT"> <!-- 기안일 상세검색인 조건 -->
+					      <isNotEmpty property="docStart">
+					      	<isNotEmpty prepend="AND" property="docEnd">
+					          CAB.FNL_EDIT_DT BETWEEN TO_DATE(#docStart#, 'YYYY-MM-DD') AND TO_DATE(#docEnd# || '235959', 'YYYY-MM-DDHH24MISS')
+					        </isNotEmpty>
+					      </isNotEmpty>
+				      </isEqual>
+			      </isNotEmpty>
+			   ORDER BY FNL_EDIT_DT DESC
+    </select>
+
+    <!-- 에러코드(결재완료/연동전) 조회 -->
+    <select id="retrieveOuterTripError" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.OuterTrip" >
+        <![CDATA[ /* OuterTrip.retrieveOuterTripError */ ]]>
+		  SELECT
+		  		CAB.DOC_NO,
+				CAB.REF_NO,
+				CAB.USER_KNM,
+				CAB.USER_ENM,
+				CAB.SEAT_GRADE,
+				CAB.AFARE,
+				CAB.DEM_ITM,
+				CAB.PPORT_ISSUE_YMD,
+				CAB.PPORT_EXPRTN_YMD,
+				CAB.REM,
+				CAB.LCL_AFARE,
+				CAB.LCL_TRAFFIC_EXPN,
+				CAB.VISA_FEE,
+				CAB.EXCS_EXPN,
+				CAB.FST_REG_DT,
+				CAB.FST_REG_USER_ID,
+				CAB.FNL_EDIT_DT,
+				CAB.FNL_EDIT_USER_ID,
+				(SELECT USER_KNM FROM CO_USER WHERE USER_ID = CAB.FNL_EDIT_USER_ID) FNL_EDIT_USER_NM,
+				CAB.FILE_ATCH_ID,
+				CAB.USER_ID,
+				(SELECT USER_KNM FROM CO_USER WHERE USER_ID = CAB.USER_ID) USER_NM,
+				(SELECT ORG_CD FROM CO_USER WHERE USER_ID = CAB.USER_ID) ORG_CD,
+       			(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = (SELECT ORG_CD FROM CO_USER WHERE USER_ID = CAB.USER_ID)) ORG_NM,
+				CAB.ACCT_STS,
+				CAB.RET_RESN,
+				CAB.SL_NO,
+				CAB.IF_PARAM,
+				CAB.DOC_STS,
+				CAB.WEF,
+				CAB.SVC_EXPN,
+				CAB.BUSTR_GL,
+				CAB.PECUL,
+				CAB.INCHRG_AIR,
+				(SELECT DISTINCT SIGN_ID FROM CMAA_SIGN WHERE DOC_NO = CAB.DOC_NO AND DUTY_CLS = '02') SIGN_ID,
+        		(SELECT DOC_STS FROM CMAA_ABRD_BUSTR_RPTDOC WHERE DOC_NO = CAB.DOC_NO) ADJUST_DOC_STS,
+        		(SELECT NAT_NM FROM CMAA_ABRD_BUSTR_NAT_RFR WHERE NAT_CD = (
+		        (SELECT NAT_CD FROM CMAA_ABRD_BUSTR_AREA WHERE DOC_NO = CAB.DOC_NO AND VISA_OWN_YN IS NULL AND ROWNUM = (
+		        SELECT MIN(ROWNUM) FROM CMAA_ABRD_BUSTR_AREA WHERE DOC_NO = CAB.DOC_NO))
+		        )) NAT_NM,
+		        (SELECT STL_CLS FROM CMAA_ABRD_BUSTR_RPTDOC WHERE DOC_NO = CAB.DOC_NO) STL_CLS,
+		        (SELECT MIN(STAY_ST_YMD) FROM CMAA_ABRD_BUSTR_AREA  WHERE DOC_NO = CAB.DOC_NO AND VISA_OWN_YN IS NULL) STAY_ST_YMD
+		      FROM CMAA_ABRD_BUSTR CAB
+		      	LEFT JOIN CO_USER CU1 ON CU1.USER_ID = CAB.FST_REG_USER_ID
+		      	LEFT JOIN CO_ORG CO1 ON CO1.ORG_CD = CU1.ORG_CD
+		      WHERE CAB.DOC_STS IS NOT NULL
+		      		AND CAB.DOC_STS = 'D03' AND CAB.ACCT_STS IS NULL
+	        	<isNotEmpty prepend="AND" property="userNm">
+	        		(SELECT USER_KNM FROM CO_USER WHERE USER_ID = CAB.USER_ID) LIKE '%' || #userNm# || '%'
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="orgNm">
+	        		(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = (SELECT ORG_CD FROM CO_USER WHERE USER_ID = CAB.USER_ID)) LIKE '%' || #orgNm# || '%'
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="refNo">
+	       			UPPER(CAB.REF_NO) LIKE '%' || UPPER(#refNo#) || '%'
+	      		</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="signStsCd">
+	        		CAB.DOC_STS = #signStsCd#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="adjustStsCd">
+	        		(SELECT DOC_STS FROM CMAA_ABRD_BUSTR_RPTDOC WHERE DOC_NO = CAB.DOC_NO) = #adjustStsCd#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="loginUserId">
+	        		CO1.HDOFC_ORG_CD = (SELECT HDOFC_ORG_CD FROM CO_ORG WHERE ORG_CD = (SELECT ORG_CD FROM CO_USER WHERE USER_ID = #loginUserId#)) OR CAB.USER_ID = #loginUserId#
+	        	</isNotEmpty>
+	        	<isNotEmpty  property="simpleDt">
+			      	  <isNotEqual property="simpleDt" prepend="AND" compareValue="DT"> <!-- 기안일 상세검색이 아닌 조건 최근 1달, 2달, 3달-->
+			      	  	CAB.FNL_EDIT_DT &gt;= SYSDATE - #simpleDt#
+			      	  </isNotEqual>
+			      	  <isEqual property="simpleDt" compareValue="DT"> <!-- 기안일 상세검색인 조건 -->
+					      <isNotEmpty property="docStart">
+					      	<isNotEmpty prepend="AND" property="docEnd">
+					          CAB.FNL_EDIT_DT BETWEEN TO_DATE(#docStart#, 'YYYY-MM-DD') AND TO_DATE(#docEnd# || '235959', 'YYYY-MM-DDHH24MISS')
+					        </isNotEmpty>
+					      </isNotEmpty>
+				      </isEqual>
+			      </isNotEmpty>
+			   ORDER BY FNL_EDIT_DT DESC
+
+    </select>
+
+
+
+    <!-- 코드 그룹 조회 -->
+    <select id="retrieveNatList" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Nat" >
+        <![CDATA[ /* OuterTrip.retrieveNatList */ ]]>
+		  SELECT
+		  		 NAT_CD,
+		  		 NAT_NM,
+		  		 VISA_YN,
+		  		 VISA_INFO,
+		  		 FST_REG_DT,
+		  		 FST_REG_USER_ID,
+		  		 FNL_EDIT_DT,
+		  		 FNL_EDIT_USER_ID,
+				 NCS_DOC,
+				 ISSUE_NEED_PERIOD,
+				 VISA_FEE,
+				 STAY_ABLE_PERIOD,
+				 VALID_PERIOD,
+				 VISA_PRGR_STAGE,
+				 PECUL,
+				 REM,
+				 FILE_ATCH_ID,
+				 RISK_YN,
+				 PPORT_USE_APPR_NCS_YN,
+				 FMLY_INFO_NCS_YN,
+				 ARMY_INFO_NCS_YN
+		  FROM CMAA_ABRD_BUSTR_NAT_RFR
+		  ORDER BY NAT_NM ASC
+    </select>
+
+    <select id="retrieveTripRef" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.TripRef" >
+        <![CDATA[ /* OuterTrip.retrieveTripRef */ ]]>
+		  SELECT
+			    POSIT_NM,
+				GRD_NM,
+				CLS,
+				VAL,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID
+   		  FROM CMAA_ABRD_BUSTR_EXPN_RFR
+
+    </select>
+
+     <select id="retrieveAirFareList" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.OuterTrip" >
+        <![CDATA[ /* OuterTrip.retrieveAirFareList */ ]]>
+		  SELECT
+		  		DOC_NO,
+				REF_NO,
+				USER_KNM,
+				USER_ENM,
+				SEAT_GRADE,
+				AFARE,
+				DEM_ITM,
+				PPORT_ISSUE_YMD,
+				PPORT_EXPRTN_YMD,
+				REM,
+				LCL_AFARE,
+				LCL_TRAFFIC_EXPN,
+				VISA_FEE,
+				EXCS_EXPN,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				FILE_ATCH_ID,
+				USER_ID,
+				ACCT_STS,
+				RET_RESN,
+				SL_NO,
+				IF_PARAM,
+				DOC_STS,
+				WEF,
+				SVC_EXPN,
+				INCHRG_AIR
+		  FROM CMAA_ABRD_BUSTR
+		  WHERE DOC_STS = 'D03'
+		  AND AFARE != '0'
+		  <isNotEmpty prepend="AND" property="refNo">
+	       		UPPER(REF_NO) LIKE '%' || UPPER(#refNo#) || '%'
+	      </isNotEmpty>
+	      <isNotEmpty prepend="AND" property="userEnm">
+	       		UPPER(USER_ENM) LIKE '%' || UPPER(#userEnm#) || '%'
+	      </isNotEmpty>
+	      <isNotEmpty prepend="AND" property="userKnm">
+	       		UPPER(USER_KNM) LIKE '%' || UPPER(#userKnm#) || '%'
+	      </isNotEmpty>
+	      <isNotEmpty prepend="AND" property="docStsCd">
+	      	<isEqual property="docStsCd" compareValue="Y">
+	      		INCHRG_AIR IS NOT NULL
+	      	</isEqual>
+	      	<isEqual property="docStsCd" compareValue="N">
+	      		INCHRG_AIR IS NULL
+	      	</isEqual>
+	      </isNotEmpty>
+	      <isNotEmpty prepend="AND" property="tourNm">
+	      	<isEqual property="tourNm" compareValue="D">
+	      		INCHRG_AIR = 'D'
+	      	</isEqual>
+	      	<isEqual property="tourNm" compareValue="H">
+	      		INCHRG_AIR = 'H'
+	      	</isEqual>
+	      	<isEqual property="tourNm" compareValue="J">
+	      		INCHRG_AIR = 'J'
+	      	</isEqual>
+	      	<isEqual property="tourNm" compareValue="N">
+	      		INCHRG_AIR = 'N'
+	      	</isEqual>
+	      </isNotEmpty>
+  		  <isNotEqual prepend ="AND" property="simpleDt" compareValue="DT"> <!-- 기안일 상세검색이 아닌 조건 최근 1달, 2달, 3달 -->
+ 				FNL_EDIT_DT &gt;= SYSDATE - #simpleDt#
+  		  </isNotEqual>
+		  <isEqual property="simpleDt" compareValue="DT"> <!-- 기안일 상세검색인 조건 -->
+			<isNotEmpty property="startDate">
+				<isNotEmpty prepend="AND" property="endDate">
+					FNL_EDIT_DT BETWEEN TO_DATE(#startDate#, 'YYYY-MM-DD') AND TO_DATE(#endDate# || '235959', 'YYYY-MM-DDHH24MISS')
+				</isNotEmpty>
+			</isNotEmpty>
+			</isEqual>
+		ORDER BY FNL_EDIT_DT DESC
+    </select>
+
+    <insert id="saveOuterTripDraft" parameterClass="map" >
+        <![CDATA[ /* OuterTrip.saveOuterTripDraft */ ]]>
+		  INSERT INTO CMAA_ABRD_BUSTR
+    	         (
+    	            DOC_NO,
+					REF_NO,
+					USER_KNM,
+					USER_ENM,
+					SEAT_GRADE,
+					AFARE,
+					DEM_ITM,
+					PPORT_ISSUE_YMD,
+					PPORT_EXPRTN_YMD,
+					REM,
+					LCL_AFARE,
+					LCL_TRAFFIC_EXPN,
+					VISA_FEE,
+					EXCS_EXPN,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID,
+					FILE_ATCH_ID,
+					USER_ID,
+					ACCT_STS,
+					RET_RESN,
+					SL_NO,
+					IF_PARAM,
+					DOC_STS,
+					WEF,
+					SVC_EXPN,
+					BUSTR_GL,
+					PECUL
+				 )
+          VALUES (
+          		  	#docNo#,
+					#refNo#,
+					#userKnm#,
+					#userEnm#,
+					#seatGrade#,
+					#afare#,
+					#demItm#,
+					#pportIssueYmd#,
+					#pportExprtnYmd#,
+					#rem#,
+					#lclAfare#,
+					#lclTrafficExpn#,
+					#visaFee#,
+					#excsExpn#,
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#fileAtchId#,
+					#userId#,
+					#acctSts#,
+					#retResn#,
+					#slNo#,
+					#ifParam#,
+					#docSts#,
+					#wef#,
+					#svcExpn#,
+					#bustrGl#,
+					#pecul#
+				)
+    </insert>
+
+	<!-- 비자 / 방문지 정보 -->
+    <insert id="saveOuterTripVisaInfoList" parameterClass="map" >
+        <![CDATA[ /* OuterTrip.saveOuterTripVisaInfoList */ ]]>
+		  INSERT INTO CMAA_ABRD_BUSTR_AREA
+    	         (
+    	            DOC_NO,
+					SEQ,
+					NAT_CD,
+					CITY_NM,
+					VISA_OWN_YN,
+					STAY_ST_YMD,
+					STAY_ED_YMD,
+					DUTY_CONT,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID,
+					VISA_ISSUE_YMD,
+					VISA_EXPRTN_YMD
+				 )
+          VALUES (
+              	    #docNo#,
+					NVL(LPAD((SELECT (MAX(SEQ)+1) FROM CMAA_ABRD_BUSTR_AREA), 6, '0'), '000000'),
+					#natCd#,
+					#cityNm#,
+					#visaOwnYn#,
+					#stayStYmd#,
+					#stayEdYmd#,
+					#dutyCont#,
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#visaIssueYmd#,
+					#visaExprtnYmd#
+				)
+    </insert>
+
+    <!-- 체제비 정보 -->
+    <insert id="saveOuterTripExpnList" parameterClass="map" >
+        <![CDATA[ /* OuterTrip.saveOuterTripExpnList */ ]]>
+		  INSERT INTO CMAA_ABRD_BUSTR_EXPN
+    	         (
+    	            DOC_NO,
+					SEQ,
+					EXPN_CLS,
+					ACCOMO_CLS,
+					ACCOMO_EXPN,
+					ACCOMO_EXPN_DCNT,
+					DD_EXPN,
+					DD_EXPN_DCNT,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          			#docNo#,
+					NVL(LPAD((SELECT (MAX(SEQ)+1) FROM CMAA_ABRD_BUSTR_EXPN), 6, '0'), '000000'),
+					#expnCls#,
+					#accomoCls#,
+					#accomoExpn#,
+					#accomoExpnDcnt#,
+					#ddExpn#,
+					#ddExpnDcnt#,
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#
+				)
+    </insert>
+
+    <!-- 추가 출장자 정보 -->
+    <insert id="saveOuterTripUserList" parameterClass="map" >
+        <![CDATA[ /* OuterTrip.saveOuterTripUserList */ ]]>
+		  INSERT INTO CMAA_ABRD_BUSTR_EXTNL_PER
+    	         (
+    	            DOC_NO,
+					SEQ,
+					USER_ENM,
+					SEAT_GRADE,
+					AFARE,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          			#docNo#,
+					NVL(LPAD((SELECT (MAX(SEQ)+1) FROM CMAA_ABRD_BUSTR_EXTNL_PER), 6, '0'), '000000'),
+					#userEnm#,
+					#seatGrade#,
+					#afare#,
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#
+				)
+    </insert>
+
+    <!-- 코드 그룹 조회 -->
+    <select id="getMaxCmasId" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* OuterTrip.getMaxCmasId */ ]]>
+		  SELECT DOC_NO FROM CMAA_ABRD_BUSTR
+			WHERE DOC_NO LIKE 'CMAS' || '-' || TO_CHAR(SYSDATE, 'YYYY') || '%'
+			AND ROWNUM =1
+			ORDER BY DOC_NO DESC
+			FOR UPDATE WAIT 3
+    </select>
+
+    <!-- 코드 그룹 조회 -->
+    <select id="getCmasId" parameterClass="map" resultClass="string" >
+        <![CDATA[ /* OuterTrip.getCmasId */ ]]>
+	  	<isEmpty property="docNo">
+		SELECT 'CMAS' || '-' || TO_CHAR(SYSDATE, 'YYYY') || '-' || '000001' AS DOC_NO
+  		FROM DUAL
+  		</isEmpty>
+  		<isNotEmpty property="docNo">
+  		SELECT SUBSTR(#docNo#, 1, 4) || '-' || TO_CHAR(SYSDATE, 'YYYY') || '-' ||
+			LPAD(NVL(TO_NUMBER(SUBSTR(#docNo#, 11))+1, '1'),6, '0') AS DOC_NO
+  		FROM DUAL
+  		</isNotEmpty>
+    </select>
+
+    <update id="insertOuterTripTempDoc" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.insertOuterTripTempDoc */ ]]>
+    	 INSERT INTO CMAA_ABRD_BUSTR(
+    	            DOC_NO,
+    	            FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          		    #docNo#,
+          		    <isEmpty property="fstRegDt">
+	        			SYSDATE,
+	        		</isEmpty>
+	        		<isNotEmpty property="fstRegDt">
+	        			TO_DATE(#fstRegDt#, 'YYYY-MM-DD'),
+	        		</isNotEmpty>
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#
+				)
+	</update>
+
+	<!-- 문서 조회 -->
+    <select id="retrieveOuterTripViewDoc" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.OuterTrip" >
+        <![CDATA[ /* OuterTrip.retrieveOuterTripViewDoc */ ]]>
+		  SELECT
+		  		DOC_NO,
+				REF_NO,
+				USER_KNM,
+				USER_ENM,
+				SEAT_GRADE,
+				AFARE,
+				DEM_ITM,
+				PPORT_ISSUE_YMD,
+				PPORT_EXPRTN_YMD,
+				REM,
+				LCL_AFARE,
+				LCL_TRAFFIC_EXPN,
+				VISA_FEE,
+				EXCS_EXPN,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				FILE_ATCH_ID,
+				USER_ID,
+				ACCT_STS,
+				RET_RESN,
+				SL_NO,
+				IF_PARAM,
+				DOC_STS,
+				WEF,
+				SVC_EXPN,
+				BUSTR_GL,
+				PECUL,
+				PERCHRG_RVW_OPN_1,
+				PERCHRG_RVW_OPN_2
+		      FROM CMAA_ABRD_BUSTR CAB
+		      <dynamic prepend="WHERE">
+	        	<isNotEmpty prepend="AND" property="docNo">
+	        		DOC_NO = #docNo#
+	        	</isNotEmpty>
+	          </dynamic>
+    </select>
+
+    <!-- 비자 방문지 조회 -->
+    <select id="retrieveOuterTripVisaViewDoc" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Visa" >
+        <![CDATA[ /* OuterTrip.retrieveOuterTripVisaViewDoc */ ]]>
+		  SELECT
+		  		DOC_NO,
+				SEQ,
+				NAT_CD,
+				CITY_NM,
+				VISA_OWN_YN,
+				STAY_ST_YMD,
+				STAY_ED_YMD,
+				DUTY_CONT,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				VISA_ISSUE_YMD,
+				VISA_EXPRTN_YMD
+		      FROM CMAA_ABRD_BUSTR_AREA
+		      <dynamic prepend="WHERE">
+	        	<isNotEmpty prepend="AND" property="docNo">
+	        		DOC_NO = #docNo#
+	        	</isNotEmpty>
+	          </dynamic>
+    </select>
+
+    <!-- 체제비 조회 -->
+    <select id="retrieveOuterTripExpnViewDoc" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Expn" >
+        <![CDATA[ /* OuterTrip.retrieveOuterTripExpnViewDoc */ ]]>
+		  SELECT
+		  		DOC_NO,
+				SEQ,
+				EXPN_CLS,
+				ACCOMO_CLS,
+				ACCOMO_EXPN,
+				ACCOMO_EXPN_DCNT,
+				DD_EXPN,
+				DD_EXPN_DCNT,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID
+		      FROM CMAA_ABRD_BUSTR_EXPN
+		      <dynamic prepend="WHERE">
+	        	<isNotEmpty prepend="AND" property="docNo">
+	        		DOC_NO = #docNo#
+	        	</isNotEmpty>
+	          </dynamic>
+    </select>
+
+    <!-- 출장자 조회 -->
+    <select id="retrieveOuterTripExtnlPerViewDoc" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.ExtnlPer" >
+        <![CDATA[ /* OuterTrip.retrieveOuterTripExtnlPerViewDoc */ ]]>
+		  SELECT
+		  		DOC_NO,
+				SEQ,
+				USER_ENM,
+				SEAT_GRADE,
+				AFARE,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID
+		      FROM CMAA_ABRD_BUSTR_EXTNL_PER
+		      <dynamic prepend="WHERE">
+	        	<isNotEmpty prepend="AND" property="docNo">
+	        		DOC_NO = #docNo#
+	        	</isNotEmpty>
+	          </dynamic>
+    </select>
+
+    <update id="updateOuterTripInfo" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateOuterTripInfo */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR
+				SET DOC_STS	= #docStsCd#
+				<isNotEmpty prepend="," property="ifParam">
+	        		IF_PARAM = #ifParam#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="," property="secComment">
+	        		PERCHRG_RVW_OPN_1 = #secComment#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="," property="ghrComment">
+	        		PERCHRG_RVW_OPN_2 = #ghrComment#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="," property="rejectRes">
+	        		PRGR_ITEM = #rejectRes#
+	        	</isNotEmpty>
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="updateAdjustOuterTripInfo" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateAdjustOuterTripInfo */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR_RPTDOC
+				SET DOC_STS	= #docStsCd#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+
+	<update id="insertSignInfoOuterTrip" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.insertSignInfoOuterTrip */ ]]>
+    	INSERT INTO CMAA_SIGN
+    	         (
+    	            SIGN_ID,
+					SIGN_SEQ,
+					SIGN_USER_ID,
+					SIGN_USER_NM,
+					SIGN_TP_CD,
+					SIGN_STS_CD,
+					SIGN_DT,
+					APPER_POSIT_CD,
+					APPER_POSIT_NM,
+					APPER_RPSWRK_CD,
+					APPER_RPSWRK_NM,
+					APPER_ORG_CD,
+					APPER_ORG_NM,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID,
+					DOC_NO,
+					DUTY_CLS
+				 )
+          VALUES (
+          		    #signId#,
+					#signSeq#,
+					#signUserId#,
+					(SELECT USER_KNM FROM CO_USER WHERE USER_ID = #signUserId#),
+					#signTpCd#,
+					#signStsCd#,
+					<isEqual property="signDt" compareValue="Y">
+						SYSDATE,
+					</isEqual>
+					<isEqual property="signDt" compareValue="N">
+						'',
+					</isEqual>
+					(SELECT USER_POSIT_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_POSIT_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_RPSWRK_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_RPSWRK_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					#apperOrgCd#,
+					(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = #apperOrgCd#),
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#docNo#,
+					#dutyCls#
+				)
+	</update>
+
+
+	<insert id="saveOuterTripDocSave" parameterClass="map" >
+        <![CDATA[ /* OuterTrip.saveOuterTripDocSave */ ]]>
+		  INSERT INTO CMAA_ABRD_BUSTR
+    	         (
+    	            DOC_NO
+				   ,DOC_STS
+				   ,FST_REG_DT
+				   ,FST_REG_USER_ID
+				   ,FNL_EDIT_DT
+				   ,FNL_EDIT_USER_ID
+				   ,IF_PARAM
+				 )
+          VALUES (
+          		   #docNo#
+		          ,#docSts#
+		          ,SYSDATE
+				  ,#fstRegUserId#
+				  ,SYSDATE
+				  ,#fnlEditUserId#
+                  ,#ifParam#
+				)
+    </insert>
+
+    <update id="updateOuterTripDocSave" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateOuterTripDocSave */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR
+				SET DOC_STS = #docSts#,
+					PERCHRG_RVW_OPN_1 = #secComment#,
+					PERCHRG_RVW_OPN_2 = #ghrComment#,
+					<isEqual property="exFlag" compareValue="Y">
+						 FST_REG_DT = TO_DATE(#exStYmd#, 'YYYYMMDD'),
+					</isEqual>
+				    IF_PARAM = #ifParam#,
+				    USER_ID = #userId#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="updateOuterTripDocSave2" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateOuterTripDocSave2 */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR
+				SET DOC_STS = #docSts#,
+					PERCHRG_RVW_OPN_1 = #secComment#,
+					PERCHRG_RVW_OPN_2 = #ghrComment#,
+					<isEqual property="exFlag" compareValue="Y">
+						 FST_REG_DT = TO_DATE(#exStYmd#, 'YYYYMMDD'),
+					</isEqual>
+				    IF_PARAM = #ifParam#,
+				    USER_ID = #userId#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="deleteOuterTripByDocNo" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.deleteOuterTripByDocNo */ ]]>
+    	DELETE FROM CMAA_ABRD_BUSTR WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="deleteOuterTripUserList" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.deleteOuterTripUserList */ ]]>
+    	DELETE FROM CMAA_ABRD_BUSTR_EXTNL_PER WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="deleteOuterTripVisaInfoList" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.deleteOuterTripUserList */ ]]>
+    	DELETE FROM CMAA_ABRD_BUSTR_AREA WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="deleteOuterTripExpnList" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.deleteOuterTripExpnList */ ]]>
+    	DELETE FROM CMAA_ABRD_BUSTR_EXPN WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="deleteOuterTripAdjustByDocNo" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.deleteOuterTripAdjustByDocNo */ ]]>
+    	DELETE FROM CMAA_ABRD_BUSTR_RPTDOC WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrieveSavedDocInfo" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* OuterTrip.retrieveSavedDocInfo */ ]]>
+			SELECT
+				DOC_NO,
+         		DOC_STS,
+		        FST_REG_DT,
+		        FST_REG_USER_ID,
+		        FNL_EDIT_DT,
+		        FNL_EDIT_USER_ID,
+		        IF_PARAM,
+		        PERCHRG_RVW_OPN_1,
+		        PERCHRG_RVW_OPN_2
+		      FROM CMAA_ABRD_BUSTR
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="docNo">
+	        	DOC_NO = #docNo#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <update id="saveCmasDocUpdateFail" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.saveCmasDocUpdateFail */ ]]>
+    	 UPDATE CMAA_ABRD_BUSTR SET
+    	 		DOC_STS = #docSts#
+		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="saveAdjustCmasDocUpdateFail" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.saveAdjustCmasDocUpdateFail */ ]]>
+    	 UPDATE CMAA_ABRD_BUSTR_RPTDOC SET
+    	 		DOC_STS = #docSts#
+		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrieveSignInfo" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Sign" >
+        <![CDATA[ /* OuterTrip.retrieveSignInfo */ ]]>
+		   SELECT
+				SIGN_ID,
+				SIGN_SEQ,
+				SIGN_USER_ID,
+				SIGN_USER_NM,
+				SIGN_TP_CD,
+				SIGN_STS_CD,
+				SIGN_DT,
+				APPER_POSIT_CD,
+				APPER_POSIT_NM,
+				APPER_RPSWRK_CD,
+				APPER_RPSWRK_NM,
+				APPER_ORG_CD,
+				APPER_ORG_NM,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				DOC_NO,
+				DUTY_CLS
+		      FROM CMAA_SIGN
+		      WHERE DUTY_CLS = '02'
+		    	<isNotEmpty property="docNo">
+	        		AND DOC_NO = #docNo#
+	        	</isNotEmpty>
+	        	ORDER BY SIGN_SEQ ASC
+    </select>
+
+	<!-- 신청서 결재선 불러오기 -->
+    <select id="retrieveSignInfo2" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Sign" >
+        <![CDATA[ /* OuterTrip.retrieveSignInfo2 */ ]]>
+		   SELECT
+				SIGN_ID,
+				SIGN_SEQ,
+				SIGN_USER_ID,
+				SIGN_USER_NM,
+				SIGN_TP_CD,
+				SIGN_STS_CD,
+				SIGN_DT,
+				APPER_POSIT_CD,
+				APPER_POSIT_NM,
+				APPER_RPSWRK_CD,
+				APPER_RPSWRK_NM,
+				APPER_ORG_CD,
+				APPER_ORG_NM,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				DOC_NO,
+				DUTY_CLS
+		      FROM CMAA_SIGN
+		      WHERE DUTY_CLS = '12'
+		    	<isNotEmpty property="docNo">
+	        		AND DOC_NO = #docNo#
+	        	</isNotEmpty>
+	        	ORDER BY SIGN_SEQ ASC
+    </select>
+
+    <!-- 정산서 결재선 불러오기 -->
+    <select id="retrieveSignInfo3" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Sign" >
+        <![CDATA[ /* InnerTrip.retrieveSignInfo3 */ ]]>
+		   SELECT
+				SIGN_ID,
+				SIGN_SEQ,
+				SIGN_USER_ID,
+				SIGN_USER_NM,
+				SIGN_TP_CD,
+				SIGN_STS_CD,
+				SIGN_DT,
+				APPER_POSIT_CD,
+				APPER_POSIT_NM,
+				APPER_RPSWRK_CD,
+				APPER_RPSWRK_NM,
+				APPER_ORG_CD,
+				APPER_ORG_NM,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				DOC_NO,
+				DUTY_CLS
+		      FROM CMAA_SIGN
+		      WHERE DUTY_CLS = '14'
+		    	<isNotEmpty property="docNo">
+	        		AND DOC_NO = #docNo#
+	        	</isNotEmpty>
+	        	ORDER BY SIGN_SEQ ASC
+    </select>
+
+    <!-- 정산서 결재선 불러오기 -->
+    <select id="retrieveSignInfo4" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Sign" >
+        <![CDATA[ /* InnerTrip.retrieveSignInfo4 */ ]]>
+		   SELECT
+				SIGN_ID,
+				SIGN_SEQ,
+				SIGN_USER_ID,
+				SIGN_USER_NM,
+				SIGN_TP_CD,
+				SIGN_STS_CD,
+				SIGN_DT,
+				APPER_POSIT_CD,
+				APPER_POSIT_NM,
+				APPER_RPSWRK_CD,
+				APPER_RPSWRK_NM,
+				APPER_ORG_CD,
+				APPER_ORG_NM,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				DOC_NO,
+				DUTY_CLS
+		      FROM CMAA_SIGN
+		      WHERE DUTY_CLS = '04'
+		    	<isNotEmpty property="docNo">
+	        		AND DOC_NO = #docNo#
+	        	</isNotEmpty>
+	        	ORDER BY SIGN_SEQ ASC
+    </select>
+
+    <update id="updateOuterTripDraft" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateOuterTripDraft */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR
+				SET REF_NO = #refNo#,
+					USER_KNM = #userKnm#,
+					USER_ENM = #userEnm#,
+					SEAT_GRADE = #seatGrade#,
+					AFARE = #afare#,
+					DEM_ITM = #demItm#,
+					PPORT_ISSUE_YMD = #pportIssueYmd#,
+					PPORT_EXPRTN_YMD = #pportExprtnYmd#,
+					REM = #rem#,
+					LCL_AFARE = #lclAfare#,
+					LCL_TRAFFIC_EXPN = #lclTrafficExpn#,
+					VISA_FEE = #visaFee#,
+					EXCS_EXPN = #excsExpn#,
+					FNL_EDIT_DT = SYSDATE,
+					FNL_EDIT_USER_ID = #fnlEditUserId#,
+					FILE_ATCH_ID = #fileAtchId#,
+					USER_ID = #userId#,
+					IF_PARAM = #ifParam#,
+					WEF = #wef#,
+					SVC_EXPN = #svcExpn#,
+					BUSTR_GL = #bustrGl#,
+					PECUL = #pecul#,
+					PERCHRG_RVW_OPN_1 = #secComment#,
+					PERCHRG_RVW_OPN_2 = #ghrComment#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="updateSignDt" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateSignDt */ ]]>
+    	 UPDATE CMAA_SIGN SET SIGN_DT = SYSDATE
+		 WHERE SIGN_ID = #signId#
+		 	AND SIGN_SEQ = (SELECT MIN(SIGN_SEQ) FROM CMAA_SIGN WHERE SIGN_ID = #signId# AND SIGN_DT IS NULL)
+	</update>
+
+	<insert id="saveAdjustDoc" parameterClass="map" >
+        <![CDATA[ /* OuterTrip.saveOuterTripDocSave */ ]]>
+		  INSERT INTO CMAA_ABRD_BUSTR_RPTDOC
+    	         (
+    	            DOC_NO
+				   ,DOC_STS
+				   ,FST_REG_DT
+				   ,FST_REG_USER_ID
+				   ,FNL_EDIT_DT
+				   ,FNL_EDIT_USER_ID
+				   ,IF_PARAM
+				 )
+          VALUES (
+          		   #docNo#
+		          ,#docSts#
+		          ,SYSDATE
+				  ,#fstRegUserId#
+				  ,SYSDATE
+				  ,#fnlEditUserId#
+                  ,#ifParam#
+				)
+    </insert>
+
+    <update id="updateAdjustDoc" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateAdjustDoc */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR_RPTDOC
+				SET DOC_STS = #docSts#,
+					FNL_EDIT_DT = SYSDATE,
+				    FNL_EDIT_USER_ID = #fnlEditUserId#,
+				    IF_PARAM = #ifParam#,
+				    PERCHRG_RVW_OPN_2 = #ghrComment#
+				    <isNotEmpty prepend="," property="rejectRes">
+	        			PRGR_ITEM = #rejectRes#
+	        		</isNotEmpty>
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="updateCancelAdjustDoc" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateCancelAdjustDoc */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR_RPTDOC
+				SET DOC_STS = #docSts#,
+					FNL_EDIT_DT = SYSDATE,
+				    FNL_EDIT_USER_ID = #fnlEditUserId#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="getAdjustSavedDoc" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* OuterTrip.getAdjustSavedDoc */ ]]>
+			SELECT
+				DOC_NO,
+         		DOC_STS,
+         		REF_NO,
+		        FST_REG_DT,
+		        FST_REG_USER_ID,
+		        FNL_EDIT_DT,
+		        FNL_EDIT_USER_ID,
+		        IF_PARAM,
+		        PERCHRG_RVW_OPN_2
+		      FROM CMAA_ABRD_BUSTR_RPTDOC
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="docNo">
+	        	DOC_NO = #docNo#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <update id="updateAdjustDraftDoc" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateAdjustDraftDoc */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR_RPTDOC
+				SET 	REF_NO = #refNo#,
+						STL_CLS = #stlCls#,
+						PROOF_YMD = #proofYmd#,
+						BUSTR_NAT_CD = #bustrNatCd#,
+						BUSTR_ST_YMD = #bustrStYmd#,
+						BUSTR_ED_YMD = #bustrEdYmd#,
+						PAY_SCD_YMD = #payScdYmd#,
+						DEM_ITM = #demItm#,
+						BUSTR_GL = #bustrGl#,
+						DTL_SCH = #dtlSch#,
+						DUTY_RPT_CONT = #dutyRptCont#,
+						ACQ_DAT = #acqDat#,
+						GEN_ACCOMO_DCNT = #genAccomoDcnt#,
+						SITE_ACCOMO_DCNT = #siteAccomoDcnt#,
+						RTRN_METH = #rtrnMeth#,
+						RMT_ACCNT_BNK = #rmtAccntBnk#,
+						RMT_ACCTNO = #rmtAcctno#,
+						LCL_AFARE = #lclAfare#,
+						LCL_TRAFFIC_EXPN = #lclTrafficExpn#,
+						VISA_FEE = #visaFee#,
+						EXCS_EXPN = #excsExpn#,
+						WEF = #wef#,
+						SVC_EXPN = #svcExpn#,
+						DO_DTL_ITEM = #doDtlItem#,
+						REM = #rem#,
+						FILE_ATCH_ID = #fileAtchId#,
+						USER_ID = #userId#,
+						IF_PARAM = #ifParam#,
+						DOC_STS = #docSts#,
+						FNL_EDIT_DT = SYSDATE,
+						FNL_EDIT_USER_ID = #fnlEditUserId#,
+						PERCHRG_RVW_OPN_2 = #ghrComment#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="updateOuterTripAirConf" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateOuterTripAirConf */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR
+				SET INCHRG_AIR	= #inchrgAir#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrieveCMASOT004" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* OuterTrip.retrieveCMASOT004 */ ]]>
+		SELECT *
+		  FROM
+		       (SELECT DISTINCT A.USER_ID AS SIGN_USER_ID ,
+		              CASE
+		                  WHEN '1' = 'en_US'
+		                  THEN B.USER_ENM
+		                  ELSE B.USER_KNM
+		              END AS SIGN_USER_NM ,
+		              A.USER_POSIT_CD AS APPER_POSIT_CD ,
+		              A.USER_POSIT_CD AS APPER_POSIT_NM ,
+		              'T02' AS SIGN_TP_CD,
+		              CASE A.USER_RPSWRK_CD
+		                  WHEN '담당'
+		                  THEN ''
+		                  ELSE A.USER_RPSWRK_CD
+		              END AS APPER_RPSWRK_CD ,
+		              CASE A.USER_RPSWRK_CD
+		                  WHEN '담당'
+		                  THEN ''
+		                  ELSE A.USER_RPSWRK_CD
+		              END AS APPER_RPSWRK_NM ,
+		              C.ORG_CD AS APPER_ORG_CD ,
+		              FN_CO_GET_ORG_NM(C.ORG_CD) AS APPER_ORG_NM
+		         FROM CO_APPT A
+		          INNER JOIN CO_USER B
+		              ON (
+		                  A.USER_ID = B.USER_ID
+		              )
+		          INNER JOIN CO_USER_CTG_PRIV CUCP
+		              ON (
+		                  A.USER_ID = CUCP.PRIV_USER_ID
+		                  AND CUCP.SYS_CD = 'sgns'
+		              )
+		          INNER JOIN CO_ORG C
+		              ON (
+		                  A.ORG_CD = C.ORG_CD
+		                  AND NVL (A.APPT_ED_YMD, '99999999') &gt;= TO_CHAR (SYSDATE, 'YYYYMMDD') /*발령종료일이 현재 유효한 자료만*/
+		                  AND NVL (B.USE_YN, 'N') = 'Y' /*사용자의 사용여부가 'Y'인 사용자만*/
+		                  AND A.USER_ID IN
+		                  (SELECT USER_ID
+		                    FROM CO_APPT
+		                   WHERE NVL (APPT_ED_YMD, '99999999') &gt;= TO_CHAR (SYSDATE, 'YYYYMMDD')
+		                         AND NVL (PRIV_RFL_YN, 'N') = 'Y'
+		                  ) /*발령이 반영된 사용자*/
+		              )
+		        WHERE B.USE_YN = 'Y'
+		              AND B.USER_ID IN
+		              (SELECT PRIV_USER_ID
+		                FROM CO_USER_CTG_PRIV
+		               WHERE SYS_CD = 'cmas'
+		                     AND PRIV_CD = 'RO_CMAS_OT_004' AND PRIV_ST_YMD &lt;= TO_CHAR(SYSDATE,'YYYYMMDD') AND PRIV_ED_YMD &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		              )
+		       )
+    </select>
+
+	<select id="retrieveCMASOT006" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* OuterTrip.retrieveCMASOT006 */ ]]>
+		SELECT *
+		  FROM
+		       (SELECT DISTINCT A.USER_ID AS SIGN_USER_ID ,
+		              CASE
+		                  WHEN '1' = 'en_US'
+		                  THEN B.USER_ENM
+		                  ELSE B.USER_KNM
+		              END AS SIGN_USER_NM ,
+		              A.USER_POSIT_CD AS APPER_POSIT_CD ,
+		              A.USER_POSIT_CD AS APPER_POSIT_NM ,
+		              'T02' AS SIGN_TP_CD,
+		              CASE A.USER_RPSWRK_CD
+		                  WHEN '담당'
+		                  THEN ''
+		                  ELSE A.USER_RPSWRK_CD
+		              END AS APPER_RPSWRK_CD ,
+		              CASE A.USER_RPSWRK_CD
+		                  WHEN '담당'
+		                  THEN ''
+		                  ELSE A.USER_RPSWRK_CD
+		              END AS APPER_RPSWRK_NM ,
+		              C.ORG_CD AS APPER_ORG_CD ,
+		              FN_CO_GET_ORG_NM(C.ORG_CD) AS APPER_ORG_NM
+		         FROM CO_APPT A
+		          INNER JOIN CO_USER B
+		              ON (
+		                  A.USER_ID = B.USER_ID
+		              )
+		          INNER JOIN CO_USER_CTG_PRIV CUCP
+		              ON (
+		                  A.USER_ID = CUCP.PRIV_USER_ID
+		                  AND CUCP.SYS_CD = 'sgns'
+		              )
+		          INNER JOIN CO_ORG C
+		              ON (
+		                  A.ORG_CD = C.ORG_CD
+		                  AND NVL (A.APPT_ED_YMD, '99999999') &gt;= TO_CHAR (SYSDATE, 'YYYYMMDD') /*발령종료일이 현재 유효한 자료만*/
+		                  AND NVL (B.USE_YN, 'N') = 'Y' /*사용자의 사용여부가 'Y'인 사용자만*/
+		                  AND A.USER_ID IN
+		                  (SELECT USER_ID
+		                    FROM CO_APPT
+		                   WHERE NVL (APPT_ED_YMD, '99999999') &gt;= TO_CHAR (SYSDATE, 'YYYYMMDD')
+		                         AND NVL (PRIV_RFL_YN, 'N') = 'Y'
+		                  ) /*발령이 반영된 사용자*/
+		              )
+		        WHERE B.USE_YN = 'Y'
+		              AND B.USER_ID IN
+		              (SELECT PRIV_USER_ID
+		                FROM CO_USER_CTG_PRIV
+		               WHERE SYS_CD = 'cmas'
+		                     AND PRIV_CD = 'RO_CMAS_OT_006' AND PRIV_ST_YMD &lt;= TO_CHAR(SYSDATE,'YYYYMMDD') AND PRIV_ED_YMD &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		              )
+		       )
+    </select>
+
+	<select id="retrieveCMASOT008" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* OuterTrip.retrieveCMASOT008 */ ]]>
+		SELECT *
+		  FROM
+		       (SELECT DISTINCT A.USER_ID AS SIGN_USER_ID ,
+		              CASE
+		                  WHEN '1' = 'en_US'
+		                  THEN B.USER_ENM
+		                  ELSE B.USER_KNM
+		              END AS SIGN_USER_NM ,
+		              A.USER_POSIT_CD AS APPER_POSIT_CD ,
+		              A.USER_POSIT_CD AS APPER_POSIT_NM ,
+		              'T02' AS SIGN_TP_CD,
+		              CASE A.USER_RPSWRK_CD
+		                  WHEN '담당'
+		                  THEN ''
+		                  ELSE A.USER_RPSWRK_CD
+		              END AS APPER_RPSWRK_CD ,
+		              CASE A.USER_RPSWRK_CD
+		                  WHEN '담당'
+		                  THEN ''
+		                  ELSE A.USER_RPSWRK_CD
+		              END AS APPER_RPSWRK_NM ,
+		              C.ORG_CD AS APPER_ORG_CD ,
+		              FN_CO_GET_ORG_NM(C.ORG_CD) AS APPER_ORG_NM
+		         FROM CO_APPT A
+		          INNER JOIN CO_USER B
+		              ON (
+		                  A.USER_ID = B.USER_ID
+		              )
+		          INNER JOIN CO_USER_CTG_PRIV CUCP
+		              ON (
+		                  A.USER_ID = CUCP.PRIV_USER_ID
+		                  AND CUCP.SYS_CD = 'sgns'
+		              )
+		          INNER JOIN CO_ORG C
+		              ON (
+		                  A.ORG_CD = C.ORG_CD
+		                  AND NVL (A.APPT_ED_YMD, '99999999') &gt;= TO_CHAR (SYSDATE, 'YYYYMMDD') /*발령종료일이 현재 유효한 자료만*/
+		                  AND NVL (B.USE_YN, 'N') = 'Y' /*사용자의 사용여부가 'Y'인 사용자만*/
+		                  AND A.USER_ID IN
+		                  (SELECT USER_ID
+		                    FROM CO_APPT
+		                   WHERE NVL (APPT_ED_YMD, '99999999') &gt;= TO_CHAR (SYSDATE, 'YYYYMMDD')
+		                         AND NVL (PRIV_RFL_YN, 'N') = 'Y'
+		                  ) /*발령이 반영된 사용자*/
+		              )
+		        WHERE B.USE_YN = 'Y'
+		              AND B.USER_ID IN
+		              (SELECT PRIV_USER_ID
+		                FROM CO_USER_CTG_PRIV
+		               WHERE SYS_CD = 'cmas'
+		                     AND PRIV_CD = 'RO_CMAS_OT_008' AND PRIV_ST_YMD &lt;= TO_CHAR(SYSDATE,'YYYYMMDD') AND PRIV_ED_YMD &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		              )
+		       )
+    </select>
+
+    <update id="deleteSignInfoOuterTrip" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.deleteSignInfoOuterTrip */ ]]>
+    	DELETE FROM CMAA_SIGN WHERE DOC_NO = #docNo# AND DUTY_CLS = #dutyCls#
+	</update>
+
+
+	<select id="retrieveCMASOTList" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* OuterTrip.retrieveCMASOTList */ ]]>
+		SELECT SYS_CD,PRIV_USER_ID,PRIV_CD,PRIV_USER_CLS,SITE_CD,ARRAY_ORD,USER_ID,ORG_CD,USER_TP_CD,USER_KNM,USER_ENM,USER_POSIT_CD,USER_JOBSP_CD,USER_DUTY_CD
+		  FROM CO_USER_CTG_PRIV CUCP
+		   LEFT JOIN CO_USER CU1
+		       ON CU1.USER_ID = CUCP.PRIV_USER_ID
+		 WHERE
+           (PRIV_CD = 'RO_CMAS_OT_001'
+		       OR PRIV_CD = 'RO_CMAS_OT_002'
+		       OR PRIV_CD = 'RO_CMAS_OT_003'
+		       OR PRIV_CD = 'RO_CMAS_OT_004'
+		       OR PRIV_CD = 'RO_CMAS_OT_005')
+           AND SYS_CD = 'cmas'
+		       AND RETIR_YMD IS NULL
+           AND CUCP.PRIV_ED_YMD &gt;= TO_CHAR(SYSDATE,'YYYYMMDD')
+		       AND USE_YN='Y'
+		ORDER BY PRIV_CD ASC
+
+    </select>
+
+
+
+    <update id="updateOuterTripGHRCmt" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateOuterTripGHRCmt */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR
+				SET PERCHRG_RVW_OPN_2 = #perchrgRvwOpn2#,
+					REM = #rem#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrievelegacyInfo" parameterClass="map" resultClass="java.util.HashMap" >
+        <![CDATA[ /* OuterTrip.retrievelegacyInfo */ ]]>
+           SELECT
+           		SIGN_ID,
+				DUTY_LNK_CD,
+				CLBK_TP_CD,
+				CLBK_PATH,
+				CLBK_PARAM,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				OGG_CD,
+				OGG_TIME
+           FROM SG_SIGN_DUTY_LNK
+           <dynamic prepend="WHERE">
+		        <isNotEmpty property="signId">
+		        	SIGN_ID = #signId#
+		        </isNotEmpty>
+	       </dynamic>
+    </select>
+
+    <select id="getUserRealPositCd" parameterClass="map" resultClass="java.util.HashMap" >
+        <![CDATA[ /* OuterTrip.getUserRealPositCd */ ]]>
+           SELECT
+           		USER_REAL_POSIT_CD
+           FROM CO_USER
+           WHERE USER_ID = #userId#
+    </select>
+
+
+    <select id="retrieveRejCont" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* OuterTrip.retrieveRejCont */ ]]>
+           SELECT * FROM SGNS.SG_SIGN_OPN
+			WHERE SIGN_ID = #signId#
+    </select>
+
+    <update id="updateErrMsg" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateErrMsg */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR
+				SET ERR_ITEM = #errMsg#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrieveErrMsg" parameterClass="map" resultClass="java.util.HashMap" >
+        <![CDATA[ /* OuterTrip.retrieveErrMsg */ ]]>
+           SELECT
+           		ERR_ITEM,
+           		PRGR_ITEM
+           FROM CMAA_ABRD_BUSTR
+           WHERE DOC_NO = #docNo#
+    </select>
+
+    <update id="updateErrMsgAdjust" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateErrMsgAdjust */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR_RPTDOC
+				SET ERR_ITEM = #errMsg#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrieveErrMsgAdjust" parameterClass="map" resultClass="java.util.HashMap" >
+        <![CDATA[ /* OuterTrip."retrieveErrMsgAdjust" */ ]]>
+           SELECT
+           		ERR_ITEM,
+           		PRGR_ITEM
+           FROM CMAA_ABRD_BUSTR_RPTDOC
+           WHERE DOC_NO = #docNo#
+    </select>
+
+    <update id="updateAdjustGHRCmt" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateAdjustGHRCmt */ ]]>
+    	UPDATE CMAA_ABRD_BUSTR_RPTDOC
+				SET PERCHRG_RVW_OPN_2 = #perchrgRvwOpn2#,
+					IF_PARAM = #ifParam#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="updateSgnsReject" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateSgnsReject */ ]]>
+   		 UPDATE CMAA_ABRD_BUSTR SET
+    	 		DOC_STS = #docSts#,
+    	 		ACCT_STS = #acctSts#,
+    	 		RET_RESN = #retResn#
+		 WHERE DOC_NO = #docNo#
+	</update>
+
+
+	<!-- 바로콘 위험국가 메일내용 조회 -->
+    <select id="retrieveSpgEmailMgm" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Nat" >
+        <![CDATA[ /* OuterTrip.retrieveSpgEmailMgm */
+		  SELECT A.TITLE ,
+				 A.CONT,
+       			 A.SEND_USER_ID ,
+			 	 B.FILE_NM ,
+       			 B.FILE_SIZE ,
+       			 B.ECM_NO
+  		  FROM ICMS.SPG_EMAIL_MGM A
+   		  LEFT JOIN CO_FILE B
+          ON B.FILE_ATCH_ID = A.FILE_ATCH_ID
+		  WHERE A.NAT_CD = #natCd#
+		  AND A.USE_YN='1'
+		  ]]>
+    </select>
+</sqlMap>
+

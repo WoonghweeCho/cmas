@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CoUser
+* 설    명 : 사용자 조회 공통 SQL
+* 작 성 자 : 이재열
+* 작성일자 : 2011-12-01
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* selectCoUserList      사용자 정보 검색
+*************************************************************************************-->
+<sqlMap namespace="CoUser">
+
+	<!-- 조건에 의한 사용자 검색 조회 -->
+	<!-- <select id="selectCoUserList" parameterClass="map" resultClass="com.dwenc.cmas.common.user.domain.CoUserInfo">
+	<![CDATA[ /* CoUser.selectCoUserList */ ]]>
+	  SELECT USER_ID,
+	         ORG_CD,
+	         USER_TP_CD,
+	         USER_KNM,
+	         USER_ENM,
+	         USE_YN,
+	         USER_POSIT_CD,
+	         USER_RPSWRK_CD,
+	         (SELECT ORG_NM
+	            FROM CO_ORG
+	           WHERE ORG_CD = CU.ORG_CD
+	         ) AS ORG_NM,
+	         FN_CO_DECRYPT_HEX(MPHONE_NO) MPHONE_NO
+	    FROM CO_USER CU
+	<dynamic prepend="WHERE">
+	    <isNotEmpty property="useYn" prepend="AND">
+	    	USE_YN = #useYn#
+	    </isNotEmpty>
+	    <isNotEmpty property="searchVal" prepend="AND">
+	    	(USER_KNM LIKE #searchVal#||'%' OR USER_ID LIKE #searchVal#||'%')
+	    </isNotEmpty>
+	    <isNotEmpty prepend="AND" property="userTpCd">
+	    	USER_TP_CD = #userTpCd#
+	    </isNotEmpty>
+	 </dynamic>
+     ORDER BY ORG_CD, USER_KNM
+	</select> -->
+
+	<select id="selectCoUserList" parameterClass="map" resultClass="com.dwenc.cmas.common.user.domain.CoUserInfo">
+	<![CDATA[ /* CoUser.selectCoUserList */ ]]>
+	 	 SELECT A.USER_ID,
+	 			A.ORG_CD,
+	 			B.USER_TP_CD,
+		        B.USER_KNM,
+		        B.USER_ENM,
+	         	B.USE_YN,
+	         	A.USER_POSIT_CD,
+	         	A.USER_RPSWRK_CD,
+	         	(SELECT ORG_NM
+	            	FROM CO_ORG
+	           	WHERE ORG_CD = A.ORG_CD
+	         	) AS ORG_NM,
+	         	FN_CO_DECRYPT_HEX(B.MPHONE_NO) MPHONE_NO,
+	         	A.APPT_CLS,
+         (SELECT CA.ORG_CD FROM CSYS.CO_APPT CA, CSYS.CO_USER CO
+		   WHERE CA.USER_ID = CO.USER_ID
+		         AND CA.USER_ID = A.USER_ID
+		         AND CA.APPT_CLS = '01'
+		         AND NVL (CA.APPT_ED_YMD, '99991231') > TO_CHAR (SYSDATE, 'YYYYMMDD')
+		         AND CO.USE_YN = 'Y'
+		         AND CA.INPUT_CLS = 'A'
+		         AND ROWNUM = 1
+		         GROUP BY CA.ORG_CD, CO.USER_ID) AS APPT_ORG_CD,
+		         B.USER_REAL_POSIT_CD
+		  FROM CSYS.CO_APPT A, CSYS.CO_USER B
+		 WHERE A.USER_ID = B.USER_ID
+		       AND NVL (A.APPT_ED_YMD, '99991231') > TO_CHAR (SYSDATE, 'YYYYMMDD')
+		       AND B.USE_YN = 'Y'
+		       AND A.INPUT_CLS = 'A'
+			    <isNotEmpty property="useYn" prepend="AND">
+			    	B.USE_YN = #useYn#
+			    </isNotEmpty>
+			    <isNotEmpty property="searchVal" prepend="AND">
+			    	(B.USER_KNM LIKE #searchVal#||'%' OR A.USER_ID LIKE #searchVal#||'%')
+			    </isNotEmpty>
+			    <isNotEmpty prepend="AND" property="userTpCd">
+			    	B.USER_TP_CD = #userTpCd#
+			    </isNotEmpty>
+		     ORDER BY B.ORG_CD, B.USER_KNM
+	</select>
+
+
+
+	<select id="selectUserEmail" parameterClass="map" resultClass="java.lang.String" >
+	<![CDATA[ /* CoUser.selectUserEmail */ ]]>
+	  SELECT FN_CO_DECRYPT_HEX(CU.EMAIL) EMAIL
+	    FROM CO_USER CU
+	   WHERE USER_ID = #userId#
+	</select>
+
+	<select id="selectUserOrg" parameterClass="map" resultClass="java.lang.String" >
+	<![CDATA[ /* CoUser.selectUserOrg */ ]]>
+	  SELECT CU.ORG_CD ORG_CD
+	    FROM CO_USER CU
+	   WHERE USER_ID = #userId#
+	</select>
+
+	<!-- 결재선 지정 화면의 조직정보 트리 조회 -->
+	<select id="selectSignOrgMapList" parameterClass="map" resultClass="map">
+	<![CDATA[ /* Sign.selectSignOrgList */ ]]>
+	SELECT ORG_CD
+ 	     , HGR_ORG_CD
+ 	     , CASE
+ 	     		WHEN #loclCd# = 'en_US' THEN
+ 	     			ORG_NM_EN
+ 	     		ELSE
+ 	     			ORG_NM
+ 	        END AS ORG_NM
+ 	      , CONNECT_BY_ISLEAF "leaf"
+	  FROM CO_ORG
+	 WHERE USE_YN = 'Y'
+	  START WITH ORG_CD = '1DFAA'
+      CONNECT BY PRIOR ORG_CD = HGR_ORG_CD
+      ORDER SIBLINGS BY ARRAY_ORD
+	</select>
+
+	<!-- 결재선 지정 화면의 사원정보 조회 -->
+	<select id="selectSignUserList" parameterClass="map" resultClass="com.dwenc.cmas.common.user.domain.Sign">
+	<![CDATA[ /* Sign.selectSignUserList */ ]]>
+		SELECT *
+		FROM (
+			    SELECT A.USER_ID					AS SIGN_USER_ID
+			         , CASE
+			         		WHEN #loclCd# = 'en_US' THEN
+			         			B.USER_ENM
+			         		ELSE
+			         			B.USER_KNM
+			           END AS SIGN_USER_NM
+			         , A.USER_POSIT_CD				AS APPER_POSIT_CD
+					 , A.USER_POSIT_CD				AS APPER_POSIT_NM
+                     , CASE A.USER_RPSWRK_CD
+                        	WHEN '담당' THEN ''
+                        	ELSE A.USER_RPSWRK_CD
+                       END AS APPER_RPSWRK_CD
+                     , CASE A.USER_RPSWRK_CD
+                        	WHEN '담당' THEN ''
+                        	ELSE A.USER_RPSWRK_CD
+                       END AS APPER_RPSWRK_NM
+					 , C.ORG_CD						AS APPER_ORG_CD
+					 , FN_CO_GET_ORG_NM(C.ORG_CD)	AS APPER_ORG_NM
+					 , C.ORG_CHRC_CLS				AS ORG_CHRC_CLS
+					 , B.POSIT_ARRAY_ORD            AS POSIT_ARRAY_ORD
+					 , B.GRD_ARRAY_NO               AS GRD_ARRAY_NO
+					 , B.USER_ARRAY_NO              AS USER_ARRAY_NO
+					 , B.PSTEP_ARRAY_NO             AS PSTEP_ARRAY_NO
+					 , B.HIRE_YMD                   AS HIRE_YMD
+					 , '1' 							AS TB_SEQ
+			      FROM CO_APPT A
+			           INNER JOIN CO_USER B
+			              ON (A.USER_ID = B.USER_ID)
+			           INNER JOIN CO_USER_CTG_PRIV CUCP ON (A.USER_ID = CUCP.PRIV_USER_ID AND CUCP.SYS_CD = 'cmas')
+			           INNER JOIN CO_ORG C
+			              ON (A.ORG_CD = C.ORG_CD
+			                  AND NVL (A.APPT_ED_YMD, '99999999') >= TO_CHAR (SYSDATE, 'YYYYMMDD')         /*발령종료일이 현재 유효한 자료만*/
+			                  AND NVL (B.USE_YN, 'N') = 'Y'             /*사용자의 사용여부가 'Y'인 사용자만*/
+			                  AND A.USER_ID IN  (SELECT USER_ID
+			                            FROM CO_APPT
+			                           WHERE NVL (APPT_ED_YMD, '99999999') >=
+			                                    TO_CHAR (SYSDATE, 'YYYYMMDD')
+			                                 AND NVL (PRIV_RFL_YN, 'N') = 'Y')   /*발령이 반영된 사용자*/
+			                  )
+			              WHERE B.USE_YN = 'Y'
+				<dynamic>
+					<isNotEmpty prepend="AND" property="userId">
+						B.USER_ID = #userId#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="userKnm">
+						B.USER_KNM LIKE '%' || #userKnm# || '%'
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="orgCd">
+						C.ORG_CD = #orgCd#
+					</isNotEmpty>
+				</dynamic>
+			    UNION                                                                 /*헙체직원*/
+			    SELECT A.USER_ID AS SIGN_USER_ID
+			    	 , CASE
+			         		WHEN #loclCd# = 'en_US' THEN
+			         			A.USER_ENM
+			         		ELSE
+			         			A.USER_KNM
+			           END AS SIGN_USER_NM
+			         , A.USER_POSIT_CD AS APPER_POSIT_CD
+			         , A.USER_POSIT_CD AS APPER_POSIT_NM
+                     , CASE A.USER_RPSWRK_CD
+                        	WHEN '담당' THEN ''
+                        	ELSE A.USER_RPSWRK_CD
+                       END AS APPER_RPSWRK_CD
+                     , CASE A.USER_RPSWRK_CD
+                        	WHEN '담당' THEN ''
+                        	ELSE A.USER_RPSWRK_CD
+                       END AS APPER_RPSWRK_NM
+			         , A.ORG_CD AS APPER_ORG_CD
+			         , FN_CO_GET_ORG_NM (A.ORG_CD) AS APPER_ORG_NM
+					 , B.ORG_CHRC_CLS				AS ORG_CHRC_CLS
+					 , A.POSIT_ARRAY_ORD            AS POSIT_ARRAY_ORD
+					 , A.GRD_ARRAY_NO               AS GRD_ARRAY_NO
+					 , A.USER_ARRAY_NO              AS USER_ARRAY_NO
+					 , A.PSTEP_ARRAY_NO             AS PSTEP_ARRAY_NO
+					 , A.HIRE_YMD                   AS HIRE_YMD
+					 , '1' 							AS TB_SEQ
+			      FROM CO_USER A
+			         INNER JOIN CO_ORG B ON(A.ORG_CD = B.ORG_CD )
+			         INNER JOIN CO_USER_CTG_PRIV CUCP ON (A.USER_ID = CUCP.PRIV_USER_ID AND CUCP.SYS_CD = 'cmas')
+
+			     WHERE A.USE_YN = 'Y' /*A.USER_TP_CD &lt;&gt; '01' AND */
+				<dynamic>
+					<isNotEmpty prepend="AND" property="userId">
+						A.USER_ID = #userId#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="userKnm">
+						A.USER_KNM LIKE '%' || #userKnm# || '%'
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="orgCd">
+						A.ORG_CD = #orgCd#
+					</isNotEmpty>
+				</dynamic>
+				<isNotEmpty property="isExt"><isEqual property="isExt" compareValue="Y">
+			    UNION                                                                 /*특별 사용자*/
+			    SELECT A.USER_ID AS SIGN_USER_ID
+			    	 , CASE
+			         		WHEN #loclCd# = 'en_US' THEN
+			         			A.USER_ENM
+			         		ELSE
+			         			A.USER_KNM
+			           END AS SIGN_USER_NM
+			         , A.USER_POSIT_CD AS APPER_POSIT_CD
+			         , A.USER_POSIT_CD AS APPER_POSIT_NM
+                     , CASE A.USER_RPSWRK_CD
+                        	WHEN '담당' THEN ''
+                        	ELSE A.USER_RPSWRK_CD
+                       END AS APPER_RPSWRK_CD
+                     , CASE A.USER_RPSWRK_CD
+                        	WHEN '담당' THEN ''
+                        	ELSE A.USER_RPSWRK_CD
+                       END AS APPER_RPSWRK_NM
+			         , A.ORG_CD AS APPER_ORG_CD
+			         , FN_CO_GET_ORG_NM (A.ORG_CD) AS APPER_ORG_NM
+					 , B.ORG_CHRC_CLS				AS ORG_CHRC_CLS
+					 , A.POSIT_ARRAY_ORD            AS POSIT_ARRAY_ORD
+					 , A.GRD_ARRAY_NO               AS GRD_ARRAY_NO
+					 , A.USER_ARRAY_NO              AS USER_ARRAY_NO
+					 , A.PSTEP_ARRAY_NO             AS PSTEP_ARRAY_NO
+					 , A.HIRE_YMD                   AS HIRE_YMD
+					 , '2' 							AS TB_SEQ							/*특별사용자의 정보는 마지막 순서로 지정함*/
+			      FROM CO_USER A
+			         INNER JOIN CO_ORG B ON(A.ORG_CD = B.ORG_CD )
+			         INNER JOIN CO_USER_CTG_PRIV CUCP ON (A.USER_ID = CUCP.PRIV_USER_ID AND CUCP.SYS_CD = 'cmas')
+			      WHERE A.USE_YN = 'Y'
+			        AND A.USER_ID = #userId#
+				</isEqual></isNotEmpty>
+			)
+		WHERE 1 = 1
+		<dynamic>
+			<isNotEmpty prepend="AND" property="rpswrkCd">
+				APPER_RPSWRK_CD = #rpswrkCd#
+			</isNotEmpty>
+		</dynamic>
+	ORDER BY TB_SEQ, POSIT_ARRAY_ORD, GRD_ARRAY_NO, USER_ARRAY_NO, PSTEP_ARRAY_NO DESC, HIRE_YMD, SIGN_USER_NM
+	</select>
+</sqlMap>

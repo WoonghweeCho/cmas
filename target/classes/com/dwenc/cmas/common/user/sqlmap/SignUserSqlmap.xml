@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CoUser
+* 설    명 : 사용자 조회 공통 SQL
+* 작 성 자 : 이재열
+* 작성일자 : 2011-12-01
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* selectCoUserList      사용자 정보 검색
+*************************************************************************************-->
+<sqlMap namespace="SignUser">
+	<typeAlias alias="signlnForExcluRegl" type="com.dwenc.cmas.common.user.domain.SignlnForExcluRegl" />
+	<typeAlias alias="sign" type="com.dwenc.cmas.common.user.domain.Sign" />
+
+	<resultMap class="signlnForExcluRegl" id="tempSignList">
+	   <result property="signSeq" column="SIGN_SEQ"/> <!-- 결재순번 -->
+	   <result property="signTpCd" column="SIGN_TP_CD"/> <!-- 결재유형 코드 -->
+	   <result property="apperOrgCd" column="APPER_ORG_CD"/> <!-- 결재자 조직코드 -->
+	   <result property="signUserId" column="SIGN_USER_ID"/> <!-- 결재자 ID -->
+	   <result property="isNeedDirector" column="IS_NEED_DIRECTOR"/> <!-- 결재자 ID -->
+	</resultMap>
+
+	<resultMap class="sign" id="signlnForExcluRegl">
+	   <result property="signUserId" column="SIGN_USER_ID"/> <!-- 결재자 ID -->
+	   <result property="signUserNm" column="SIGN_USER_NM"/> <!-- 결재자 이름 -->
+	   <result property="apperPositCd" column="APPER_POSIT_CD"/> <!-- 결재자 직위 코드 -->
+	   <result property="apperPositNm" column="APPER_POSIT_NM"/> <!-- 결재자 직위 이름 -->
+	   <result property="apperRpswrkCd" column="APPER_RPSWRK_CD"/> <!-- 결재자 직책 코드 -->
+	   <result property="apperRpswrkNm" column="APPER_RPSWRK_CD"/> <!-- 결재자 직책 이름 -->
+	   <result property="apperOrgCd" column="APPER_ORG_CD"/> <!-- 결재자 조직 코드 -->
+	   <result property="apperOrgNm" column="APPER_ORG_NM"/> <!-- 결재자 조직 이름 -->
+	</resultMap>
+
+
+	<!-- 조건에 의한 결재선 조회 -->
+	<select id="selectSignln" parameterClass="map" resultClass="com.dwenc.cmas.common.user.domain.Signln">
+	<![CDATA[ /* SignUser.selectSignln */ ]]>
+	  SELECT DOC_NO,
+	  		SIGN_ID,
+	  		SIGN_SEQ,
+	  		SIGN_USER_ID,
+	  		SIGN_USER_NM,
+	  		SIGN_TP_CD,
+	  		SIGN_STS_CD,
+	  		TO_CHAR(SIGN_DT, 'YYYY-MM-DD') AS SIGN_DT,
+	  		APPER_POSIT_CD,
+	  		APPER_POSIT_NM,
+	  		APPER_RPSWRK_CD,
+	  		APPER_RPSWRK_NM,
+	  		APPER_ORG_CD,
+	  		APPER_ORG_NM,
+	  		DUTY_CLS,
+	  		FST_REG_DT,
+	  		FST_REG_USER_ID,
+	  		FNL_EDIT_DT,
+	  		FNL_EDIT_USER_ID
+	  	FROM CMAS.CMAA_SIGN
+	  	WHERE DOC_NO = #docNo#
+	  	ORDER BY SIGN_SEQ ASC
+	</select>
+
+	<!-- 조건에 의한 결재선 조회 -->
+	<select id="selectSignUser" parameterClass="map" resultClass="com.dwenc.cmas.common.user.domain.Signln">
+	<![CDATA[ /* SignUser.selectSignUser */ ]]>
+	  SELECT USR.USER_ID AS SIGN_USER_ID,
+	  		USR.USER_KNM AS SIGN_USER_NM,
+	  		USR.USER_POSIT_CD AS APPER_POSIT_CD,
+	  		USR.USER_POSIT_CD AS APPER_POSIT_NM,
+	  		USR.USER_RPSWRK_CD AS APPER_RPSWRK_CD,
+	  		USR.USER_RPSWRK_CD AS APPER_RPSWRK_NM,
+	  		ORG.ORG_CD AS APPER_ORG_CD,
+	  		ORG.ORG_NM AS APPER_ORG_NM
+	  FROM CSYS.CO_USER USR, CSYS.CO_ORG ORG
+	  WHERE USR.ORG_CD=ORG.ORG_CD
+		<dynamic>
+			<isNotEmpty prepend="AND" property="userId">
+				USR.USER_ID = #userId#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="orgCd">
+				ORG.ORG_CD = #orgCd#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+
+	<!-- 인사정보 기준 전결규정 조회 -->
+	<select id="retrieveTempSignlnForExcluRegl" resultMap="tempSignList" parameterClass="map" >
+    	<![CDATA[ /* SignUser.retrieveTempSignlnForExcluRegl */ ]]> <!-- SQL 주석 부분 -->
+    		SELECT * FROM (
+				    	SELECT
+				    		lvl 				AS SIGN_SEQ,
+				    		'T02'				AS SIGN_TP_CD,
+				    		org_id				AS APPER_ORG_CD,
+				    		org_chief			AS SIGN_USER_ID,
+				    		CASE WHEN org_class='본부/실' AND org_chief &lt;&gt; #userId#
+				    		THEN 'Y'
+				    		ELSE 'N'
+				    		END IS_NEED_DIRECTOR
+				    	  FROM
+						       (SELECT c51.*,
+						              LEVEL AS lvl
+						         FROM c51_om_org_vw c51 START
+						       WITH org_id=#orgCd#
+						       CONNECT BY org_id = PRIOR org_pdept
+						          )
+						    WHERE lvl &lt;=
+						          (SELECT lvl
+						            FROM
+						                 (SELECT org_chief,
+						                        org_class ,
+						                        LEVEL AS lvl
+						                   FROM c51_om_org_vw START
+						                 WITH org_id=#orgCd#
+						                 CONNECT BY org_id = PRIOR org_pdept
+						                    )
+						              WHERE org_class=#orgCls#
+						              AND org_chief is not null
+						              AND ROWNUM = 1
+						             )
+					)
+					WHERE SIGN_USER_ID IS NOT NULL
+
+			<!-- 일시적으로 업무총괄 들어간 소스
+			SELECT * FROM (
+			    	SELECT
+			    		RANK() OVER(ORDER BY LVL)	AS SIGN_SEQ,
+			    		'T02'				AS SIGN_TP_CD,
+			    		org_id				AS APPER_ORG_CD,
+			    		org_chief			AS SIGN_USER_ID,
+			    		CASE WHEN org_class='본부/실' AND org_chief &lt;&gt; #userId#
+			       		THEN 'Y'
+			    		ELSE 'N'
+			    		END IS_NEED_DIRECTOR
+			    	  FROM
+					       (SELECT ORG_ID, ORG_CHIEF, ORG_CLASS,
+					              LEVEL AS lvl
+					         FROM c51_om_org_vw c51 START
+					       WITH org_id=#orgCd#
+					       CONNECT BY org_id = PRIOR org_pdept
+                  UNION ALL
+                  SELECT ORG_ID, EMP_ID, DUTY_TYPE, (SELECT MAX(LEVEL)-0.5 AS lvl FROM c51_om_org_vw START WITH org_id=#orgCd# CONNECT BY org_id = PRIOR org_pdept)
+                  FROM HRM_EMPLOYEE WHERE DUTY_TYPE = '업무총괄' AND RETIRE_YMD IS NULL AND '회장' = #orgCls# AND '1DGBT' &lt;&gt; #orgCd#
+					          )
+					    WHERE lvl &lt;=
+					          (SELECT lvl
+					            FROM
+					                 (SELECT org_chief,
+					                        org_class ,
+					                        LEVEL AS lvl
+					                   FROM c51_om_org_vw START
+					                 WITH org_id=#orgCd#
+						                 CONNECT BY org_id = PRIOR org_pdept
+					                    )
+					              WHERE org_class = #orgCls#
+					              AND org_chief is not null
+					              AND ROWNUM = 1
+					             )
+				)
+				WHERE SIGN_USER_ID IS NOT NULL
+			-->
+
+    </select>
+
+    <select id="retrieveSignlnForExcluRegl" resultMap="signlnForExcluRegl" parameterClass="java.util.List" >
+    	<![CDATA[ /* SignUser.retrieveSignlnForExcluRegl */ ]]> <!-- SQL 주석 부분 -->
+	    SELECT *
+			  FROM
+			       (SELECT distinct A.USER_ID AS SIGN_USER_ID ,
+			              CASE
+			                  WHEN '1' = 'en_US'			<!-- 한글이름만 select 할 수 있음, 현재 service에서 list로 받기때문에 처리 어려움 -->
+			                  THEN B.USER_ENM
+			                  ELSE B.USER_KNM
+			              END AS SIGN_USER_NM ,
+			              A.USER_POSIT_CD AS APPER_POSIT_CD ,
+			              A.USER_POSIT_CD AS APPER_POSIT_NM ,
+			              'T02' AS SIGN_TP_CD,
+			              CASE A.USER_RPSWRK_CD
+			                  WHEN '담당'
+			                  THEN ''
+			                  ELSE A.USER_RPSWRK_CD
+			              END AS APPER_RPSWRK_CD ,
+			              CASE A.USER_RPSWRK_CD
+			                  WHEN '담당'
+			                  THEN ''
+			                  ELSE A.USER_RPSWRK_CD
+			              END AS APPER_RPSWRK_NM ,
+			              C.ORG_CD AS APPER_ORG_CD ,
+			              FN_CO_GET_ORG_NM(C.ORG_CD) AS APPER_ORG_NM
+			         FROM CO_APPT A
+			          INNER JOIN CO_USER B
+			              ON (
+			                  A.USER_ID = B.USER_ID
+			              )
+			          INNER JOIN CO_USER_CTG_PRIV CUCP
+			              ON (
+			                  A.USER_ID = CUCP.PRIV_USER_ID
+			                  AND CUCP.SYS_CD = 'sgns'
+			              )
+			          INNER JOIN CO_ORG C
+			              ON (
+			                  A.ORG_CD = C.ORG_CD
+			                  AND NVL (A.APPT_ED_YMD, '99999999') >= TO_CHAR (SYSDATE, 'YYYYMMDD') /*발령종료일이 현재 유효한 자료만*/
+			                  AND NVL (B.USE_YN, 'N') = 'Y' /*사용자의 사용여부가 'Y'인 사용자만*/
+			                  AND A.USER_ID IN
+			                  (SELECT USER_ID
+			                    FROM CO_APPT
+			                   WHERE NVL (APPT_ED_YMD, '99999999') >= TO_CHAR (SYSDATE, 'YYYYMMDD')
+			                         AND NVL (PRIV_RFL_YN, 'N') = 'Y'
+			                  ) /*발령이 반영된 사용자*/
+			              )
+			        WHERE B.USE_YN = 'Y'
+					<iterate open="(" close=")" prepend="AND" conjunction="OR">
+						( B.USER_ID = #[].userIds# AND C.ORG_CD = #[].apperOrgCds# )
+					</iterate>
+			       )
+	       </select>
+
+    <select id="retrieveDirector" parameterClass="map" resultClass="map">
+    	<![CDATA[ /* SignUser.retrieveDirector */ ]]>
+    	SELECT USR.USER_ID AS USER_ID,
+       		   USR.ORG_CD AS ORG_CD
+		FROM CO_INCHRG_EX INCHRG, CO_USER USR
+		WHERE INCHRG.USER_ID=USR.USER_ID
+           AND INCHRG.INCHRG_ORG_CD = #orgCd#
+           AND ROWNUM = 1
+		</select>
+
+	<!--  해당 결재문서 ID의  모든 결재자 Delete -->
+    <delete id="deleteAllSignList" parameterClass="sign" >
+    	<![CDATA[ /* SignUser.deleteAllSignList */ ]]>
+    	DELETE
+    	  FROM CMAS.CMAA_SIGN
+         WHERE DOC_NO=#docNo#
+         AND DUTY_CLS=#dutyCls#
+    </delete>
+
+    <insert id="mergeSign" parameterClass="sign" >
+    	<![CDATA[ /* SignUser.mergeSign */ ]]>
+    	MERGE INTO CMAS.CMAA_SIGN
+        USING DUAL
+        ON (DOC_NO	=#docNo#
+        AND SIGN_SEQ=#signSeq#
+        AND DUTY_CLS=#dutyCls#
+        AND SIGN_USER_ID = #signUserId#)
+        WHEN MATCHED THEN
+        	UPDATE
+	    	   SET SIGN_ID = #signId#
+	    	      ,APPER_ORG_NM = #apperOrgNm#
+	    	      ,APPER_ORG_CD = #apperOrgCd#
+	    	      ,APPER_POSIT_CD = #apperPositCd#
+	    	      ,APPER_POSIT_NM = #apperPositNm#
+	    	      ,APPER_RPSWRK_CD = #apperRpswrkCd#
+	    	      ,APPER_RPSWRK_NM = #apperRpswrkNm#
+	    	   	  ,SIGN_STS_CD = #signStsCd#
+			      <isNotEmpty property="signTpCd">
+	              ,SIGN_TP_CD = #signTpCd#
+	              </isNotEmpty>
+	              <isEqual property="signDt" compareValue="now">
+	              ,SIGN_DT = SYSDATE
+	              </isEqual>
+	              ,FNL_EDIT_DT = SYSDATE
+	              ,FNL_EDIT_USER_ID  = #fnlEditUserId#
+        WHEN NOT MATCHED THEN
+    	INSERT
+    	         (
+    	           SIGN_ID
+    	         , DOC_NO
+    	         , SIGN_SEQ
+    	         , SIGN_TP_CD
+    	         , SIGN_STS_CD
+    	         , SIGN_USER_ID
+    	         , SIGN_USER_NM
+    	         , DUTY_CLS
+    	         , APPER_POSIT_CD
+    	         , APPER_POSIT_NM
+    	         , APPER_RPSWRK_CD
+    	         , APPER_RPSWRK_NM
+    	         , APPER_ORG_CD
+    	         , APPER_ORG_NM
+    	         <isEqual property="signDt" compareValue="now">
+	             ,SIGN_DT
+	             </isEqual>
+    	         , FST_REG_DT
+    	         , FST_REG_USER_ID
+    	         , FNL_EDIT_DT
+    	         , FNL_EDIT_USER_ID
+				 )
+          VALUES (
+                   #signId#
+                 , #docNo#
+                 , #signSeq#
+                 , #signTpCd#
+                 , #signStsCd#
+                 , #signUserId#
+                 , #signUserNm#
+                 , #dutyCls#
+                 , #apperPositCd#
+                 , #apperPositNm#
+                 , #apperRpswrkCd#
+                 , #apperRpswrkNm#
+                 , #apperOrgCd#
+                 , #apperOrgNm#
+                 <isEqual property="signDt" compareValue="now">
+	             ,SYSDATE
+	             </isEqual>
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+				)
+    </insert>
+
+    <update id="updateSign" parameterClass="map" >
+    	UPDATE CMAS.CMAA_SIGN
+    	   SET
+    	   	  SIGN_STS_CD = #signStsCd#
+    	   	  <isNotEqual property="signStsCd" compareValue="S11">
+              ,SIGN_DT = SYSDATE
+              </isNotEqual>
+              ,FNL_EDIT_DT = SYSDATE
+              ,FNL_EDIT_USER_ID  = #signUserId#
+        WHERE DOC_NO = #docNo#
+        AND SIGN_SEQ = #signSeq#
+        AND SIGN_ID = #signId#
+        AND SIGN_USER_ID = #signUserId#
+    </update>
+
+    <select id="retrieveChiefYn" parameterClass="map" resultClass="map">
+    	<![CDATA[ /* SignUser.retrieveChiefYn */ ]]>
+    	SELECT DISTINCT(H.EMP_ID)
+			FROM C51_OM_ORG_CUR_VW O, C51_HRM_EMP_CUR_VW H
+			WHERE O.ORG_CHIEF = H.EMP_ID
+			AND O.ORG_CHIEF IS NOT NULL
+			AND H.EMP_ID = #userId#
+	</select>
+</sqlMap>

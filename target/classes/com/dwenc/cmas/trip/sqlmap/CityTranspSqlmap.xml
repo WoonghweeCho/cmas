@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CVA0201
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveGroupCodeList 조건에 의한 그룹 코드 조회
+
+*************************************************************************************-->
+<sqlMap namespace="CityTransp">
+
+	<!-- 코드 그룹 조회 -->
+    <select id="retrieveCityTranspList" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.CityTransp" >
+        <![CDATA[ /* CityTransp.retrieveCityTranspList 20150724 */ ]]>
+		  SELECT
+		  		CTE.DOC_NO,
+				CTE.REF_NO,
+				CTE.DOC_STS,
+				CTE.FST_REG_DT,
+				CTE.FST_REG_USER_ID,
+				CTE.FNL_EDIT_DT,
+				CTE.FNL_EDIT_USER_ID,
+				CU1.USER_KNM AS FNL_EDIT_USER_NM,
+        		CO1.ORG_CD AS DO_ORG_CD,
+        		CO1.ORG_NM AS DO_ORG_NM,
+				CTE.EXP_CLS,
+				CTE.BDGT_ITEM,
+				CTE.ACCT_STS,
+				CTE.RET_RESN,
+				CTE.IF_PARAM,
+				(SELECT DISTINCT SIGN_ID FROM CMAA_SIGN WHERE DOC_NO = CTE.DOC_NO AND DUTY_CLS = '03') SIGN_ID,
+				CCS.APPER_ORG_CD,
+		        (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CCS.APPER_ORG_CD) APPER_ORG_NM
+		      FROM CMAA_TRAFFIC_EXPN CTE
+		      	LEFT JOIN CO_USER CU1 ON CU1.USER_ID = CTE.FST_REG_USER_ID
+		      	LEFT JOIN CO_ORG CO1 ON CO1.ORG_CD = CU1.ORG_CD
+		      	LEFT JOIN (SELECT * FROM CMAA_SIGN CS WHERE CS.SIGN_SEQ = (SELECT MAX(SIGN_SEQ) FROM CMAA_SIGN WHERE DOC_NO = CS.DOC_NO AND SIGN_TP_CD = 'T03' AND DUTY_CLS = '03')) CCS
+            		ON (CCS.DOC_NO = CTE.DOC_NO AND CCS.SIGN_TP_CD = 'T03' AND CCS.DUTY_CLS = '03')
+		      WHERE CTE.DOC_STS IS NOT NULL
+		      	<isNotEmpty prepend="AND" property="doOrgCd">
+	        		CO1.ORG_NM LIKE '%' || #doOrgCd# || '%'
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="fnlEditUserId">
+	        		CTE.FNL_EDIT_USER_ID = #fnlEditUserId#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="expCls">
+	        		CTE.EXP_CLS = #expCls#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="signStsCd">
+	        		CTE.DOC_STS = #signStsCd#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="loginUserId">
+		        	(
+		        	 CO1.ORG_CD IN (
+		              	SELECT ORG_CD
+		                FROM CO_APPT
+		                WHERE USER_ID = #loginUserId#
+		                AND TO_CHAR(SYSDATE, 'YYYYMMDD') &gt;= APPT_ST_YMD
+		                AND (TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APPT_ED_YMD OR APPT_ED_YMD IS NULL))
+		             OR CCS.APPER_ORG_CD IN (
+		              	SELECT ORG_CD
+		                FROM CO_APPT
+		                WHERE USER_ID = #loginUserId#
+		                AND TO_CHAR(SYSDATE, 'YYYYMMDD') &gt;= APPT_ST_YMD
+		                AND (TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APPT_ED_YMD OR APPT_ED_YMD IS NULL))
+		             OR CTE.DOC_NO IN (SELECT DOC_NO FROM CMAA_TRAFFIC_EXPN_DTL WHERE APPANT_ID = #loginUserId#)
+		            )
+	                <!--
+	        		CO1.ORG_CD = (SELECT ORG_CD FROM CO_USER WHERE USER_ID = #loginUserId#)
+	        		 -->
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="refNo">
+		        	CTE.REF_NO = #refNo#
+	           </isNotEmpty>
+	           <isNotEmpty  property="simpleDt">
+			      	  <isNotEqual property="simpleDt" prepend="AND" compareValue="DT"> <!-- 기안일 상세검색이 아닌 조건 최근 1달, 2달, 3달-->
+			      	  	CTE.FST_REG_DT >= SYSDATE - #simpleDt#
+			      	  </isNotEqual>
+			      	  <isEqual property="simpleDt" compareValue="DT"> <!-- 기안일 상세검색인 조건 -->
+					      <isNotEmpty property="docStart">
+					      	<isNotEmpty prepend="AND" property="docEnd">
+					          CTE.FST_REG_DT BETWEEN TO_DATE(#docStart#, 'YYYY-MM-DD') AND TO_DATE(#docEnd# || '235959', 'YYYY-MM-DDHH24MISS')
+					        </isNotEmpty>
+					      </isNotEmpty>
+				      </isEqual>
+			      </isNotEmpty>
+			   ORDER BY FST_REG_DT DESC
+    </select>
+
+    <!-- (SELECT USER_KNM FROM CO_USER WHERE USER_ID = CTE.FNL_EDIT_USER_ID) FNL_EDIT_USER_NM,
+				CTE.DO_ORG_CD,
+				(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CTE.DO_ORG_CD) DO_ORG_NM, -->
+
+    <insert id="saveCityTranspDraft" parameterClass="map" >
+        <![CDATA[ /* CityTransp.saveCityTranspDraft */ ]]>
+		  INSERT INTO CMAA_TRAFFIC_EXPN
+    	         (
+    	             DOC_NO
+					,REF_NO
+					,DOC_STS
+					,DO_ORG_CD
+					,EXP_CLS
+					,BDGT_ITEM
+					,ACCT_STS
+					,RET_RESN
+				    ,FST_REG_DT
+				    ,FST_REG_USER_ID
+				    ,FNL_EDIT_DT
+				    ,FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          		    #docNo#
+				   ,#refNo#
+				   ,#docSts#
+				   ,#doOrgCd#
+				   ,#expCls#
+				   ,#bdgtItem#
+				   ,#acctSts#
+				   ,#retResn#
+		           ,SYSDATE
+                   ,#fstRegUserId#
+                   ,SYSDATE
+                   ,#fnlEditUserId#
+				)
+    </insert>
+
+    <insert id="saveCityTranspDraftDtl" parameterClass="map" >
+        <![CDATA[ /* CityTransp.saveCityTranspDraftDtl */ ]]>
+		  INSERT INTO CMAA_TRAFFIC_EXPN_DTL
+    	         (
+    	         	DOC_NO,
+					SEQ,
+					APPANT_ID,
+					APPANT_NM,
+					APPANT_TEAM_CD,
+					USE_YMD,
+					DPT_PLACE,
+					ARR_PLACE,
+					GL_PLACE,
+					TRAFFIC_CLS,
+					USE_GL,
+					AMT,
+					CLS,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID,
+					MV_DIST,
+					SITE_EXP_KIND
+				 )
+          VALUES (
+          			#docNo#,
+					NVL(LPAD((SELECT (MAX(SEQ)+1) FROM CMAA_TRAFFIC_EXPN_DTL), 6, '0'), '000000'),
+					#appantId#,
+					#appantNm#,
+					#appantTeamCd#,
+					#useYmd#,
+					#dptPlace#,
+					#arrPlace#,
+					#glPlace#,
+					#trafficCls#,
+					#useGl#,
+					#amt#,
+					#cls#,
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#mvDist#,
+					#siteExpKind#
+				)
+    </insert>
+
+    <update id="deleteInnerTripByDocNo" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.deleteInnerTripByDocNo */ ]]>
+    	DELETE FROM CMAA_TRAFFIC_EXPN WHERE DOC_NO = #docNo#
+	</update>
+
+    <update id="deleteInnerTripDtlByDocNo" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.deleteInnerTripDtlByDocNo */ ]]>
+    	DELETE FROM CMAA_TRAFFIC_EXPN_DTL WHERE DOC_NO = #docNo#
+	</update>
+
+    <!-- 코드 그룹 조회 -->
+    <select id="getMaxCmasId" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* CityTransp.getMaxCmasId */ ]]>
+		  SELECT DOC_NO FROM CMAA_TRAFFIC_EXPN
+			WHERE DOC_NO LIKE 'CMAS' || '-' || TO_CHAR(SYSDATE, 'YYYY') || '%'
+			AND ROWNUM =1
+			ORDER BY DOC_NO DESC
+			FOR UPDATE WAIT 3
+    </select>
+
+    <!-- 코드 그룹 조회 -->
+    <select id="getCmasId" parameterClass="map" resultClass="string" >
+        <![CDATA[ /* CityTransp.getCmasId */ ]]>
+	  	<isEmpty property="docNo">
+		SELECT 'CMAS' || '-' || TO_CHAR(SYSDATE, 'YYYY') || '-' || '000001' AS DOC_NO
+  		FROM DUAL
+  		</isEmpty>
+  		<isNotEmpty property="docNo">
+  		SELECT SUBSTR(#docNo#, 1, 4) || '-' || TO_CHAR(SYSDATE, 'YYYY') || '-' ||
+			LPAD(NVL(TO_NUMBER(SUBSTR(#docNo#, 11))+1, '1'),6, '0') AS DOC_NO
+  		FROM DUAL
+  		</isNotEmpty>
+    </select>
+
+    <update id="insertCityTranspTempDoc" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.insertCityTranspTempDoc */ ]]>
+    	 INSERT INTO CMAA_TRAFFIC_EXPN(
+    	            DOC_NO,
+    	            FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          		    #docNo#,
+          		    SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#
+				)
+	</update>
+
+
+
+    <select id="retrieveViewDocInfo" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* CityTransp.retrieveViewDocInfo */ ]]>
+			SELECT
+				DOC_NO,
+				REF_NO,
+				(SELECT SIGN_ID FROM CMAA_SIGN WHERE DOC_NO = CTE.DOC_NO AND DUTY_CLS = '03' GROUP BY SIGN_ID) SIGN_ID,
+        		DOC_STS,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				(SELECT USER_KNM FROM CO_USER WHERE USER_ID = CTE.FNL_EDIT_USER_ID) FNL_EDIT_USER_NM,
+				DO_ORG_CD,
+				EXP_CLS,
+				BDGT_ITEM,
+				ACCT_STS,
+				RET_RESN,
+				SL_NO,
+				FILE_ATCH_ID
+		      FROM CMAA_TRAFFIC_EXPN CTE
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="cmasId">
+	        	DOC_NO = #cmasId#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <select id="retrieveViewDocInfoDtl" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.CityTranspDtl" >
+	  	<![CDATA[ /* CityTransp.retrieveViewDocInfoDtl */ ]]>
+			SELECT
+				DOC_NO,
+				SEQ,
+				APPANT_ID,
+				APPANT_NM,
+				APPANT_TEAM_CD,
+				(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CTED.APPANT_TEAM_CD) APPANT_TEAM_NM,
+				USE_YMD,
+				DPT_PLACE,
+				ARR_PLACE,
+				GL_PLACE,
+				TRAFFIC_CLS,
+				USE_GL,
+				AMT,
+				CLS,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				SITE_EXP_KIND,
+				MV_DIST
+		      FROM CMAA_TRAFFIC_EXPN_DTL CTED
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="cmasId">
+	        	DOC_NO = #cmasId#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <insert id="saveCityTranspDocSave" parameterClass="map" >
+        <![CDATA[ /* CityTransp.saveCityTranspDocSave */ ]]>
+		  INSERT INTO CMAA_TRAFFIC_EXPN
+    	         (
+    	            DOC_NO
+				   ,DOC_STS
+				   ,FST_REG_DT
+				   ,FST_REG_USER_ID
+				   ,FNL_EDIT_DT
+				   ,FNL_EDIT_USER_ID
+				   ,IF_PARAM
+				 )
+          VALUES (
+          		   #docNo#
+		          ,#docSts#
+		          ,SYSDATE
+				  ,#fstRegUserId#
+				  ,SYSDATE
+				  ,#fnlEditUserId#
+                  ,#ifParam#
+				)
+    </insert>
+
+    <update id="updateCityTranspDocSave" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.updateCityTranspDocSave */ ]]>
+    	UPDATE CMAA_TRAFFIC_EXPN
+				SET DOC_STS = #docSts#,
+					FNL_EDIT_DT = SYSDATE,
+				    FNL_EDIT_USER_ID = #fnlEditUserId#,
+				    IF_PARAM = #ifParam#,
+				    FILE_ATCH_ID = #fileAtchId#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrieveSavedDocInfo" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* CityTransp.retrieveSavedDocInfo */ ]]>
+			SELECT
+				DOC_NO,
+         		DOC_STS,
+		        FST_REG_DT,
+		        FST_REG_USER_ID,
+		        FNL_EDIT_DT,
+		        FNL_EDIT_USER_ID,
+		        IF_PARAM,
+		        FILE_ATCH_ID
+		      FROM CMAA_TRAFFIC_EXPN
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="docNo">
+	        	DOC_NO = #docNo#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    	<update id="insertSignInfoCityTransp" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.insertSignInfoCityTransp */ ]]>
+    	INSERT INTO CMAA_SIGN
+    	         (
+    	            SIGN_ID,
+					SIGN_SEQ,
+					SIGN_USER_ID,
+					SIGN_USER_NM,
+					SIGN_TP_CD,
+					SIGN_STS_CD,
+					SIGN_DT,
+					APPER_POSIT_CD,
+					APPER_POSIT_NM,
+					APPER_RPSWRK_CD,
+					APPER_RPSWRK_NM,
+					APPER_ORG_CD,
+					APPER_ORG_NM,
+					FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID,
+					DOC_NO,
+					DUTY_CLS
+				 )
+          VALUES (
+          		    #signId#,
+					#signSeq#,
+					#signUserId#,
+					(SELECT USER_KNM FROM CO_USER WHERE USER_ID = #signUserId#),
+					#signTpCd#,
+					#signStsCd#,
+					<isEqual property="signDt" compareValue="Y">
+						SYSDATE,
+					</isEqual>
+					<isEqual property="signDt" compareValue="N">
+						'',
+					</isEqual>
+					(SELECT USER_POSIT_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_POSIT_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_RPSWRK_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					(SELECT USER_RPSWRK_CD FROM CO_USER WHERE USER_ID = #signUserId#),
+					#apperOrgCd#,
+					(SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = #apperOrgCd#),
+					SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#docNo#,
+					#dutyCls#
+				)
+	</update>
+
+	<update id="updateCityTranspInfo" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.updateCityTranspInfo */ ]]>
+    	UPDATE CMAA_TRAFFIC_EXPN
+				SET DOC_STS	= #docStsCd#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="updateCityTranspDraftDoc" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.updateCityTranspDraftDoc */ ]]>
+    	UPDATE CMAA_TRAFFIC_EXPN
+				SET REF_NO = #refNo#
+				   ,DOC_STS = #docSts#
+				   ,DO_ORG_CD = #doOrgCd#
+				   ,FNL_EDIT_DT = SYSDATE
+				   ,FNL_EDIT_USER_ID = #fnlEditUserId#
+				   ,EXP_CLS = #expCls#
+				   ,BDGT_ITEM = #bdgtItem#
+				   ,FILE_ATCH_ID = #fileAtchId#
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<select id="retrieveEmpListByOrgCd" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Emp" >
+	  	<![CDATA[ /* CityTransp.retrieveEmpListByOrgCd */ ]]>
+			SELECT CU.USER_ID,
+			       CU.ORG_CD,
+			       CU.USER_TP_CD,
+			       CU.USER_KNM,
+			       CU.USER_ENM,
+			       CU.USE_YN,
+			       CU.USER_POSIT_CD,
+			       CU.USER_RPSWRK_CD,
+			       (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CU.ORG_CD) AS ORG_NM,
+			       FN_CO_DECRYPT_HEX(CU.MPHONE_NO) MPHONE_NO
+			  FROM CO_USER CU, CO_APPT CA
+			 WHERE CA.USER_ID = CU.USER_ID
+			 AND NVL(CA.APPT_ED_YMD, '99991231') > TO_CHAR(SYSDATE, 'YYYYMMDD')
+			 AND CU.USE_YN = 'Y'
+			 AND CU.ORG_CD = #orgCd#
+			 ORDER BY ORG_CD, USER_KNM
+    </select>
+
+    <select id="retrieveSignInfo" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.Sign" >
+        <![CDATA[ /* CityTransp.retrieveSignInfo */ ]]>
+		   SELECT
+				SIGN_ID,
+				SIGN_SEQ,
+				SIGN_USER_ID,
+				SIGN_USER_NM,
+				SIGN_TP_CD,
+				SIGN_STS_CD,
+				SIGN_DT,
+				APPER_POSIT_CD,
+				APPER_POSIT_NM,
+				APPER_RPSWRK_CD,
+				APPER_RPSWRK_NM,
+				APPER_ORG_CD,
+				APPER_ORG_NM,
+				FST_REG_DT,
+				FST_REG_USER_ID,
+				FNL_EDIT_DT,
+				FNL_EDIT_USER_ID,
+				DOC_NO,
+				DUTY_CLS
+		      FROM CMAA_SIGN
+		      WHERE DUTY_CLS = '03'
+		    	<isNotEmpty property="docNo">
+	        		AND DOC_NO = #docNo#
+	        	</isNotEmpty>
+	        	ORDER BY SIGN_SEQ ASC
+    </select>
+
+    <update id="updateSignDt" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.updateSignDt */ ]]>
+    	 UPDATE CMAA_SIGN SET SIGN_DT = SYSDATE
+		 WHERE SIGN_ID = #signId#
+		 	AND SIGN_SEQ = (SELECT MIN(SIGN_SEQ) FROM CMAA_SIGN WHERE SIGN_ID = #signId# AND SIGN_DT IS NULL)
+	</update>
+
+	<update id="updateSgnsReject" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.updateSgnsReject */ ]]>
+    	 UPDATE CMAA_TRAFFIC_EXPN SET
+    	 		DOC_STS = #docSts#,
+    	 		ACCT_STS = #acctSts#,
+    	 		RET_RESN = #retResn#
+		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<update id="saveCmasDocUpdateFail" parameterClass="map" >
+    	<![CDATA[ /* CityTransp.saveCmasDocUpdateFail */ ]]>
+    	 UPDATE CMAA_TRAFFIC_EXPN SET
+    	 		DOC_STS = #docSts#
+		 WHERE DOC_NO = #docNo#
+	</update>
+
+	<!-- 중복신청체크(시내교통비) -->
+	<select id="retrieveCheckDraftDuplication1" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* CityTransp.retrieveCheckDraftDuplication1 */ ]]>
+			select
+				a.ref_no
+			from cmaa_traffic_expn a, cmaa_traffic_expn_dtl b
+			where a.doc_no = b.doc_no
+			and b.appant_id = #userId#
+			and b.use_ymd &gt;= #stYmd#
+			and b.use_ymd &lt;= #edYmd#
+			and a.doc_sts in ('D02','D03')
+			order by a.ref_no desc
+    </select>
+
+	<!-- 중복신청체크(국내출장) -->
+	<select id="retrieveCheckDraftDuplication2" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* CityTransp.retrieveCheckDraftDuplication2 */ ]]>
+			select
+				a.ref_no
+			from cmaa_dmst_bustr a
+			where a.user_id = #userId#
+
+			and
+			(
+			   (a.st_ymd &lt;= #stYmd#
+			and a.ed_ymd &gt;= #stYmd#)
+			or (a.st_ymd &gt;= #edYmd#
+			and a.ed_ymd &lt;= #edYmd#)
+			)
+
+			and a.doc_sts in ('D02','D03')
+
+			order by a.ref_no desc
+    </select>
+
+	<!-- 중복신청체크(해외출장신청서) -->
+	<select id="retrieveCheckDraftDuplication3" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* CityTransp.retrieveCheckDraftDuplication3 */ ]]>
+			select
+				a.ref_no
+			 from cmaa_abrd_bustr a
+			where a.user_id = #userId#
+
+			and
+			(
+			   (json_value(a.if_param,'$$.startDate') &lt;= #stYmd#
+			and json_value(a.if_param,'$$.endDate') &gt;= #stYmd#)
+			or (json_value(a.if_param,'$$.startDate') &gt;= #edYmd#
+			and json_value(a.if_param,'$$.endDate') &lt;= #edYmd#)
+			)
+
+			and a.doc_sts in ('D02','D03')
+
+			and doc_no not in (
+				select
+					a.doc_no
+				from cmaa_abrd_bustr_rptdoc a
+				where a.user_id = #userId#
+
+				and
+				(
+				   (a.bustr_st_ymd &lt;= #stYmd#
+				and a.bustr_ed_ymd &gt;= #stYmd#)
+				or (a.bustr_st_ymd &gt;= #edYmd#
+				and a.bustr_ed_ymd &lt;= #edYmd#)
+				)
+
+				and a.doc_sts in ('D02','D03')
+			)
+
+	    	<isNotEmpty property="docNo">
+        		AND a.DOC_NO != #docNo#
+        	</isNotEmpty>
+
+			order by a.ref_no desc
+    </select>
+
+	<!-- 중복신청체크(해외출장정산서) -->
+	<select id="retrieveCheckDraftDuplication4" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* CityTransp.retrieveCheckDraftDuplication4 */ ]]>
+			select
+				a.ref_no
+			from cmaa_abrd_bustr_rptdoc a
+			where a.user_id = #userId#
+
+			and
+			(
+			   (a.bustr_st_ymd &lt;= #stYmd#
+			and a.bustr_ed_ymd &gt;= #stYmd#)
+			or (a.bustr_st_ymd &gt;= #edYmd#
+			and a.bustr_ed_ymd &lt;= #edYmd#)
+			)
+
+			and a.doc_sts in ('D02','D03')
+
+			order by a.ref_no desc
+    </select>
+
+</sqlMap>

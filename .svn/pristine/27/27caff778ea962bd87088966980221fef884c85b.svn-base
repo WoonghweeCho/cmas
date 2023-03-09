@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : datSrc
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveDatSrcList 데이터소스 목록 조회
+*************************************************************************************-->
+<sqlMap namespace="datSrc">
+
+	<resultMap class="java.util.HashMap" id="rmDatSrcList">
+    	<result column="INSTC_ID" property="instcId" />
+    	<result column="SEQ" property="seq" />
+    	<result column="DAT_SRC_ID" property="datSrcId" />
+    	<result column="DEM_URL" property="demUrl" />
+    	<result column="USE_YN" property="useYn" />
+	</resultMap>
+
+    <!-- 데이터소스 목록 조회 -->
+    <select id="retrieveDatSrcList" parameterClass="map" resultMap="rmDatSrcList" >
+        <![CDATA[ /* datSrc.retrieveInstcList */ ]]>
+        SELECT INSTC_ID,
+				SEQ,
+				DAT_SRC_ID,
+				DEM_URL,
+				USE_YN
+		  FROM ICMS.CO_DAT_SRC
+	  <dynamic prepend="WHERE">
+   	    <isNotEmpty prepend="AND" property="instcId">
+	    	INSTC_ID = #instcId#
+	    </isNotEmpty>
+   	    <isNotEmpty prepend="AND" property="seq">
+	    	SEQ = #seq#
+	    </isNotEmpty>
+	    <isNotEmpty prepend="AND" property="useYn">
+	    	USE_YN = #useYn#
+	    </isNotEmpty>
+	  </dynamic>
+        ORDER BY INSTC_ID ASC, DEM_URL DESC
+    </select>
+
+</sqlMap>

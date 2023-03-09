@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>대우건설 다운로드센터</title>
+		<link type="text/css" href="common/css/redmond/jquery-ui-1.7.3.custom.css" rel="stylesheet" />
+		<script type="text/javascript" src="common/js/jquery-1.3.2.min.js"></script>
+		<script type="text/javascript" src="common/js/jquery-ui-1.7.3.custom.min.js"></script>
+		<script type="text/javascript">
+			$(function(){
+
+				// Accordion
+				$("#accordion").accordion({ header: "h3" });
+
+				// Tabs
+				$('#tabs').tabs();
+
+
+
+				// Datepicker
+				$('#datepicker').datepicker({
+					inline: true
+				});
+
+				// Slider
+				$('#slider').slider({
+					range: true,
+					values: [17, 67]
+				});
+
+				// Progressbar
+				$("#progressbar").progressbar({
+					value: 20
+				});
+
+				//hover states on the static widgets
+				$('#dialog_link, ul#icons li').hover(
+					function() { $(this).addClass('ui-state-hover'); },
+					function() { $(this).removeClass('ui-state-hover'); }
+				);
+
+
+			});
+		</script>
+
+
+		<script type="text/javascript">
+		function ActiveXInspection(ProgId){
+		  var isInstall = false;
+		  try {
+		    var obj = new ActiveXObject(ProgId);
+		    if (obj) return true;
+		  } catch (e) {
+		    return false;
+		  }
+
+		  return false;
+		}
+
+
+
+		function ActiveXInspectionInnerHtml(class_id,ProgId,down_url){
+
+			var isInstall=ActiveXInspection(ProgId);
+			var exp_url;
+			if(isInstall){
+
+			 exp_url="<p>설치완료</p>";
+
+			}else{
+				 exp_url="<p><font color=red>미설치</font></p>";
+
+			}
+
+		$('#'+class_id).html(exp_url);
+
+		return exp_url ;
+		}
+
+
+
+
+
+
+
+$(function(){
+
+
+		ActiveXInspectionInnerHtml('code1_xplatform','XPlatformAX.XPlatformAXCtrl92.1','../ManualDeploy/TOBESOFT/XPLATFORM9.2_SetupEngine.exe');
+		ActiveXInspectionInnerHtml('code2_xplatformLancher','XLauncher.Cy_XLauncher.1','../ManualDeploy/TOBESOFT/XPLATFORM9.2_SetupEngine.exe');
+		ActiveXInspectionInnerHtml('code3_jre','JavaPlugin.160_33','../ManualDeploy/JRE/jre-6u33-windows-i586.exe');
+		ActiveXInspectionInnerHtml('code4_eSonicLinker','ESONICLINKER.ESonicLinkerCtrl.1','../ManualDeploy/ecm/eSonicLinker.exe');
+
+		ActiveXInspectionInnerHtml('code14_eSonicLinker','ESONICLINKER.ESonicLinkerCtrl.1','../ManualDeploy/ecm/extra/eSonicLinker.exe');
+
+	    ActiveXInspectionInnerHtml('code5_rexpert30','ClipSoft.RexViewer30Ctrl.1','../ManualDeploy/rexpert/rexpert30viewer.exe');
+	    ActiveXInspectionInnerHtml('code6_papyrus','nppapyrus.PapyrusPlugIn.1','../ManualDeploy/pdfviewer/Papyrus-PlugIn.exe');
+		ActiveXInspectionInnerHtml('code7_Foxit','Foxit.FoxitPDFSDKProCtrl.4','../ManualDeploy/pdfFoxit/PDFCommunicatorReader.msi');
+		ActiveXInspectionInnerHtml('code8_OfficeViewer','EDOFFICE.EDOfficeCtrl.1','../ManualDeploy/edofficeviewer/EdOfficeViewer.exe');
+
+		ActiveXInspectionInnerHtml('code9_miplatform','Cy_MiInstaller3.CyMiInstaller321.1','../ManualDeploy/TOBESOFT/MiPlatform320u_ecos_setup20120717.exe');
+		ActiveXInspectionInnerHtml('code10_rexpert25','Rexviewer.RexViewerCtrl25U.1','../ManualDeploy/ecos/Rexpert25ViewerU.exe');
+		ActiveXInspectionInnerHtml('code11_AxECM','AxECM.Viewer','../ManualDeploy/ecos/ecos_AxEcm.exe');
+		ActiveXInspectionInnerHtml('code12_SecuTax','Signgate.SecuTax.Client.SGSecuTax','../ManualDeploy/ecos/SecutaxInstaller_full.exe');
+		ActiveXInspectionInnerHtml('code13_Singate','SGCAPPATX.SGCAppAtxCtrl.1','../ManualDeploy/ecos/ewsinstaller_full.exe');
+
+
+});
+
+
+
+
+
+
+
+
+
+
+		</script>
+
+
+
+
+
+
+
+		<style type="text/css">
+			/*demo page css*/
+			body{ font: 70.5% "Trebuchet MS", sans-serif; margin: 50px;}
+			.demoHeaders { margin-top: 2em; }
+			#dialog_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
+			#dialog_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
+			ul#icons {margin: 0; padding: 0;}
+			ul#icons li {margin: 2px; position: relative; padding: 4px 0; cursor: pointer; float: left;  list-style: none;}
+			ul#icons span.ui-icon {float: left; margin: 0 4px;}
+
+
+
+			.tableType01 {width:100%;border-bottom:1px solid #ccc;table-layout:fixed;z-index:10;}
+			.tableType01{table-layout:auto !important}
+			.tableType01 th {padding:6px 3px 5px 3px;text-align:center;font-weight:normal;background:#f6f6f5;border-top:1px solid #ccc;border-right:1px solid #e6e5e5;border-bottom:1px solid #e6e5e5}
+			.tableType01 th.th01{background:#fcfcfc;border-top:1px solid #e6e5e5;}
+			.tableType01 th.th02{font-weight:bold;background:#fff}
+			.tableType01 th.th03{border-top:1px solid #e6e5e5}
+			.tableType01 th.last{border-bottom:1px solid #ccc}
+			.tableType01 th img {vertical-align:middle;padding-bottom:3px}
+			.tableType01 td {height:20px;padding:6px 3px 4px 3px;text-align:center;border-top:1px solid #e6e5e5;border-right:1px solid #e6e5e5;background:#fff;word-wrap:break-word;word-break:normal;*word-wrap:normal}
+			.tableType01 .tLeft {padding-left:10px !important;text-align:left}
+			.tableType01 .tbLeft {padding:15px 0 15px 15px;text-align:left}
+			.tableType01 .tRight {padding-right:5px;text-align:right}
+			.tbl_btn{padding:11px 20px 11px 0 !important;border-right:none !important;text-align:right !important;background:#f9f9f9 !important}
+			.tbl_btn .btn{margin-left:3px}
+			.tableType01 tfoot td{padding:11px 0 9px 13px;text-align:left;border-right:none;background:#f9f9f9}
+			.tableType01 tfoot td span{padding-right:18px}
+
+
+			.nbr {border-right:none !important;}
+			.s1{margin-top:10px !important}
+            .ui-state-default-ecos { border: 1px solid #c5dbec; background: #dfeffc url(images/ui-bg_glass_85_dfeffc_1x400.png) 50% 50% repeat-x; font-weight: bold; color: red; outline: none; }
+		</style>
+	</head>
+	<body>
+
+
+ <table align="center" width="80%">
+
+  <tr><td><h1>바로콘 설치파일 다운로드</h1></td></tr>
+  <tr><td>
+
+
+
+		<table  class="tableType01 s1" width="100%" >
+		    <colgroup>
+		      <col width="29%" />
+		      <col  />
+		    </colgroup>
+		<thead>
+
+
+		 <tr>
+		    <td class="tLeft">
+			<button  class="ui-state-default ui-corner-all" style="cursor:hand" onclick="window.open('./install_barocon.jsp', '_activeX_Barocon_', 'width=610,height=300,scrollbars=auto');"	>바로콘 전용 유틸 자동인스톨</button>
+			 </td>
+			 <td class="nbr">[바로콘 전용 유틸 자동인스톨]선택하시면 ActiveX를 자동설치후 Install 창이 종료가 됩니다. </td>
+		  </tr>
+
+		 <tr>
+		    <td class="tLeft">
+			 <button  class="ui-state-default-ecos ui-corner-all" style="cursor:hand" onclick="window.open('http://dwecos.dwconst.co.kr/lib/miplatform_deploy/baroconInstall.jsp', '_ecosInstall_', 'width=800,height=500,scrollbars=yes');"	>이코스 전용 유틸 자동인스톨</button>
+			 </td>
+			 <td class="nbr">[이코스 전용 유틸 자동인스톨]선택하시면 ActiveX를 자동설치후 Install 창이 종료가 됩니다. </td>
+		  </tr>
+		</tbody>
+		</table>
+
+	   </td></tr>
+	  <tr><td>
+
+
+
+
+	<!-- Tabs -->
+
+		<div id="tabs">
+			<ul>
+
+				<li><a href="#tabs-1">바로콘 전용 개별설치</a></li>
+				<li><a href="#tabs-2">이코스 전용 개별설치</a></li>
+				<li><a href="#tabs-3">바로콘 통합설치</a></li>
+				<li><a href="#tabs-4">설치 FAQ</a></li>
+				<li><a href="#tabs-5">헬프 데스크</a></li>
+			</ul>
+
+			<div id="tabs-1">
+
+
+				<table class="tableType01 s1" width="100%" >
+				    <colgroup>
+				      <col width="20%" />
+				       <col width="6%" />
+				      <col />
+				      <col width="5%" />
+				      <col width="10%" />
+				      <col width="15%" />
+				    </colgroup>
+				<thead>
+				<tr>
+				    <th scope="col">유틸명</th>
+				    <th scope="col">버전</th>
+				    <th scope="col">설명</th>
+				    <th scope="col">크기</th>
+				    <th class="col">설치유무</th>
+				    <th class="nbr">다운로드</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+				    <td class="tLeft">
+				  		X-PLATFORM 9.2
+				    </td>
+				    <td class="tCenter">9.2</td>
+				    <td class="tLeft">바로콘 플랫폼</td>
+				    <td class="tCenter">13.7M</td>
+   					<td class="tCenter"><div id="code1_xplatform"></div></td>
+   					<td class="nbr"><p><a href='../ManualDeploy/TOBESOFT/XPLATFORM9.2_SetupEngine.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+
+				</tr>
+
+
+
+				<tr>
+				    <td class="tLeft">간트차트(JRE) 뷰어</td>
+				    <td class="tCenter">1.6</td>
+				    <td class="tLeft">공사업무,견적업무전용 차트뷰어</td>
+				    <td class="tCenter">20.8M</td>
+				     <td class="tCenter"><div id="code3_jre"></div></td>
+				     <td class="nbr"><p><a href='../ManualDeploy/JRE/jre-6u33-windows-i586.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+
+
+				<tr>
+				    <td class="tLeft">ECM</td>
+				    <td class="tCenter">3.0.0.4</td>
+				    <td class="tLeft">바로콘 첨부파일 업로드/다운로드 컴포넌트</td>
+				    <td class="tCenter">0.2M</td>
+				    <td class="tCenter"><div id="code4_eSonicLinker"></div></td>
+				    <td class="nbr"><p><a href='../ManualDeploy/ecm/eSonicLinker.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+
+				<tr>
+				    <td class="tLeft">ECM(외부업체용)</td>
+				    <td class="tCenter">3.0.0.5</td>
+				    <td class="tLeft">(외부업체용)바로콘 첨부파일 업로드/다운로드 컴포넌트</td>
+				    <td class="tCenter">0.2M</td>
+				    <td class="tCenter"><div id="code14_eSonicLinker"></div></td>
+				    <td class="nbr"><p><a href='../ManualDeploy/ecm/extra/eSonicLinker.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+
+				<tr>
+				    <td class="tLeft">Rexpert 3.0</td>
+				    <td class="tCenter">3.0</td>
+				    <td class="tLeft">레포트툴,세금계산서 증빙용</td>
+				    <td class="tCenter">4.6M</td>
+				     <td class="tCenter"><div id="code5_rexpert30"><p><a href="../ManualDeploy/rexpert/rexpert30viewer.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>다운로드</a></p>
+				     </div>
+				     </td>
+				     <td class="nbr"><p><a href='../ManualDeploy/rexpert/rexpert30viewer.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+
+				<tr>
+				    <td class="tLeft">PDF 뷰어(ePapyrus)</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">바로콘 전자결재용</td>
+				    <td class="tCenter">15.2M</td>
+				    <td class="tCenter"><div id="code6_papyrus"><p><a href="../ManualDeploy/pdfviewer/Papyrus-PlugIn.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>다운로드</a></p>
+				    </div>
+				    </td>
+				    <td class="nbr"><p><a href='../ManualDeploy/pdfviewer/Papyrus-PlugIn.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+
+
+				<tr>
+				    <td class="tLeft">PDF 뷰어(Foxit)</td>
+				    <td class="tCenter">5.0.0.2</td>
+				    <td class="tLeft">문서관리 업무전용 PDF뷰</td>
+				    <td class="tCenter">7.2M</td>
+				    <td class="tCenter"><div id="code7_Foxit"></div></td>
+				    <td class="nbr"><p><a href='../ManualDeploy/pdfFoxit/PDFCommunicatorReader.msi' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+				<tr>
+				    <td class="tLeft">office 뷰어</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">오피스파일 뷰어 설치파일 </td>
+				    <td class="tCenter">2.4M</td>
+ 					<td class="tCenter"><div id="code8_OfficeViewer"></div></td>
+ 					<td class="nbr"><p><a href='../ManualDeploy/edofficeviewer/EdOfficeViewer.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+
+				</tr>
+
+				<tr>
+				    <td class="tLeft">한글뷰어 패치</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">한글뷰어 보안 안내메시지 제거 패치</td>
+				    <td class="tCenter">120 KB</td>
+ 					<td class="tCenter">-</td>
+ 					<td class="nbr"><p><a href='../BarconInstall/hwpModule.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+				<tr>
+				    <td class="tLeft">DRM(32Bit)</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">DRM 32Bit 설치파일(주의 : OS가 32Bit인 경우에만 설치하시오.)</td>
+				    <td class="tCenter">20.6 MB</td>
+ 					<td class="tCenter">-</td>
+ 					<td class="nbr"><p><a href='../BarconInstall/docsafer_Ext.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+				<tr>
+				    <td class="tLeft">DRM(64Bit)</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">DRM 64Bit 설치파일(주의 : OS가 64Bit인 경우에만 설치하시오.)</td>
+				    <td class="tCenter">30.4 MB</td>
+ 					<td class="tCenter">-</td>
+ 					<td class="nbr"><p><a href='../BarconInstall/docsaferx64_Ext.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+				</tr>
+
+
+
+				</tbody>
+				</table>
+
+
+
+
+
+
+			</div>
+			<div id="tabs-2">
+
+
+				<table class="tableType01 s1" width="100%" >
+					<colgroup>
+					  <col width="20%" />
+					  <col width="6%" />
+					  <col />
+					  <col width="5%" />
+					  <col width="10%" />
+					  <col width="15%" />
+					</colgroup>
+				<thead>
+				<tr>
+					<th scope="col">유틸명</th>
+					<th scope="col">버전</th>
+					<th scope="col">설명</th>
+					<th scope="col">크기</th>
+					<th scope="col">설치유무</th>
+					<th class="nbr">다운로드</th>
+				</tr>
+				</thead>
+				<tbody>
+
+				<tr>
+					<td class="tLeft">
+						MI-PLATFORM 3.2
+					</td>
+					<td class="tCenter">3.2</td>
+					<td class="tLeft">이코스 전용 플랫폼</td>
+					<td class="tCenter">7.7M</td>
+					<td class="tCenter"><div id="code9_miplatform"></div></td>
+					<td class="nbr"><p><a href='../ManualDeploy/TOBESOFT/MiPlatform320u_ecos_setup20120717.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+
+				</tr>
+
+
+				<tr>
+					<td class="tLeft">
+						Rexpert2.5
+					</td>
+					<td class="tCenter">2.5.1.158</td>
+					<td class="tLeft">이코스전용 레포트툴 ,세금계산서 </td>
+					<td class="tCenter">10.1M</td>
+					<td class="tCenter"><div id="code10_rexpert25"></div></td>
+					<td class="nbr"><p><a href='../ManualDeploy/ecos/Rexpert25ViewerU.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+
+
+				</tr>
+
+
+				<tr>
+					<td class="tLeft">
+						AxECM
+					</td>
+					<td class="tCenter">1.0.01</td>
+					<td class="tLeft">이코스전용 첨부파일 업로드/다운로드 컴포넌트 </td>
+					<td class="tCenter">0.1M</td>
+					<td class="tCenter"><div id="code11_AxECM"></div></td>
+					<td class="nbr"><p><a href='../ManualDeploy/ecos/ecos_AxEcm.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+
+				</tr>
+				<tr>
+					<td class="tLeft">
+						Secutax
+					</td>
+					<td class="tCenter">2.0.1.4</td>
+					<td class="tLeft">이코스전용 세금계산서 출력-한국정보인증(주)</td>
+					<td class="tCenter">3.7M</td>
+					<td class="tCenter"><div id="code12_SecuTax"></div></td>
+					<td class="nbr"><p><a href='../ManualDeploy/ecos/SecutaxInstaller_full.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+
+
+				</tr>
+
+				<tr>
+					<td class="tLeft">
+						한국정보인증Singate<br/>암호화툴킷
+					</td>
+					<td class="tCenter">4.0.1.7</td>
+					<td class="tLeft">이코스전용 계약서 작업 업무사용-한국정보인증(주)</td>
+					<td class="tCenter">3.5M</td>
+					<td class="tCenter"><div id="code13_Singate"></div></td>
+					<td class="nbr"><p><a href='../ManualDeploy/ecos/ewsinstaller_full.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>다운로드</a></p></td>
+
+
+				</tr>
+
+				</tbody>
+				</table>
+
+
+			</div>
+
+
+
+
+
+
+
+
+
+
+			<div id="tabs-3">
+
+
+				<table class="tableType01 s1" width="100%" >
+				    <colgroup>
+				      <col width="20%" />
+				      <col width="6%" />
+				      <col />
+				      <col width="5%" />
+				      <col width="15%" />
+				    </colgroup>
+				<thead>
+				<tr>
+				    <th scope="col">유틸명</th>
+				    <th scope="col">버전</th>
+				    <th scope="col">설명</th>
+				    <th scope="col">크기</th>
+				    <th class="nbr">다운로드</th>
+				</tr>
+				</thead>
+				<tbody>
+
+				<tr>
+				    <td class="tLeft">
+				  		바로콘 통합설치 버전<br/>
+				    </td>
+				    <td class="tCenter">1.3</td>
+				    <td class="tLeft">X-Platform 9.2,ECM ,PDF 뷰어(Papyrus),PDF 뷰어(foxit),<BR/>
+				    				  RexPert3.0 MI-Platform 3.2,SIGNGATE, <BR/>AxEcm,RexPert2.5,SGSeuTax</td>
+				    <td class="tCenter">106M</td>
+				    <td class="nbr"><p><a href="../BarconInstall/Barocon_Install.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>다운로드</a></p></td>
+				</tr>
+
+
+
+
+
+				<tr>
+				    <td class="tLeft">
+				  		바로콘 전용 버전<br/>(이코스 유틸제외)
+				    </td>
+				    <td class="tCenter">1.3</td>
+				    <td class="tLeft">X-Platform 9.2,ECM ,PDF 뷰어(adobe reader),PDF 뷰어(foxit),<BR/>
+				    				  PDF 뷰어(Papyrus),RexPert3.0<BR/>
+
+				    </td>
+				    <td class="tCenter">67.8M</td>
+ 					<td class="nbr"><p><a href="../BarconInstall/BaroconOnly_Install.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>다운로드</a></p></td>
+
+				</tr>
+
+
+				<tr>
+				    <td class="tLeft">
+				  		이코스 전용 통합설치
+				    </td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">MI-Plaform 3.2, SIGNGATE(공인인증서),<br/>AxEcm,RexPert2.5,SGSeuTax</td>
+				    <td class="tCenter">36.6M</td>
+					<td class="nbr"><p><a href="../BarconInstall/ECOS_Install.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>다운로드</a></p></td>
+
+				</tr>
+
+				</tbody>
+				</table>
+
+
+
+
+
+
+
+			</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+			<div id="tabs-4">
+
+
+
+			<div id="accordion">
+
+				<h3><a href="#">dwe.xadl 을 로딩하는데 다음과같은 http 또는  socket 에러코드 12029로 실패하였습니다</a></h3>
+				<div>
+				http://barocon.daewooenc.com:80/icms/xui/dwe.xadl) 을 로딩하는데 다음과같은 http 또는  socket 에러코드 12029로 실패하였습니다
+				위와같은 메세지보일경우 엑스플랫폼 캐시를 삭제하시면 됩니다.
+				링크된 파일을 다운받은후 실행하면 자동으로 캐시가 삭제됩니다.
+				<p><a href="../BarconInstall/CacheDelete.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>엑스플랫폼 캐시삭제다운</a></p>
+				</div>
+
+
+				<h3><a href="#">eCos(전자조달)에 접속후 화면이 어둡게 나옵니다.</a></h3>
+				<div>
+				ecos에 전용 유틸중 마이플랫폼이 설치가 되지 않아서 그렇습니다.<br/>
+				상단의 이코스 전용 유틸 자동인스톨을 모두 설치후 다시 로그인하시면 정삭적인 화면이 출력이 됩니다.<br/>
+				</div>
+
+
+				<h3><a href="#">ECM 업로드중 에러가 발생하였습니다.메세지가 출력됩니다.</a></h3>
+				<div>
+				2012년8월 20일이전에 바로콘 첨부파일 컴포넌트인 ECM이 프로그램에 남아있어서 나오는 에러인경우가 있습니다.<BR/>
+				아래 ZIP파일을 다운받으신후 eSonicRemover.bat을 실행 하시면 구 ECM컴포넌트가 삭제됩니다.<BR/>
+				이후 바로콘 전용개별 설치 탭메뉴에서  ECM파일을 다시받으신후 재설치 하시면  됩니다.<BR/>
+
+				<p><a href="../BarconInstall/eSonicRemover.zip" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>구ECM삭제 배치다운</a></p>
+				</div>
+
+
+				<h3><a href="#">통합유틸 프로그램을 설치했는데 바로콘에 접속할수가 없어요?</a></h3>
+				<div>
+					<p>
+					통합유틸 프로그램을 설치했는데도 바로콘구동이 제대로 않되면 배치프로그램이 제대로 수행되는지 확인해<br> 봐야 합니다. <br>
+					시작에 CMD창을 오픈하시고 ipconfig 명령을 입력 하신후 "ipconfig"은(는) 내부 또는 외부 명령,실행할수..... <br>
+					배치 파일이 아닙니다. 라고 나올경우 배치명령어가 제대로 설정이 않된것입니다. <br>
+					내컴퓨터=>속성=> 고급시스템설정=>고급=>환경변수=> 시스템변수중 path 값에 ";C:\Windows\System32" <br>
+					추가후 다시 통합유틸 프로그램을 설치해주세요. <br>
+					</p>
+				</div>
+
+				<h3><a href="#">바로콘 엑스플랫폼을 자동으로 설치 했는데도 플랫폼이 정상 구동이 않되요</a></h3>
+				<div>
+					<p>
+					증상: 최초 바로콘 설치시 자동설치 와 통합설치를 통하여 정상적으로 설치가 됬으나 로그인이 않되며
+			        TOBESOFT 폴더하위에 Component와 Cache 폴더가 생성이 않되는 경우 <br><br>
+
+			        -파일생성위치<br>
+			         WIN7,VISTA 계열:<br>
+					%USERPROFILE%\AppData\LocalLow\ XPLATFORM\9.2<br><br>
+
+			         XP,2003 계열:<br>
+					%USERPROFILE%\Local Settings\Application Data \ XPLATFORM\9.2<br><br>
+
+					해결책1)  윈도우 OS를 확인후 위에 기술한 경로및에 정상적으로 작동이 되는 PC의 \XPLATFORM\9.2<br>
+			         폴더경로를 통째로 복사하여 동일한 경로에 붙여넣기를 하면 증상이 해결됩니다.
+
+					</p>
+				</div>
+
+
+				<h3><a href="#">WINDOW8 사용자입니다.바로콘 시스템을 사용하는데 문제가 없나요?</a></h3>
+				<div>
+					<p>
+					바로콘에서 사용중인 유틸프로그램이   WINDOWS8 버전에서 유틸 호환성 관계로 정상서비스가 되지 않을수 있습니다.
+					</p>
+				</div>
+
+
+				<h3><a href="#">바로콘에서 엑셀 업로드시 excel not installed라고 경고 메세지가 출력이 됩니다.</a></h3>
+				<div>
+					<p>
+					현재 사용중인 office프로그램이 ms-office starter 일경우 office2010을 사용하시기 바랍니다.
+					</p>
+				</div>
+
+
+
+			</div>
+
+
+			</div>
+
+
+			<div id="tabs-5">
+			바로콘 프로젝트 홈페이지에는 교육자료 및 매뉴얼 등의 자료와 함께 온라인 헬프데스크가 구축되어 있습니다.</br>
+		     바로콘 프로젝트 홈페이지에 접속하시려면 아래 "바로가기" 링크를 통해 접속해주시기 바랍니다. </br>
+
+			<p><a href="http://icm.daewooenc.com" target="_blank" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>바로가기</a></p>
+
+			 </div>
+
+		</div>
+
+
+
+
+
+
+</td></tr></table>
+
+	</body>
+</html>
+
+

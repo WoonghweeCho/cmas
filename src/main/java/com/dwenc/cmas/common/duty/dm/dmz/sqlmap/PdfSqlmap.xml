@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!-- 첨부파일 관리 -->
+<sqlMap namespace="dmPdf">
+
+    <!-- 1-1-1. DMB팀문서결재파일 등록 -->
+    <insert id="insertDMBTeamDocSignFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertDMBTeamDocSignFile */ ]]>
+    INSERT INTO DMB_TEAMDOC_SIGN_FILE
+    (
+          DOC_MNO
+        , ATCH_SEQ
+        , COVER_YN
+        , FILE_ATCH_ID
+        , FILE_ID
+        , FST_REG_DT
+        , FST_REG_USER_ID
+        , FNL_EDIT_DT
+        , FNL_EDIT_USER_ID
+        , OGG_CD
+        , OGG_TIME
+    )
+    VALUES
+    (
+          #docMno#
+        , #atchSeq#
+        , #coverYn#
+        , #fileAtchId#
+        , #fileId#
+        , SYSDATE
+        , #userId#
+        , SYSDATE
+        , #userId#
+        , #siteCd#
+        , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    )
+    </insert>
+
+    <!-- 1-1-2. DMB현장문서결재파일 등록 -->
+    <insert id="insertDMBSiteDocSignFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertDMBSiteDocSignFile */ ]]>
+    INSERT INTO DMB_SITEDOC_SIGN_FILE
+    (
+          DOC_MNO
+        , ATCH_SEQ
+        , COVER_YN
+        , DSPT_CORR_MNO
+        , FILE_ATCH_ID
+        , FILE_ID
+        , FST_REG_DT
+        , FST_REG_USER_ID
+        , FNL_EDIT_DT
+        , FNL_EDIT_USER_ID
+        , OGG_CD
+        , OGG_TIME
+    )
+    VALUES
+    (
+          #docMno#
+        , #atchSeq#
+        , #coverYn#
+        , NULL
+        , #fileAtchId#
+        , #fileId#
+        , SYSDATE
+        , #userId#
+        , SYSDATE
+        , #userId#
+        , #siteCd#
+        , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    )
+    </insert>
+
+    <!-- 1-1-3. DMB참고문서결재파일 등록 -->
+    <insert id="insertDMBRefDocSignFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertDMBRefDocSignFile */ ]]>
+    INSERT INTO DMB_RFRDOC_SIGN_FILE
+    (
+          DOC_MNO
+        , ATCH_SEQ
+        , COVER_YN
+        , FILE_ATCH_ID
+        , FILE_ID
+        , FST_REG_DT
+        , FST_REG_USER_ID
+        , FNL_EDIT_DT
+        , FNL_EDIT_USER_ID
+        , OGG_CD
+        , OGG_TIME
+    )
+    VALUES
+    (
+          #docMno#
+        , #atchSeq#
+        , #coverYn#
+        , #fileAtchId#
+        , #fileId#
+        , SYSDATE
+        , #userId#
+        , SYSDATE
+        , #userId#
+        , #siteCd#
+        , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    )
+    </insert>
+
+    <!-- 1-1-4. DMD현장문서결재파일 등록 -->
+    <insert id="insertDMDSiteDocSignFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertDMDSiteDocSignFile */ ]]>
+    INSERT INTO DMD_SITEDOC_SIGN_FILE
+    (
+          SITEDOC_MNO
+        , PROG_CLSCD
+        , ATCH_SEQ
+        , COVER_YN
+        , DSPT_CORR_MNO
+        , FILE_ATCH_ID
+        , FILE_ID
+        , FST_REG_DT
+        , FST_REG_USER_ID
+        , FNL_EDIT_DT
+        , FNL_EDIT_USER_ID
+        , OGG_CD
+        , OGG_TIME
+    )
+    VALUES
+    (
+          #docMno#
+        , #progClscd#
+        , #atchSeq#
+        , #coverYn#
+        , NULL
+        , #fileAtchId#
+        , #fileId#
+        , SYSDATE
+        , #userId#
+        , SYSDATE
+        , #userId#
+        , #siteCd#
+        , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    )
+    </insert>
+
+    <!-- 1-2-1. DMD현장문서결재파일 등록( e-Book목차파일 ) -->
+    <insert id="insertDMDSiteDocSignFileRep" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertDMDSiteDocSignFileRep */ ]]>
+    INSERT INTO DMD_SITEDOC_SIGN_FILE
+    (
+          SITEDOC_MNO
+        , PROG_CLSCD
+        , ATCH_SEQ
+        , COVER_YN
+        , DSPT_CORR_MNO
+        , FILE_ATCH_ID
+        , FILE_ID
+        , FST_REG_DT
+        , FST_REG_USER_ID
+        , FNL_EDIT_DT
+        , FNL_EDIT_USER_ID
+        , OGG_CD
+        , OGG_TIME
+    )
+    SELECT
+              DOC_MNO
+            , PROG_CLSCD
+            , 1
+            , 'Y'
+            , NULL
+            , #fileAtchId#
+            , #fileId#
+            , SYSDATE
+            , #userId#
+            , SYSDATE
+            , #userId#
+            , SITE_CD
+            , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    FROM      DMB_DOCSIGN
+    WHERE     SIGN_ID    = #signId#
+    AND       PROG_CLSCD = '20'
+    AND       ROWNUM     = 1
+    </insert>
+
+    <!-- 1-3-1. DMD현장절차서파일 업데이트 -->
+    <update id="updateProcFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.updateProcFile */ ]]>
+    UPDATE    DMD_SITE_PROC_FILE
+    SET       FILE_ATCH_ID = #fileAtchId#
+            , FILE_ID      = #fileId#
+            , TRNSM_YN     = 'Y'
+            , OGG_TIME     = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    WHERE     PROC_MNO     = #docMno#
+    AND       SBMT_STEP_CD = #sbmtStepCd#
+    AND       SBMT_SEQ     = #sbmtSeq#
+    AND       ATCH_SEQ     = #atchSeq#
+    </update>
+
+    <!-- 1-3-2. DMD설계성과품파일 업데이트 -->
+    <update id="updateEngdeliFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.updateEngdeliFile */ ]]>
+    UPDATE    DMD_ENGDELI_FILE
+    SET       FILE_ATCH_ID = #fileAtchId#
+            , FILE_ID      = #fileId#
+            , TRNSM_YN     = 'Y'
+            , OGG_TIME     = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    WHERE     ENGDELI_MNO  = #docMno#
+    AND       SBMT_STEP_CD = #sbmtStepCd#
+    AND       SBMT_SEQ     = #sbmtSeq#
+    AND       ATCH_SEQ     = #atchSeq#
+    </update>
+
+    <!-- 1-3-3. DMD공급자문서파일 업데이트 -->
+    <update id="updateVenderFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.updateVenderFile */ ]]>
+    UPDATE    DMD_VENDERDOC_FILE
+    SET       FILE_ATCH_ID = #fileAtchId#
+            , FILE_ID      = #fileId#
+            , TRNSM_YN     = 'Y'
+            , OGG_TIME     = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    WHERE     VENDERDOC_MNO = #docMno#
+    AND       SBMT_STEP_CD  = #sbmtStepCd#
+    AND       SBMT_SEQ      = #sbmtSeq#
+    AND       ATCH_SEQ      = #atchSeq#
+    </update>
+
+    <!-- 1-3-4. DMD현장ISO도면파일 업데이트 -->
+    <update id="updateIsodwgFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.updateIsodwgFile */ ]]>
+    UPDATE    DMD_SITE_ISODWG_FILE
+    SET       FILE_ATCH_ID = #fileAtchId#
+            , FILE_ID      = #fileId#
+            , TRNSM_YN     = 'Y'
+            , OGG_TIME     = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    WHERE     ISO_MNO      = #docMno#
+    AND       SBMT_STEP_CD = #sbmtStepCd#
+    AND       SBMT_SEQ     = #sbmtSeq#
+    AND       ATCH_SEQ     = #atchSeq#
+    </update>
+
+    <!-- 1-4-1. DMD현장서신문서파일 등록 -->
+    <insert id="insertDMDSiteCorrFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertDMDSiteCorrFile */ ]]>
+    INSERT INTO DMD_SITE_CORR_FILE
+    (
+          CORR_MNO
+	    , ATCH_SEQ
+	    , ACCESS_STS_CD
+	    , FORM_WRITE_YN
+	    , FORM_FILE_SEQ
+	    , COVER_YN
+	    , SIGN_SUBMIT_YN
+	    , FILE_ATCH_ID
+	    , FILE_ID
+	    , USE_YN
+	    , FST_REG_DT
+	    , FST_REG_USER_ID
+	    , FNL_EDIT_DT
+	    , FNL_EDIT_USER_ID
+	    , OGG_CD
+	    , OGG_TIME
+    )
+    SELECT
+              #docMno#
+            , 1
+            , '03'
+            , 'N'
+            , NULL
+            , 'Y'
+            , 'Y'
+            , #fileAtchId#
+            , #fileId#
+            , 'Y'
+            , SYSDATE
+            , #userId#
+            , SYSDATE
+            , #userId#
+            , #siteCd#
+            , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    FROM      DUAL
+    </insert>
+
+    <!-- 2-1. DMD_SQURVW_FILE 테이블 결과파일등록 -->
+    <update id="updateSquadFile" parameterClass="map">
+    <![CDATA[ /* dmPdf.updateSquadFile */ ]]>
+    UPDATE    DMD_SQURVW_FILE
+    SET       OUTCOM_FILE_ATCH_ID = #outcomFileAtchId#
+            , OUTCOM_FILE_ID      = 1
+            , OGG_TIME            = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    WHERE     SQURVW_MNO   = #squrvwMno#
+    AND       RVW_FILE_SEQ = #rvwFileSeq#
+    AND       PROG_CLSCD   = #progClscd#
+    </update>
+
+    <!-- 3. PDF변환요청 I/F 등록 ( 싸인 갑지 / 싸인없는 갑지 - 화면단에서 직접 SQL 호출함 ) -->
+    <insert id="insertPdfChgIf" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertPdfChgIf */ ]]>
+    INSERT INTO CO_PDF_CHG_IF
+    (
+          PDF_CHG_ID
+        , SITE_CD
+        , SIGN_ID
+        , CHG_TP
+        , ORGNL_FILE_CONT
+        , ORGNL_FILE_NM
+        , ORGNL_FILE_PWD
+        , CHG_ECM_FILE_ID
+        , CHG_ECM_FILE_NM
+        , CHG_ECM_FILE_SIZE
+        , PDF_CHG_STS
+        , PDF_OPTION
+        , CHG_EXEC_DT
+        , CHG_CMPLT_DT
+        , ERR_MSG
+        , CLBK_PARAM
+        , ECM_FILE_YN
+        , FST_REG_DT
+        , FST_REG_USER_ID
+        , FNL_EDIT_DT
+        , FNL_EDIT_USER_ID
+        , OGG_CD
+        , OGG_TIME
+    )
+    SELECT
+              #instanceId# || CO_PDF_CHG_IF_SQ_01.NEXTVAL
+            , #siteCd#
+            , #signId#
+            , CASE WHEN #coverYn# = 'Y' THEN '2' ELSE '3' END
+            , #ecmNo#
+            , #fileNm#
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , 'R'
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , #repUrl#
+            , NULL
+            , SYSDATE
+            , #fstRegUserId#
+            , SYSDATE
+            , #fstRegUserId#
+            , #siteCd#
+            , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    FROM      DUAL
+    </insert>
+
+    <!-- 4. PDF변환요청 I/F 등록 ( e-Book 리포트 - 화면단에서 직접 SQL 호출함 ) -->
+    <insert id="insertPdfReportChgIf" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertPdfReportChgIf */ ]]>
+    INSERT INTO CO_PDF_CHG_IF
+    (
+          PDF_CHG_ID
+        , SITE_CD
+        , SIGN_ID
+        , CHG_TP
+        , ORGNL_FILE_CONT
+        , ORGNL_FILE_NM
+        , ORGNL_FILE_PWD
+        , CHG_ECM_FILE_ID
+        , CHG_ECM_FILE_NM
+        , CHG_ECM_FILE_SIZE
+        , PDF_CHG_STS
+        , PDF_OPTION
+        , CHG_EXEC_DT
+        , CHG_CMPLT_DT
+        , ERR_MSG
+        , CLBK_PARAM
+        , ECM_FILE_YN
+        , FST_REG_DT
+        , FST_REG_USER_ID
+        , FNL_EDIT_DT
+        , FNL_EDIT_USER_ID
+        , OGG_CD
+        , OGG_TIME
+    )
+    SELECT
+              #instanceId# || CO_PDF_CHG_IF_SQ_01.NEXTVAL
+            , #siteCd#
+            , #signId#
+            , #chgTp#
+            , #fileCont#
+            , #fileNm#
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , 'R'
+            , NULL
+            , NULL
+            , NULL
+            , NULL
+            , #repUrl#
+            , NULL
+            , SYSDATE
+            , #fstRegUserId#
+            , SYSDATE
+            , #fstRegUserId#
+            , #siteCd#
+            , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    FROM      DUAL
+    </insert>
+
+    <!-- 5-1. PDF변환요청 I/F 등록 ( 원본파일-> PDF : MAIN ) -->
+    <insert id="insertPdfOrgnChgIf" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertPdfOrgnChgIf */ ]]>
+    INSERT INTO CO_PDF_CHG_IF
+    (
+        PDF_CHG_ID          /* PDF변환ID     	*/
+      , SITE_CD             /* 현장코드         */
+      , SIGN_ID             /* 결재ID        	*/
+      , CHG_TP              /* 변환유형         */
+      , ORGNL_FILE_CONT     /* 원본파일내용     */
+      , ORGNL_FILE_NM       /* 원본파일명       */
+      , ORGNL_FILE_PWD      /* 원본파일비밀번호 */
+      , CHG_ECM_FILE_ID     /* 변환ECM파일ID  	*/
+      , CHG_ECM_FILE_NM     /* 변환ECM파일명    */
+      , CHG_ECM_FILE_SIZE   /* 변경ECM파일크기  */
+      , PDF_CHG_STS         /* PDF변환상태      */
+      , PDF_OPTION          /* PDF옵션          */
+      , CHG_EXEC_DT         /* 변환실행일시     */
+      , CHG_CMPLT_DT        /* 변환완료일시     */
+      , ERR_MSG             /* 에러메시지       */
+      , CLBK_PARAM          /* 콜백파라미터     */
+      , ECM_FILE_YN         /* ECM파일여부      */
+      , FST_REG_DT          /* 최초등록일시     */
+      , FST_REG_USER_ID     /* 최초등록사용자ID */
+      , FNL_EDIT_DT         /* 최종수정일시     */
+      , FNL_EDIT_USER_ID    /* 최종수정사용자ID */
+      , OGG_CD              /* OGG코드          */
+      , OGG_TIME            /* OGG시간          */
+    )
+    SELECT
+              #coPdfChgIfSeq#  			   /* PDF변환ID     */
+            , #siteCd#                     /* 현장코드      */
+            , NULL                         /* 결재ID        */
+            , '5'                          /* 변환유형      */
+            , #orgnlFileCont#              /* 원본파일내용  */
+            <isNotEmpty property="orgnlFileNm" >
+            , #orgnlFileNm# || '.pdf'
+            </isNotEmpty>
+            <isEmpty property="orgnlFileNm">
+            , 'changedPdf.pdf'                        /* 원본파일명    */
+            </isEmpty>
+            , NULL                         /* 원본파일비밀번호  */
+            , NULL                         /* 변환ECM파일ID  	*/
+            , NULL                         /* 변환ECM파일명     */
+            , NULL                         /* 변경ECM파일크기   */
+            , 'R'                          /* PDF변환상태       */
+            , NULL                         /* PDF옵션           */
+            , NULL                         /* 변환실행일시      */
+            , NULL                         /* 변환완료일시      */
+            , NULL                         /* 에러메시지        */
+            , #tdmsKey#                    /* 콜백파라미터      */
+            , NULL                         /* ECM파일여부       */
+            , SYSDATE                      /* 최초등록일시      */
+            , #fstRegUserId#               /* 최초등록사용자ID  */
+            , SYSDATE                      /* 최종수정일시      */
+            , #fstRegUserId#               /* 최종수정사용자ID  */
+            , #siteCd#                     /* OGG코드           */
+            , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF') 	/* OGG시간*/
+    FROM      DUAL
+    </insert>
+
+    <!-- 5-2. PDF변환요청 I/F 등록 ( 원본파일-> PDF : CHILD ) -->
+    <insert id="insertPdfMerg" parameterClass="map">
+    <![CDATA[ /* dmPdf.insertPdfMerg */ ]]>
+    INSERT INTO CO_PDF_MERG
+    (
+        PDF_CHG_ID
+      , SEQ
+      , ORGNL_FILE_INFO
+      , ORGNL_FILE_NM
+      , FST_REG_DT
+      , FST_REG_USER_ID
+      , FNL_EDIT_DT
+      , FNL_EDIT_USER_ID
+      , OGG_CD
+      , OGG_TIME
+    )
+    SELECT
+              #pdfChgId#   /* 위의 메인에서 실행시킨 값	*/
+            , (
+              SELECT  NVL(MAX(SEQ)+1, 1) AS SEQ
+              FROM    CO_PDF_MERG
+              WHERE   PDF_CHG_ID = #pdfChgId#
+              )
+            , #ecmNo#      /* 원본파일 CO_FILE에 저장되어 있는 ECM_NO값 */
+            , #fileNm#     /* PDF파일명 - 파일명변환규칙 */
+            , SYSDATE
+            , #fstRegUserId#
+            , SYSDATE
+            , #fstRegUserId#
+            , #oggCd#
+            , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    FROM      DUAL
+    </insert>
+
+</sqlMap>

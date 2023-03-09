@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 :
+* 설      명 : 공통 처리
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveMenu : 메뉴상세정보 조회
+* retrieveMenuList : 메뉴목록 조회
+* retrieveDisabledMenuList : 사용하지않는 메뉴 목록 조회 CI Test
+*************************************************************************************-->
+<sqlMap namespace="loginXP">
+
+	<resultMap class="userData" id="rmUserLogin">
+		<result property="userId" column="USER_ID"/>
+		<result property="loginId" column="LOGIN_ID"/>
+		<result property="empno" column="EMPNO"/>
+		<result property="orgCd" column="ORG_CD"/>
+		<result property="userTpCd" column="USER_TP_CD"/>
+		<result property="userNm" column="USER_NM"/>
+		<result property="userEnm" column="USER_ENM"/>
+		<result property="passwd" column="PASSWD"/>
+		<result property="pwdChgDt" column="PWD_CHG_DT"/>
+		<result property="email" column="EMAIL"/>
+		<result property="phone" column="TELNO"/>
+		<result property="mPhone" column="M_PHONE"/>
+		<result property="faxno" column="FAXNO"/>
+		<result property="zipcd" column="ZIPCD"/>
+		<result property="basAddr" column="BAS_ADDR"/>
+		<result property="dtlAddr" column="DTL_ADDR"/>
+		<result property="countryCd" column="NAT_CD"/>
+		<result property="loclCd" column="LOCL_CD"/>
+<!--		<result property="userPositCd" column="USER_POSIT_CD"/>-->
+<!--		<result property="userRpswrkCd" column="USER_RPSWRK_CD"/>-->
+<!--		<result property="userJobspCd" column="USER_JOBSP_CD"/>-->
+		<result property="useYn" column="USE_YN"/>
+	</resultMap>
+
+  <select id="userLogin" parameterClass="map" resultClass="userData" >
+    <![CDATA[ /* loginXP.userLogin */ ]]>
+        SELECT A.USER_ID
+             , A.USER_ID AS LOGIN_ID
+             , A.USER_ID AS EMPNO
+             , A.ORG_CD
+             , A.USER_TP_CD
+             , A.USER_KNM AS USER_NM
+             , A.USER_ENM
+             , A.PWD AS PASSWD
+             , A.PWD_CHG_DT
+             , A.EMAIL
+             , A.TELNO AS PHONE
+             , A.MPHONE_NO AS M_PHONE
+             , A.FAXNO
+             , A.ZIPCD
+             , A.BAS_ADDR
+             , A.DTL_ADDR
+             , A.NAT_CD
+             , A.LOCL_CD
+             , A.USER_POSIT_CD
+             , A.USER_RPSWRK_CD
+             , A.USER_JOBSP_CD
+             , A.USE_YN
+         FROM CO_USER A
+	<dynamic prepend="WHERE">
+    <isNotEmpty prepend="AND" property="useYn">
+        A.USE_YN = #useYn#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userId">
+        A.USER_ID = #userId#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="loginId">
+        A.USER_ID = #loginId#
+    </isNotEmpty>
+
+    <isNotEmpty prepend="AND" property="email">
+        A.EMAIL = #email#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userTpCd">
+        A.USER_TP_CD = #userTpCd#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userTpCds">
+        A.USER_TP_CD IN (#userTpCds#)
+    </isNotEmpty>
+    </dynamic>
+  </select>
+
+  <!-- 직위/직책/직종 정보 조회 -->
+  <select id="userEtcInfo" parameterClass="map" resultClass="map" >
+    <![CDATA[ /* loginXP.userLogin */ ]]>
+        SELECT
+               A.USER_POSIT_CD
+             , A.USER_RPSWRK_CD
+             , A.USER_JOBSP_CD
+             , A.USER_DUTY_CD
+         FROM CO_USER A
+	<dynamic prepend="WHERE">
+    <isNotEmpty prepend="AND" property="useYn">
+        A.USE_YN = #useYn#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userId">
+        A.USER_ID = #userId#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="loginId">
+        A.USER_ID = #loginId#
+    </isNotEmpty>
+
+    <isNotEmpty prepend="AND" property="email">
+        A.EMAIL = #email#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userTpCd">
+        A.USER_TP_CD = #userTpCd#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userTpCds">
+        A.USER_TP_CD IN (#userTpCds#)
+    </isNotEmpty>
+    </dynamic>
+  </select>
+
+  <!-- 직위/직책/직종 정보 조회 -->
+  <select id="userEtcInfoChg" parameterClass="map" resultClass="map" >
+    <![CDATA[ /* loginXP.userEtcInfoChg */ ]]>
+        SELECT
+               A.USER_POSIT_CD
+             , A.USER_RPSWRK_CD
+             , A.USER_JOBSP_CD
+             , A.USER_DUTY_CD
+         FROM CO_APPT A
+        WHERE ROWNUM = 1
+	<isNotEmpty prepend="AND" property="today">
+	    NVL(A.APPT_ED_YMD, '99999999') >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+	</isNotEmpty>
+    <isNotEmpty prepend="AND" property="userId">
+        A.USER_ID = #userId#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="orgCd">
+        A.ORG_CD = #orgCd#
+    </isNotEmpty>
+  </select>
+
+  <!-- 업체정보 조회 -->
+  <select id="retrieveBiz" parameterClass="map" resultClass="map" >
+    <![CDATA[ /* loginXP.retrieveBiz */ ]]>
+		SELECT B.*
+		FROM CO_USER A
+		LEFT JOIN ICMS.CO_BIZCO B ON A.BIZCO_CD = B.BIZCO_CD
+		WHERE A.USER_ID = #userId#
+  </select>
+
+  <!-- AGENCY정보 조회 -->
+  <select id="retrieveAgnc" parameterClass="map" resultClass="map" >
+    <![CDATA[ /* loginXP.retrieveAgnc */ ]]>
+		SELECT B.AGNC_CD, B.AGNC_NM
+		FROM CO_USER A
+		LEFT JOIN (SELECT  A.BIZCO_CD
+		                 , B.AGNC_CD
+		                 , B.AGNC_NM
+		           FROM ICMS.CO_BIZCO A
+		           INNER JOIN LOE_AGNC B ON A.BIZCO_CD = B.BIZCO_CD) B ON A.BIZCO_CD = B.BIZCO_CD
+		WHERE A.USER_ID = #userId#
+  </select>
+
+  <!-- 현장부서정보 조회 -->
+  <select id="retrieveSiteOrg" parameterClass="map" resultClass="map" >
+    <![CDATA[ /* loginXP.retrieveSiteOrg */ ]]>
+    SELECT B.DEPT_CD SITE_DEPT_CD, B.DEPT_NM SITE_DEPT_NM
+    FROM CO_USER A
+    LEFT JOIN (SELECT A.EMPMT_NO
+                    , A.ORGCST_DEPT_CD DEPT_CD
+                    , B.ORG_NM DEPT_NM
+                    , A.SITE_MNO
+    FROM ICMS.LOA_SITE_PER_INFO A
+    INNER JOIN ICMS.LOE_ORG B ON A.ORGCST_DEPT_CD = B.ORG_CD) B ON A.USER_ID = B.EMPMT_NO
+    WHERE A.USER_ID = #userId#
+  </select>
+
+  	<select id="chkUserLogin" parameterClass="map" resultClass="string" >
+    <![CDATA[ /* loginXP.chkUserLogin */ ]]>
+        SELECT A.USER_ID
+          FROM CO_USER A
+      <dynamic prepend="WHERE">
+    <isNotEmpty prepend="AND" property="useYn">
+        A.USE_YN = #useYn#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userId">
+        A.USER_ID = #userId#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="loginId">
+        A.USER_ID = #loginId#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="empno">
+        A.EMPNO = #empno#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="email">
+        A.EMAIL = #email#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userTpCd">
+        A.USER_TP_CD = #userTpCd#
+    </isNotEmpty>
+    <isNotEmpty prepend="AND" property="userTpCds">
+        A.USER_TP_CD IN (#userTpCds#)
+    </isNotEmpty>
+    </dynamic>
+  	</select>
+
+	<resultMap class="map" id="rmPrivList">
+	   <result property="code" column="code"/>
+	</resultMap>
+
+  	<select id="userPrivList" parameterClass="map" resultMap="rmPrivList" >
+  	<![CDATA[ /* loginXP.userPrivList */ ]]>
+     SELECT priv_cd AS code
+       FROM CO_USER_CTG_PRIV
+      WHERE user_id = #userId#
+     <dynamic>
+    	<isNotEmpty prepend="and" property="today">
+			#today# BETWEEN priv_st_ymd AND priv_ed_ymd
+    	</isNotEmpty>
+     </dynamic>
+  	</select>
+
+    <!-- 부서장 정보 조회 -->
+	<select id="retrieveOrgOfcr" parameterClass="string" resultClass="userData" >
+	    <![CDATA[ /* loginXP.retrieveOrgOfcr */ ]]>
+	    SELECT A.USER_ID
+             , A.USER_ID AS LOGIN_ID
+             , A.USER_ID AS EMPNO
+             , A.PWD
+             , A.USER_KNM
+             , A.TELNO
+             , A.EMAIL
+             , A.USE_YN
+             , A.LOCL_CD
+             , A.NAT_CD
+             , A.ORG_CD
+             , (SELECT FN_CO_GET_ORG_NM(A.ORG_CD) FROM DUAL) AS ORG_NM
+             , A.USER_TP_CD
+             , A.MPHONE_NO
+          FROM CO_USER A
+         WHERE A.USER_ID = (
+               SELECT HORG_EMPL_NO
+                 FROM CO_ORG
+                WHERE ORG_CD = (
+                      SELECT ORG_CD
+                        FROM CO_USER
+                       WHERE USER_ID = #userId#
+                               )
+                            )
+
+	</select>
+
+	<!-- 사용자 암호 수정 -->
+    <update id="changePwd" parameterClass="map">
+		<![CDATA[ /* loginXP.changePwd */ ]]>
+		UPDATE CO_USER SET
+             , PWD = #pwd#
+             , FNL_EDIT_USER_ID = #fnlEditUserId#
+             , FNL_EDIT_DT = SYSDATE
+
+				, OGG_TIME  = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+		WHERE 1 = 1
+	    <isNotEmpty prepend="AND" property="userId">
+            USER_ID = #userId#
+	    </isNotEmpty>
+    </update>
+
+    <resultMap class="java.util.Map" id="rmOrg">
+		<result property="orgCd" column="ORG_CD"/>
+		<result property="orgNm" column="ORG_NM"/>
+		<result property="centerOrgCd" column="CENTER_ORG_CD"/>
+		<result property="hgrOrgCd" column="HGR_ORG_CD"/>
+		<result property="hdofcOrgCd" column="HDOFC_ORG_CD"/>
+		<result property="hdofcOrgNm" column="HDOFC_ORG_NM"/>
+		<result property="hdofcOrgNmEn" column="HDOFC_ORG_NM_EN"/>
+
+		<result property="orgAbbrnm" column="ORG_ABBRNM"/>
+		<result property="orgNmEn" column="ORG_NM_EN"/>
+		<result property="orgLvl" column="ORG_LVL"/>
+		<result property="orgTpCls" column="ORG_TP_CLS"/>
+		<result property="orgFrmCls" column="ORG_FRM_CLS"/>
+		<result property="orgAreaCritCls" column="ORG_AREA_CRIT_CLS"/>
+		<result property="orgChrcCls" column="ORG_CHRC_CLS"/>
+		<result property="orgHarchCls" column="ORG_HARCH_CLS"/>
+		<result property="contpCd" column="CONTP_CD"/>
+		<result property="wbsTpCls" column="WBS_TP_CLS"/>
+		<result property="natCd" column="NAT_CD"/>
+		<result property="areaCd" column="AREA_CD"/>
+		<result property="optionMainSiteOrgCd" column="OPTION_MAIN_SITE_ORG_CD"/>
+		<result property="horgEmplNo" column="HORG_EMPL_NO"/>
+		<result property="pjCd" column="PJ_CD"/>
+		<result property="orgYn" column="ORG_YN"/>
+		<result property="seniorTeamYn" column="SENIOR_TEAM_YN"/>
+		<result property="qryYn" column="QRY_YN"/>
+		<result property="useYn" column="USE_YN"/>
+		<result property="orgRnk" column="ORG_RNK"/>
+		<result property="orderLine" column="ORDER_LINE"/>
+		<result property="orderCls" column="ORDER_CLS"/>
+		<result property="orderPl" column="ORDER_PL"/>
+		<result property="ctCls" column="CT_CLS"/>
+		<result property="wkCls" column="WK_CLS"/>
+		<result property="busiNm" column="BUSI_NM"/>
+		<result property="busiNmEn" column="BUSI_NM_EN"/>
+		<result property="orderPlCd" column="ORDER_PL_CD"/>
+		<result property="prgrCls" column="PRGR_CLS"/>
+		<result property="pdUserId" column="PD_USER_ID"/>
+		<result property="svUserId" column="SV_USER_ID"/>
+		<result property="pjTp" column="PJ_TP"/>
+		<result property="pbjClass" column="OBJ_CLASS"/>
+		<result property="salCls" column="SAL_CLS"/>
+		<result property="orgcstCtrClass" column="ORGCST_CTR_CLASS"/>
+		<result property="funcArea" column="FUNC_AREA"/>
+		<result property="lcoYn" column="LCO_YN"/>
+	</resultMap>
+
+    <select id="retrieveOrgList" parameterClass="map" resultMap="rmOrg" >
+		<![CDATA[ /* loginXP.retrieveOrgList */ ]]>
+		SELECT A.ORG_CD
+             , A.HGR_ORG_CD
+             , A.HDOFC_ORG_CD
+             , A.HDOFC_ORG_CD AS CENTER_ORG_CD
+             , ( SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = A.HDOFC_ORG_CD ) AS HDOFC_ORG_NM
+             , ( SELECT ORG_NM_EN FROM CO_ORG WHERE ORG_CD = A.HDOFC_ORG_CD ) AS HDOFC_ORG_NM_EN
+             , A.HDOFC_CLS
+             , A.ORG_NM
+             , A.ORG_ABBRNM
+             , A.ORG_NM_EN
+             , A.ORG_LVL
+             , A.ARRAY_ORD
+             , A.ORG_TP_CLS
+             , A.ORG_FRM_CLS
+             , A.ORG_AREA_CRIT_CLS
+             , A.ORG_CHRC_CLS
+             , A.ORG_HARCH_CLS
+             , A.CONTP_CD
+             , A.WBS_TP_CLS
+             , A.NAT_CD
+             , A.AREA_CD
+             , A.OPTION_MAIN_SITE_ORG_CD
+             , A.HORG_EMPL_NO
+             , A.PJ_CD
+             , A.ORG_YN
+             , A.SENIOR_TEAM_YN
+             , A.QRY_YN
+             , A.USE_YN
+             , A.ORG_RNK
+             , A.ORDER_LINE
+             , A.ORDER_CLS
+             , A.ORDER_PL
+             , A.CT_CLS
+             , A.WK_CLS
+             , A.BUSI_NM
+             , A.BUSI_NM_EN
+             , A.ORDER_PL_CD
+             , A.PRGR_CLS
+             , A.PD_USER_ID
+             , A.SV_USER_ID
+             , A.PJ_TP
+             , A.OBJ_CLASS
+             , A.SAL_CLS
+             , A.ORGCST_CTR_CLASS
+             , A.FUNC_AREA
+             , A.LCO_YN
+	      FROM CO_ORG A
+         WHERE USE_YN = 'Y'
+        <dynamic>
+		    <isNotEmpty prepend="AND" property="qryYn">
+               A.QRY_YN = 'Y'
+		    </isNotEmpty>
+		    <isNotEmpty prepend="AND" property="orgCd">
+               A.ORG_CD = #orgCd#
+		    </isNotEmpty>
+		    <isNotEmpty prepend="AND" property="orgNm">
+               A.ORG_NM LIKE '%'||#orgNm#||'%'
+		    </isNotEmpty>
+	    </dynamic>
+    </select>
+
+	<resultMap class="map" id="rmTopMenu">
+	   <result property="dutySysCd" column="duty_sys_cd"/>
+	   <result property="menuId" column="menu_id" javaType="java.lang.Integer" />
+	   <result property="menuNm" column="menu_nm"/>
+	   <result property="menuExpl" column="menu_expl"/>
+	   <result property="menuCd" column="menu_cd"/>
+	   <result property="menuLvl" column="menu_lvl" javaType="java.lang.Integer"/>
+	   <result property="menuUrl" column="menu_url"/>
+	   <result property="menuVar" column="menu_var"/>
+	   <result property="hgrMenuId" column="hgr_menu_id" javaType="java.lang.Integer"/>
+	   <result property="arrayOrd" column="array_ord" javaType="java.lang.Integer"/>
+	   <result property="qryYn" column="qry_yn"/>
+	   <result property="popupYn" column="popup_yn"/>
+	   <result property="menuHpwrdFileNm" column="menu_hpwrd_file_nm"/>
+	</resultMap>
+
+  <select id="topMenuList" parameterClass="map" resultMap="rmTopMenu" >
+    <![CDATA[ /* loginXP.topMenuList */ ]]>
+    SELECT AA.DUTY_SYS_CD
+         , AA.MENU_ID
+         , AA.MENU_NM
+         , AA.MENU_EXPL
+         , AA.MENU_LVL
+         , AA.MENU_CD
+         , AA.MENU_URL
+         , AA.MENU_VAR
+         , AA.HGR_MENU_ID
+         , AA.ARRAY_ORD
+         , AA.QRY_YN
+         , AA.POPUP_YN
+         , AA.MENU_HPWRD_FILE_NM
+     FROM
+	    <isEmpty property="sysAdmin">
+           (SELECT DISTINCT DUTY_SYS_CD
+                 , A.MENU_ID
+	             , A.MENU_NM
+	             , A.MENU_EXPL
+	             , A.MENU_CD
+	             , A.MENU_LVL
+	             , A.MENU_URL
+	             , A.MENU_VAR
+	             , A.HGR_MENU_ID
+	             , A.ARRAY_ORD
+	             , A.QRY_YN
+	             , A.POPUP_YN
+	             , A.MENU_HPWRD_FILE_NM
+	          FROM CO_MENU A
+             WHERE A.MENU_LVL = 1
+               AND A.USE_YN = 'Y'
+               AND A.QRY_YN = 'Y')
+	    </isEmpty>
+	    <isNotEmpty property="sysAdmin">
+           (SELECT DISTINCT DUTY_SYS_CD
+                 , A.MENU_ID
+                 , A.MENU_NM
+                 , A.MENU_EXPL
+                 , A.MENU_LVL
+                 , A.MENU_CD
+                 , A.MENU_URL
+                 , A.MENU_VAR
+                 , A.HGR_MENU_ID
+                 , A.ARRAY_ORD
+                 , A.QRY_YN
+                 , A.POPUP_YN
+                 , A.MENU_HPWRD_FILE_NM
+              FROM CO_MENU          A
+        INNER JOIN CO_PRIV_CTG_MENU B ON (A.MENU_ID = B.MENU_ID)
+             WHERE A.MENU_LVL = 1
+               AND A.USE_YN = 'Y'
+               AND A.QRY_YN = 'Y'
+               AND B.SYS_CD = #sysCd#
+       <iterate prepend="AND B.PRIV_CD IN " property="privCd" open="("	close=")" conjunction=",">
+               #privCd[]#
+       </iterate>
+            )
+      </isNotEmpty>
+			AA
+             ORDER BY ARRAY_ORD
+  </select>
+
+</sqlMap>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+ <!--************************************************************************************
+* 프로그램 : was
+* 설    명 : was 관리
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveWasList 메시지 목록 조회
+*************************************************************************************-->
+<sqlMap namespace="was">
+
+	<resultMap class="java.util.HashMap" id="rmWasList">
+    	<result column="WAS_ID" property="wasId" />
+    	<result column="INSTC_ID" property="instcId" />
+    	<result column="SVC_URL" property="svcUrl" />
+    	<result column="SVC_CLS" property="svcCls" />
+    	<result column="SIZE_CHK" property="sizeChk" />
+    	<result column="EMAIL_USE_YN" property="emailUseYn" />
+    	<result column="SMS_USE_YN" property="smsUseYn" />
+    	<result column="USE_YN" property="useYn" />
+    	<result column="REM" property="rem" />
+
+	</resultMap>
+
+    <!-- 와스 목록 조회 -->
+    <select id="retrieveWasList" parameterClass="map" resultMap="rmWasList" >
+        <![CDATA[ /* was.retrieveWasList */ ]]>
+       SELECT WAS_ID
+            , INSTC_ID
+            , SVC_URL
+            , SVC_CLS
+            , SIZE_CHK
+            , EMAIL_USE_YN
+            , SMS_USE_YN
+            , REM
+            , FST_REG_DT
+            , FST_REG_USER_ID
+            , FNL_EDIT_DT
+            , FNL_EDIT_USER_ID
+         FROM ICMS.CO_WAS
+        WHERE USE_YN = 'Y'
+   	    <isNotEmpty prepend="AND" property="wasId">
+           WAS_ID = #wasId#
+	    </isNotEmpty>
+   	    <isNotEmpty prepend="AND" property="instcId">
+           INSTC_ID = #instcId#
+	    </isNotEmpty>
+   	    <isNotEmpty prepend="AND" property="svcCls">
+           SVC_CLS = #svcCls#
+	    </isNotEmpty>
+        ORDER BY SVC_CLS, WAS_ID
+    </select>
+
+	<resultMap class="java.util.HashMap" id="rmWasAdmin">
+    	<result column="WAS_ID" property="wasId" />
+    	<result column="ADMIN_SEQ" property="instcId" />
+    	<result column="ADMIN_PERNM" property="svcUrl" />
+    	<result column="EMAIL" property="svcCls" />
+    	<result column="MPHONE_NO" property="sizeChk" />
+    	<result column="USE_YN" property="emailUseYn" />
+    	<result column="REM" property="smsUseYn" />
+
+	</resultMap>
+
+    <!-- 와스 관리자 목록 조회 -->
+    <select id="retrieveWasAdmin" parameterClass="map" resultMap="rmWasAdmin" >
+        <![CDATA[ /* was.retrieveWasAdmin */ ]]>
+       SELECT WAS_ID
+            , ADMIN_SEQ
+            , ADMIN_PERNM
+            , '' EMAIL
+            , '' MPHONE_NO
+            , USE_YN
+            , REM
+         FROM ICMS.CO_WAS_ADMIN
+        WHERE USE_YN = 'Y'
+   	    <isNotEmpty prepend="AND" property="wasId">
+           WAS_ID = #wasId#
+	    </isNotEmpty>
+        ORDER BY ADMIN_SEQ
+    </select>
+
+</sqlMap>
+

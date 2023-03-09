@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>자동인스톨 1단계(브라우저 초기화)</title>
+
+
+		<style type="text/css">
+			body{ font: 80.5% "Trebuchet MS", sans-serif; margin: 50px;}
+		</style>
+
+	</head>
+	<body>
+
+
+
+				<table class="tableType01 s1" width="100%" >
+					<colgroup>
+					  <col width="100%" />
+					</colgroup>
+				<thead>
+				<tr>
+					<th scope="col"> <font color="red">협업시스템 최초 사용자는 아래모든 항목을 동일하게 설정해주셔야 자동설치시 문제가 없습니다.
+					<br>
+					<a href="http://www.dwecos.co.kr/icms/common/install/downCenter/downCenter_Ecos.html#tabs-4">설치 FAQ 바로가기</a>
+					</font>  </BR>
+					<h1><a href="http://dwecos.dwconst.co.kr/lib/miplatform_deploy/baroconInstall.jsp">[자동설치 실행]</a></h1></BR>
+
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+					<tr>
+				    <td align="center">
+					<font color="red">자동설치 완료후 브라우저를 재실행 해주시기 바랍니다. (window7 일경우 "관리자권한으로 실행")</font></br>
+					<img src="../downCenter/help/img/1.jpg"></br> 윈도우7인경우 IE아이콘 마우스를 놓으신후 우클릭을 하여 [관리자 권한으로 실행(A)]으로 브라우저를 실행해주세요. 	</br>
+					</br><img src="../downCenter/help/img/2.jpg"></br> 신규헙업시스템은 IE7이상부터 지원합니다. IE버전 확인 도움말=>Internet Explorer 정보 클릭</br></br>
+					</br><img src="../downCenter/help/img/2-1.jpg"></br>이미지와 같이 IE7이상인지 확인..만약  IE6일경우 브라우저 업데이트 필수</br>
+
+					<a href="http://windows.microsoft.com/ko-KR/internet-explorer/downloads/ie-8">브라우저8버전 업데이트 다운로드</a>
+					</br>
+
+					현재 브라우저 IE7이상 일경우 아래 체크항목 필수로 재설정
+
+					</br>
+					</br><img src="../downCenter/help/img/3.jpg"></br>
+					도구=>인터넷옵션 선택
+					</br></br>
+					</br><img src="../downCenter/help/img/3-1.jpg"></br>
+					고급탭=>고급설정복원(R) 선택 </br>
+					고급탭=>원래대로(S) 선택
+
+
+					</br></br>
+					</br><img src="../downCenter/help/img/4.jpg"></br>
+					고급탭=>원래대로(S) 선택후 기본설정 복원(R) 선택 </br>
+					기본복원시 기타 열려있는창은 한개만 남겨놓고 모두 종료
+					</br></br>
+					</br><img src="../downCenter/help/img/5.jpg"></br>
+
+					복원시 초기화된 상태는 위이미지처럼 단계적으로 체크상태가 변경됨
+					</br></br>
+
+
+					</br><img src="../downCenter/help/img/10.jpg"></br>
+					도구 =>보안 탭 선택후 => 사용자 지정수준 선택
+
+					</br></br>
+					</br><img src="../downCenter/help/img/11.jpg"></br>
+					설정: 약간높은 , 원래대로 설정후=> "예" 선택후 확인 선택
+					 	</br></br>
+					위와같이 모든설정을 완료후 브라우저 재시작 </br>
+
+					<h1><a href="http://dwecos.dwconst.co.kr/lib/miplatform_deploy/baroconInstall.jsp">[자동설치 실행]</a></h1></BR>
+					*자동설치 완료후 브라우저를 재실행 해주시기 바랍니다. (Windows7 일경우 "관리자권한으로 실행")
+
+
+				    </td>
+				    </tr>
+				</tbody>
+				</table>
+
+
+
+
+
+
+	</body>
+</html>
+
+

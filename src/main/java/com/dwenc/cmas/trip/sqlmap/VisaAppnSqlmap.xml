@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : VisaAppn
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+
+*************************************************************************************-->
+<sqlMap namespace="VisaAppn">
+
+    <!-- 비자발급 신청자 조회 -->
+    <select id="retrieveVisaAppnList" parameterClass="map" resultClass="com.dwenc.cmas.trip.domain.VisaAppn" >
+        <![CDATA[ /* VisaAppn.retrieveVisaAppnList */ ]]>
+		  SELECT
+				CVA.DOC_NO,
+				CU1.USER_KNM AS DRAFTER_USER_NM,
+        		CO1.ORG_CD AS DRAFTER_ORG_CD,
+        		CO1.ORG_NM AS DRAFTER_ORG_NM,
+         		CVA.DOC_STS,
+            	CVA.VISA_PRGR_STS,
+            	CVA.EMBS_RCV_DD,
+            	CVA.VISA_ISSUE_DD,
+		        CVA.FST_REG_DT,
+		        CVA.FST_REG_USER_ID,
+				(SELECT USER_KNM FROM CO_USER WHERE USER_ID = CVA.FST_REG_USER_ID) FST_REG_USER_NM,
+		        CVA.FNL_EDIT_DT,
+		        CVA.FNL_EDIT_USER_ID,
+            	(SELECT USER_KNM FROM CO_USER WHERE USER_ID = CVA.FNL_EDIT_USER_ID) FNL_EDIT_USER_NM,
+				CVA.USER_ID,
+		        CVA.USER_KNM,
+	            CVA.USER_DEPT_NM,
+		        CVA.DEPART_SCD_DD,
+		        CVA.RET_RESN,
+		        (SELECT DISTINCT SIGN_ID FROM CMAA_SIGN WHERE DOC_NO = CVA.DOC_NO AND DUTY_CLS = '05') SIGN_ID,
+		        CCS.APPER_ORG_CD,
+		        (SELECT ORG_NM FROM CO_ORG WHERE ORG_CD = CCS.APPER_ORG_CD) APPER_ORG_NM
+		      FROM CMAA_VISA_APPN CVA
+		      	LEFT JOIN CO_USER CU1 ON CU1.USER_ID = CVA.FST_REG_USER_ID
+		      	LEFT JOIN CO_ORG CO1 ON CO1.ORG_CD = CU1.ORG_CD
+		      	LEFT JOIN (SELECT * FROM CMAA_SIGN CS WHERE CS.SIGN_SEQ = (SELECT MAX(SIGN_SEQ) FROM CMAA_SIGN WHERE DOC_NO = CS.DOC_NO AND SIGN_TP_CD = 'T03' AND DUTY_CLS = '05')) CCS
+            		ON (CCS.DOC_NO = CVA.DOC_NO AND CCS.SIGN_TP_CD = 'T03' AND CCS.DUTY_CLS = '05')
+		      WHERE CVA.DOC_STS IS NOT NULL
+	        	<isNotEmpty prepend="AND" property="userId">
+	        		CVA.FST_REG_USER_ID = #userId#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="orgNm">
+	        		CO1.ORG_NM LIKE '%' || #orgNm# || '%'
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="signStsCd">
+	        		CVA.DOC_STS = #signStsCd#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="AND" property="loginUserId">
+		        	(CVA.USER_ID = #loginUserId#
+		        	OR CO1.ORG_CD IN (
+		              	SELECT ORG_CD
+		                FROM CO_APPT
+		                WHERE USER_ID = #loginUserId#
+		                AND TO_CHAR(SYSDATE, 'YYYYMMDD') &gt;= APPT_ST_YMD
+		                AND (TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APPT_ED_YMD OR APPT_ED_YMD IS NULL))
+	                OR CCS.APPER_ORG_CD IN (
+		              	SELECT ORG_CD
+		                FROM CO_APPT
+		                WHERE USER_ID = #loginUserId#
+		                AND TO_CHAR(SYSDATE, 'YYYYMMDD') &gt;= APPT_ST_YMD
+		                AND (TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= APPT_ED_YMD OR APPT_ED_YMD IS NULL))
+	                )
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="tripUser">
+		        	CVA.USER_ID = #tripUser#
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="stDate">
+		        	TO_DATE(CVA.DEPART_SCD_DD,'YYYY-MM-DD') &gt;= TO_DATE(#stDate#, 'YYYY-MM-DD')
+	           </isNotEmpty>
+	           <isNotEmpty prepend="AND" property="edDate">
+		        	TO_DATE(CVA.DEPART_SCD_DD,'YYYY-MM-DD') &lt;= TO_DATE(#edDate#, 'YYYY-MM-DD')
+	           </isNotEmpty>
+	           <isNotEmpty  property="simpleDt">
+			      	  <isNotEqual property="simpleDt" prepend="AND" compareValue="DT"> <!-- 기안일 상세검색이 아닌 조건 최근 1달, 2달, 3달-->
+			      	  	CVA.FNL_EDIT_DT >= SYSDATE - #simpleDt#
+			      	  </isNotEqual>
+			      	  <isEqual property="simpleDt" compareValue="DT"> <!-- 기안일 상세검색인 조건 -->
+					      <isNotEmpty property="docStart">
+					      	<isNotEmpty prepend="AND" property="docEnd">
+					          CVA.FNL_EDIT_DT BETWEEN TO_DATE(#docStart#, 'YYYY-MM-DD') AND TO_DATE(#docEnd# || '235959', 'YYYY-MM-DDHH24MISS')
+					        </isNotEmpty>
+					      </isNotEmpty>
+				      </isEqual>
+			      </isNotEmpty>
+			   ORDER BY DOC_NO DESC
+
+    </select>
+
+    <!-- 비자발급 신청내역 조회 -->
+	<select id="retrieveSavedDocInfo" resultClass="map" parameterClass="map"  >
+	  	<![CDATA[ /* VisaAppn.retrieveSavedDocInfo */ ]]>
+		SELECT CVA.DOC_NO,
+		       CU1.USER_KNM AS DRAFTER_NM,
+		       CU1.USER_ID AS DRAFTER_ID,
+		       CO1.ORG_CD AS DRAFTER_ORG_CD,
+		       CO1.ORG_NM AS DRAFTER_ORG_NM,
+		       CVA.EXP_CLS,
+		       CVA.BDGT_NO,
+		       CVA.BDGT_ITEM,
+		       CVA.EXP_DUTY_CLS,
+		       CVA.EXP_TRANS_CD,
+		       CVA.BDGT_DO_TEAM,
+		       CVA.BDGT_DO_TEAM_NM,
+		       CVA.APPN_CLS,
+		       CVA.DEPART_SCD_DD,
+		       CVA.DOC_STS,
+		       CVA.VISIT_NAT_1,
+		       CVA.VISIT_NAT_2,
+		       CVA.VISIT_NAT_3,
+		       (SELECT NAT_NM
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_1
+		       ) VISIT_NAT_NM1,
+		       (SELECT RISK_YN
+         		 FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+        		WHERE N2.NAT_CD=CVA.VISIT_NAT_1
+       	       ) NAT_1_RISK_YN,
+		       (SELECT NAT_NM
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_2
+		       ) VISIT_NAT_NM2,
+			   (SELECT RISK_YN
+         		 FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+        		WHERE N2.NAT_CD=CVA.VISIT_NAT_2
+       		   ) NAT_2_RISK_YN,
+		       (SELECT NAT_NM
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_3
+		       ) VISIT_NAT_NM3,
+       		   (SELECT RISK_YN
+         		 FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+        		WHERE N2.NAT_CD=CVA.VISIT_NAT_3
+       		   ) NAT_3_RISK_YN,
+		       (SELECT FMLY_INFO_NCS_YN
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_1
+		       ) FMLY_INFO_NCS_YN1,
+		       (SELECT FMLY_INFO_NCS_YN
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_2
+		       ) FMLY_INFO_NCS_YN2,
+		       (SELECT FMLY_INFO_NCS_YN
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_3
+		       ) FMLY_INFO_NCS_YN3,
+
+		       (SELECT ARMY_INFO_NCS_YN
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_1
+		       ) ARMY_INFO_NCS_YN1,
+		       (SELECT ARMY_INFO_NCS_YN
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_2
+		       ) ARMY_INFO_NCS_YN2,
+		       (SELECT ARMY_INFO_NCS_YN
+		         FROM CMAA_ABRD_BUSTR_NAT_RFR N2
+		        WHERE N2.NAT_CD=CVA.VISIT_NAT_3
+		       ) ARMY_INFO_NCS_YN3,
+
+		       CVA.VISIT_AREA_1,
+		       CVA.VISIT_AREA_2,
+		       CVA.VISIT_AREA_3,
+		       CVA.VISIT_GL,
+		       CVA.REM,
+		       CVA.VISA_PRGR_STS,
+		       CVA.EMBS_RCV_DD,
+		       CVA.VISA_ISSUE_SCD_DD,
+		       CVA.VISA_ISSUE_DD,
+		       CVA.EXTNL_PER_YN,
+		       CVA.USER_ID,
+		       CVA.USER_KNM,
+		       CVA.USER_DEPT_NM,
+		       CVA.USER_SSNO,
+		       CVA.MPHONE_NO,
+		       CVA.EMAIL_ADDR,
+		       CVA.MARR_YN,
+		       CVA.DOMI,
+		       CVA.CUR_ADDR,
+		       CVA.FAT_NM,
+		       CVA.FAT_BIRYMD,
+		       CVA.MOT_NM,
+		       CVA.MOT_BIRYMD,
+		       CVA.SPOUSE_NM,
+		       CVA.SPOUSE_BIRYMD,
+		       CVA.AMTYE,
+		       CVA.AMPOS,
+		       CVA.ENLM_YMD,
+		       CVA.AMDCG_YMD,
+		       CVA.FILE_ATCH_ID,
+		       CVA.FST_REG_DT,
+		       CVA.FST_REG_USER_ID,
+		       CVA.FNL_EDIT_DT,
+		       CVA.FNL_EDIT_USER_ID,
+		       CVA.RET_RESN,
+		       (SELECT DISTINCT SIGN_ID
+		         FROM CMAA_SIGN
+		        WHERE DOC_NO = CVA.DOC_NO
+		              AND DUTY_CLS = '05'
+		       ) SIGN_ID,
+		       CCS.APPER_ORG_CD,
+		       (SELECT ORG_NM
+		         FROM CO_ORG
+		        WHERE ORG_CD = CCS.APPER_ORG_CD
+		       ) APPER_ORG_NM
+		  FROM CMAA_VISA_APPN CVA
+		   LEFT JOIN CO_USER CU1
+		       ON CU1.USER_ID = CVA.FST_REG_USER_ID
+		   LEFT JOIN CO_ORG CO1
+		       ON CO1.ORG_CD = CU1.ORG_CD
+		   LEFT JOIN
+		       (SELECT *
+		         FROM CMAA_SIGN CS
+		        WHERE CS.SIGN_SEQ =
+		              (SELECT MAX(SIGN_SEQ)
+		                FROM CMAA_SIGN
+		               WHERE DOC_NO = CS.DOC_NO
+		                     AND SIGN_TP_CD = 'T03'
+		                     AND DUTY_CLS = '05'
+		              )
+		       ) CCS
+		       ON (
+		           CCS.DOC_NO = CVA.DOC_NO
+		           AND CCS.SIGN_TP_CD = 'T03'
+		           AND CCS.DUTY_CLS = '05'
+		       )
+		 <dynamic prepend="WHERE">
+	        <isNotEmpty property="docNo">
+	        	CVA.DOC_NO = #docNo#
+	        </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <select id="getMaxDocNo" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* VisaAppn.getMaxDocNo */ ]]>
+		  SELECT DOC_NO FROM CMAA_VISA_APPN
+			WHERE DOC_NO LIKE 'VISA' || '-' || TO_CHAR(SYSDATE, 'YYYY') || '%'
+			AND ROWNUM = 1
+			ORDER BY DOC_NO DESC
+			FOR UPDATE WAIT 100
+    </select>
+
+    <select id="getDocNo" parameterClass="map" resultClass="string" >
+        <![CDATA[ /* VisaAppn.getDocNo */ ]]>
+	  	<isEmpty property="docNo">
+		SELECT 'VISA' || '-' || TO_CHAR(SYSDATE, 'YYYY') || '-' || '000001' AS DOC_NO
+  		FROM DUAL
+  		</isEmpty>
+  		<isNotEmpty property="docNo">
+  		SELECT SUBSTR(#docNo#, 1, 4) || '-' || TO_CHAR(SYSDATE, 'YYYY') || '-' ||
+			LPAD(NVL(TO_NUMBER(SUBSTR(#docNo#, 11))+1, '1'),6, '0') AS DOC_NO
+  		FROM DUAL
+  		</isNotEmpty>
+    </select>
+
+      <select id="retrieveGeneralInfo" parameterClass="map" resultClass="map" >
+      <![CDATA[ /* VisaAppn.retrieveGeneralInfo */ ]]>
+		SELECT
+			EMP_ID,
+			EMP_NM,
+			(SELECT ORG_NM
+      			FROM CSYS.CO_ORG A,
+				      CSYS.CO_USER B
+      			WHERE A.ORG_CD=B.ORG_CD
+      			AND B.USER_ID=CHI.EMP_ID
+		    ) AS USER_DEPT_NM,
+      		CTZ_NO,
+      		HP_NO,
+			DECODE(MARRI_TYPE,'기혼','Y','미혼','N') AS MARRI_TYPE,
+			EMAIL,
+			REGI_ADDR,
+			CUR_ADDR,
+			FATHER_NM,
+			FATHER_BIRTH_YMD,
+			MOTHER_NM,
+			MOTHER_BIRTH_YMD,
+			SPOUSE_NM,
+			SPOUSE_BIRTH_YMD,
+			ARMY_TYPE,
+			GRADE_TYPE,
+			ENLIST_YMD,
+			DEMOB_YMD
+		FROM C51_HRM_INFO_FOR_VISA_VW CHI
+		WHERE EMP_ID=#tripuserId#
+      </select>
+
+<!-- VISA 결재협의자 조회 -->
+	<select id="retrieveCMASOT007" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* VisaAppn.retrieveCMASOT007 */ ]]>
+			SELECT DISTINCT B.USER_ID AS SIGN_USER_ID ,
+			       CASE
+			           WHEN '1' = 'en_US'
+			           THEN B.USER_ENM
+			           ELSE B.USER_KNM
+			       END AS SIGN_USER_NM
+			  FROM CO_USER B
+			 WHERE B.USE_YN = 'Y'
+			       AND B.USER_ID IN
+			       (SELECT PRIV_USER_ID
+			         FROM CO_USER_CTG_PRIV
+			        WHERE SYS_CD = 'cmas'
+			              AND PRIV_CD = 'RO_CMAS_OT_007'
+										AND PRIV_ED_YMD > TO_CHAR(SYSDATE,'YYYYMMDD')
+			       )
+
+    </select>
+
+<!--  업데이트할 항목들 ~ SAVE/UPDATE -->
+   <insert id="saveVisaAppn" parameterClass="map" >
+        <![CDATA[ /* VisaAppn.saveVisaAppn */ ]]>
+        MERGE INTO CMAS.CMAA_VISA_APPN
+        USING DUAL
+        ON (DOC_NO=#docNo#)
+        WHEN MATCHED THEN
+        	UPDATE SET
+        		EXP_CLS			= #expCls#,
+        		BDGT_NO			= #bdgtNo#,
+        		BDGT_ITEM		= #bdgtItem#,
+        		EXP_DUTY_CLS	= #expDutyCls#,
+        		EXP_TRANS_CD	= #expTransCd#,
+        		BDGT_DO_TEAM	= #bdgtDoTeam#,
+        		BDGT_DO_TEAM_NM	= #bdgtDoTeamNm#,
+
+ 				APPN_CLS		= #appnCls#,
+ 				DEPART_SCD_DD	= #departScdDd#,
+ 				VISIT_NAT_1		= #visitNat1#,
+ 				VISIT_AREA_1	= #visitArea1#,
+ 				VISIT_NAT_2		= #visitNat2#,
+ 				VISIT_AREA_2	= #visitArea2#,
+ 				VISIT_NAT_3		= #visitNat3#,
+ 				VISIT_AREA_3	= #visitArea3#,
+ 				VISIT_GL		= #visitGl#,
+ 				REM				= #rem#,
+
+ 				EXTNL_PER_YN	= #extnlPerYn#,
+
+        		USER_ID			= #tripuserId#,
+ 				USER_KNM		= #userKnm#,
+ 				USER_DEPT_NM	= #userDeptNm#,
+ 				USER_SSNO		= #userSsno#,
+ 				MPHONE_NO		= #mphoneNo#,
+ 				EMAIL_ADDR		= #emailAddr#,
+ 				MARR_YN			= #marrYn#,
+ 				DOMI			= #domi#,
+ 				CUR_ADDR		= #curAddr#,
+
+				FAT_NM			= #fatNm#,
+				FAT_BIRYMD		= #fatBirymd#,
+				MOT_NM			= #motNm#,
+				MOT_BIRYMD		= #motBirymd#,
+				SPOUSE_NM		= #spouseNm#,
+ 				SPOUSE_BIRYMD	= #spouseBirymd#,
+
+ 				AMTYE			= #amtye#,
+ 				AMPOS			= #ampos#,
+ 				ENLM_YMD		= #enlmYmd#,
+ 				AMDCG_YMD		= #amdcgYmd#,
+
+ 				FILE_ATCH_ID	= #fileAtchId#,
+
+        		FNL_EDIT_DT = SYSDATE,
+        		FNL_EDIT_USER_ID = #fnlEditUserId#,
+        		DOC_STS = #docSts#
+        WHEN NOT MATCHED THEN
+			INSERT
+			(
+				DOC_NO
+        		,EXP_CLS
+        		,BDGT_NO
+        		,BDGT_ITEM
+        		,EXP_DUTY_CLS
+        		,EXP_TRANS_CD
+        		,BDGT_DO_TEAM
+        		,BDGT_DO_TEAM_NM
+ 				,APPN_CLS
+ 				,DEPART_SCD_DD
+ 				,VISIT_NAT_1
+ 				,VISIT_AREA_1
+ 				,VISIT_NAT_2
+ 				,VISIT_AREA_2
+ 				,VISIT_NAT_3
+ 				,VISIT_AREA_3
+ 				,VISIT_GL
+ 				,REM
+
+ 				,EXTNL_PER_YN
+				,USER_ID
+ 				,USER_KNM
+ 				,USER_DEPT_NM
+ 				,USER_SSNO
+ 				,MPHONE_NO
+ 				,EMAIL_ADDR
+ 				,MARR_YN
+ 				,DOMI
+ 				,CUR_ADDR
+				,FAT_NM
+				,FAT_BIRYMD
+				,MOT_NM
+				,MOT_BIRYMD
+				,SPOUSE_NM
+ 				,SPOUSE_BIRYMD
+ 				,AMTYE
+ 				,AMPOS
+ 				,ENLM_YMD
+ 				,AMDCG_YMD
+
+				,FILE_ATCH_ID
+
+				,FST_REG_DT
+				,FST_REG_USER_ID
+				,FNL_EDIT_DT
+				,FNL_EDIT_USER_ID
+				,DOC_STS
+			)
+			VALUES
+			(
+				#docNo#,
+
+        		#expCls#,
+        		#bdgtNo#,
+        		#bdgtItem#,
+        		#expDutyCls#,
+        		#expTransCd#,
+        		#bdgtDoTeam#,
+        		#bdgtDoTeamNm#,
+
+				#appnCls#,
+				#departScdDd#,
+				#visitNat1#,
+				#visitArea1#,
+				#visitNat2#,
+				#visitArea2#,
+				#visitNat3#,
+				#visitArea3#,
+				#visitGl#,
+				#rem#,
+
+				#extnlPerYn#,
+				#tripuserId#,
+				#userKnm#,
+				#userDeptNm#,
+				#userSsno#,
+				#mphoneNo#,
+				#emailAddr#,
+				#marrYn#,
+				#domi#,
+				#curAddr#,
+
+				#fatNm#,
+				#fatBirymd#,
+				#motNm#,
+				#motBirymd#,
+				#spouseNm#,
+				#spouseBirymd#,
+
+				#amtye#,
+				#ampos#,
+				#enlmYmd#,
+				#amdcgYmd#,
+
+				#fileAtchId#,
+
+				SYSDATE,
+				#fstRegUserId#,
+				SYSDATE,
+				#fnlEditUserId#,
+				#docSts#
+			)
+    </insert>
+
+
+    <update id="updateRejectComment" parameterClass="map" >
+    	<![CDATA[ /* OuterTrip.updateOuterTripInfo */ ]]>
+    	UPDATE CMAS.CMAA_VISA_APPN
+				SET DOC_STS	= #docStsCd#
+	        	<isNotEmpty prepend="," property="ghrComment">
+	        		PERCHRG_RVW_OPN = #ghrComment#
+	        	</isNotEmpty>
+	        	<isNotEmpty prepend="," property="rejectRes">
+	        		PRGR_ITEM = #rejectRes#
+	        	</isNotEmpty>
+   		 WHERE DOC_NO = #docNo#
+	</update>
+
+    <delete id="deleteVisaAppn" parameterClass="map" >
+    	<![CDATA[ /* VisaAppn.deleteVisaAppn */ ]]>
+    	DELETE
+    	  FROM CMAS.CMAA_VISA_APPN
+         WHERE DOC_NO=#docNo#
+    </delete>
+
+	<update id="insertVisaAppnTempDoc" parameterClass="map" >
+    	<![CDATA[ /* VisaAppn.insertVisaAppnTempDoc */ ]]>
+    	 INSERT INTO CMAA_VISA_APPN(
+    	            DOC_NO,
+    	            FST_REG_DT,
+					FST_REG_USER_ID,
+					FNL_EDIT_DT,
+					FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          		    #docNo#,
+          		    SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#
+				)
+	</update>
+
+	<update id="Approval" parameterClass="map" >
+    	<![CDATA[ /* VisaAppn.Approval */ ]]>
+    	 UPDATE CMAA_VISA_APPN
+    	 	SET	DOC_STS				=	#docSts#
+				,FNL_EDIT_USER_ID	=	#fnlEditUserId#
+         	WHERE DOC_NO=#docNo#
+	</update>
+
+	<select id="retrieveErrMsg" parameterClass="map" resultClass="java.util.HashMap" >
+	      <![CDATA[ /* OuterTrip.retrieveErrMsg */ ]]>
+	       SELECT
+	       		ERR_ITEM,
+	       		PRGR_ITEM
+	       FROM CMAA_VISA_APPN
+	       WHERE DOC_NO = #docNo#
+	</select>
+
+	<update id="visaSubmitNotify" parameterClass="map" >
+    	<![CDATA[ /* VisaAppn.visaSubmitNotify */ ]]>
+    	 UPDATE CMAA_VISA_APPN
+    	 	SET
+    	 		VISA_PRGR_STS		=	'S'
+				,EMBS_RCV_DD		=	TO_CHAR(SYSDATE,'YYYYMMDD')
+				,VISA_ISSUE_SCD_DD 	= #ScdDate#
+				,FNL_EDIT_USER_ID	=	#fnlEditUserId#
+         	WHERE DOC_NO=#docNo#
+	</update>
+
+	<update id="visaIssueNotify" parameterClass="map" >
+    	<![CDATA[ /* VisaAppn.visaIssueNotify */ ]]>
+    	 UPDATE CMAA_VISA_APPN
+    	 	SET
+    	 		VISA_PRGR_STS		=	'I'
+				,VISA_ISSUE_DD		=	TO_CHAR(SYSDATE,'YYYYMMDD')
+				,FNL_EDIT_USER_ID	=	#fnlEditUserId#
+         	WHERE DOC_NO=#docNo#
+	</update>
+
+    <!-- VISA 담당자 메일주소(CMAS_OT_007) -->
+    <select id="retrieveVisaAdminEmail" parameterClass="map" resultClass="String" >
+        <![CDATA[ /* VisaAppn.retrieveVisaAdminEmail */ ]]>
+	       SELECT LISTAGG(FN_CO_DECRYPT_HEX(A.EMAIL), ';') WITHIN GROUP(ORDER BY EMAIL) AS EMAIL
+	         FROM CO_USER A
+	        WHERE A.USE_YN = 'Y'
+	              AND A.USER_ID IN
+	              (SELECT PRIV_USER_ID
+	                FROM CO_USER_CTG_PRIV
+	               WHERE SYS_CD = 'cmas'
+	                     AND PRIV_CD = 'RO_CMAS_OT_007'
+	                     AND PRIV_ED_YMD > TO_CHAR(SYSDATE,'YYYYMMDD')
+	              )
+    </select>
+</sqlMap>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : -
+* 설    명 : 세금계산서 설정 table 업데이트
+* 작 성 자 :
+* 작성일자 : 2011-12-23
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+*************************************************************************************-->
+<sqlMap namespace="config">
+	<!-- 세금계산서 설정 table 수정 -->
+	<update id="updateConfig" parameterClass="map">
+		<![CDATA[ /* config.updateConfig */ ]]>
+		UPDATE CO_ETAX_DW_CON
+		SET BIZCO_KNM = #bizcoKnm#,
+			BRNO = #brno#,
+			PRESI_NM = #presiNm#,
+			
+			ZIPCD = #zipcd#,
+			BAS_ADDR = #basAddr#,
+			DTL_ADDR = #dtlAddr#,
+			TELNO = #telno#,
+			FAXNO = #faxno#,
+			HMPAGE = #hmpage#,
+			BIZCOND_NM = #bizcondNm#,
+			TOI_NM = #toiNm#,
+			SMRTBILL_ID = #smrtbillId#,
+			SMRTBILL_PWD = #smrtbillPwd#,
+			DTI_SVR = #dtiSvr#,
+			PRINT_URL = #printUrl#,
+			EMAIL_URL = #emailUrl#,
+			CHG_URL = #chgUrl#,
+			ISSU_URL = #issuUrl#,
+            FNL_EDIT_DT = SYSDATE,
+            FNL_EDIT_USER_ID = #fnlEditUserId#,
+
+		    OGG_TIME  = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	</update>
+</sqlMap>

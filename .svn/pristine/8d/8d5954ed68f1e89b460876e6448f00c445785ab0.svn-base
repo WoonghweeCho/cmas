@@ -1,0 +1,104 @@
+var gv_CommCd_ko_KR = { 
+"CM100": [ 
+{ "code":"30","value":"최근 1달","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"60","value":"최근 2달","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"90","value":"최근 3달","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"180","value":"최근 6달","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"360","value":"최근 1년","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"DT","value":"상세지정","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"CO001": [ 
+{ "code":"01","value":"국내출장","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"02","value":"해외출장","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"03","value":"시내교통비","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"04","value":"특별ID","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"CO403": [ 
+{ "code":"T01","value":"기안","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"D","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"T02","value":"결재","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"D","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"T03","value":"협의","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"D","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"T04","value":"기안자전결","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"E","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"T05","value":"전결","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"E","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"T06","value":"협의","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"E","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID001": [ 
+{ "code":"01","value":"신규","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"02","value":"연장","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"03","value":"해지","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID002": [ 
+{ "code":"15","value":"최근 15일","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"30","value":"최근 1달","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"60","value":"최근 2달","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"90","value":"최근 3달","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"180","value":"최근 6달","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"360","value":"최근 1년","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"DT","value":"상세지정","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID003": [ 
+{ "code":"00","value":"전체","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"01","value":"바로넷","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"02","value":"바로콘","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"03","value":"바로미","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"04","value":"메일","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"05","value":"SVPN","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"06","value":"모바일(One Touch HSE-Q)","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID004": [ 
+{ "code":"0","value":"미사용","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"1","value":"사용(인사팀 담당자에게 별도 요청시, 승인)","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID005": [ 
+{ "code":"0","value":"미사용","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"1","value":"사용(개인메일)","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"2","value":"사용(PJ 공용메일)","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID006": [ 
+{ "code":"0","value":"미사용","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_SP_003","value":"[포탈] 국내현장 - 일반사용자","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_SP_013","value":"[포탈] 해외현장 - 일반사용자","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_CO_001","value":"[공통] 결재용","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_PM_010","value":"[공사] 전사일반","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_DM_003","value":"[문서] 현장사용자","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_SF_003","value":"[안전] 국내현장 - 일반사용자","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_HM_010","value":"[장비] 국내현장 조회","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_HM_007","value":"[장비] 해외현장 조회","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_QM_005","value":"[품질]도급업체 품질 선해임 담당자","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_EV_003","value":"[환경] 국내현장 - 일반사용자","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_HS_003","value":"[HSE] 해외현장 - 일반사용자","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"ROLE_ICMS_HS_007","value":"[HSE] 해외현장-보조","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID007": [ 
+{ "code":"0","value":"미사용","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"RO_MSGR_CO_TMPID1","value":"사용(조직도 표시)","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"RO_MSGR_CO_TMPID2","value":"사용(조직도 미표시)","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID008": [ 
+{ "code":"0","value":"미사용","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"1","value":"사용","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"ID009": [ 
+{ "code":"0","value":"미사용","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"RO_IMMS_MA_009","value":"사용(권한: 현장관리자)","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"OT001": [ 
+{ "code":"01","value":"0802784","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"OT002": [ 
+{ "code":"01","value":"0901055","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"OT003": [ 
+{ "code":"01","value":"1301189","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"OT004": [ 
+{ "code":"01","value":"1302356","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" }
+ ], 
+"SYSCD": [ 
+{ "code":"01","value":"바로넷","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"02","value":"바로콘","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"03","value":"바로미","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"04","value":"메일","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" },
+{ "code":"05","value":"SVPN","hgrCommGrpCd":"","hgrCommCd":"","refCd1":"","refCd2":"","refCd3":"","refCd4":"" } 
+ ] 
+ }; 
+ 

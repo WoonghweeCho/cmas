@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+ <!--************************************************************************************
+* 프로그램 : CRUD 관리
+* 설    명 : CRUD 관리
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* selectCrudList
+* selectGroupCrudList
+* selectCrudCnt
+* createCrud
+* modifyCrud
+* deleteCrudList
+*************************************************************************************-->
+<sqlMap namespace="sysMng">
+	<!-- 조건에 의한 AACRUD로그 조회 -->
+	<select id="selectCrudList" parameterClass="map" resultClass="com.dwenc.cmas.common.sysMng.domain.Crud">
+	<![CDATA[ /* sysMng.selectCrudList */ ]]>
+	SELECT A.DEM_URL
+	     , A.QURY_ID
+	     , A.MENU_ID
+	     , A.TABL_ID
+	     , A.TABL_NM
+	     , A.CRUD_CLS
+	     , A.DUTY_CD
+	     , A.MENU_URL
+	     , B.DUTY_SYS_NM
+	     , C.MENU_NM
+	  FROM (
+	      SELECT D.*
+	           , (UPPER(SUBSTR(D.DEM_URL, INSTR(D.DEM_URL,'.') + 1, LENGTH(D.DEM_URL))) )DUTY_CD
+	        FROM AA_CRUD_LOG D
+	       ORDER BY SEQ
+	          ) A
+	  LEFT OUTER JOIN(
+	      SELECT DUTY_SYS_CD, DUTY_SYS_NM
+	        FROM CO_SYS_DUTY
+	       WHERE SYS_CD = #sysCd#
+	         AND USE_YN = 'Y'
+	        ) B
+	    ON A.DUTY_CD = B.DUTY_SYS_CD
+	    , CO_MENU C
+	  WHERE 1 = 1
+	    AND A.MENU_ID = C.MENU_ID
+   	   <isNotEmpty prepend="AND" property="dutySysCd">
+           A.DUTY_CD = #dutySysCd#
+	   </isNotEmpty>
+   	   <isNotEmpty prepend="AND" property="tablNm">
+           A.TABL_NM LIKE '%'||#tablNm#||'%'
+	   </isNotEmpty>
+	    ORDER BY A.DUTY_CD, A.MENU_ID, A.TABL_ID, A.QURY_ID
+	</select>
+
+	<!-- 조건에 의한 AACRUD로그 그룹별 조회 -->
+	<select id="selectGroupCrudList" parameterClass="map" resultClass="com.dwenc.cmas.common.sysMng.domain.Crud">
+	<![CDATA[ /* sysMng.selectGroupCrudList */ ]]>
+	SELECT DUTY_CD, DUTY_SYS_NM, MENU_ID, MENU_NM, TABL_ID, TABL_NM, MENU_URL
+	     , TO_CHAR(LISTAGG(CRUD_CLS,',') WITHIN GROUP (ORDER BY CRUD_CLS)) CRUD_CLS
+	  FROM (
+	    SELECT A.DUTY_CD
+	         , B.DUTY_SYS_NM
+	         , A.MENU_ID
+	         , C.MENU_NM
+	         , A.TABL_ID
+	         , A.TABL_NM
+	         , A.CRUD_CLS
+	         , A.MENU_URL
+	      FROM (
+	          SELECT D.*
+	               , (UPPER(SUBSTR(D.DEM_URL, INSTR(D.DEM_URL,'.')+1, LENGTH(D.DEM_URL))) )DUTY_CD
+	            FROM AA_CRUD_LOG D
+	           ORDER BY SEQ
+	              ) A
+	      LEFT OUTER JOIN(
+	          SELECT DUTY_SYS_CD, DUTY_SYS_NM
+	            FROM CO_SYS_DUTY
+	           WHERE SYS_CD = #sysCd#
+	             AND USE_YN = 'Y'
+	            ) B
+	        ON A.DUTY_CD = B.DUTY_SYS_CD
+	        , CO_MENU C
+	      WHERE 1 = 1
+	        AND A.MENU_ID = C.MENU_ID
+	      GROUP BY A.DUTY_CD, B.DUTY_SYS_NM,  A.MENU_ID, C.MENU_NM, A.TABL_ID, A.TABL_NM, A.CRUD_CLS, A.MENU_URL
+	      )
+	 GROUP BY DUTY_CD, DUTY_SYS_NM, MENU_ID, MENU_NM, TABL_ID, TABL_NM, MENU_URL
+	HAVING 1 = 1
+   	   <isNotEmpty prepend="AND" property="dutySysCd">
+           DUTY_CD = #dutySysCd#
+	   </isNotEmpty>
+   	   <isNotEmpty prepend="AND" property="tablNm">
+           TABL_NM LIKE '%'||#tablNm#||'%'
+	   </isNotEmpty>
+	ORDER BY DUTY_CD, MENU_ID, TABL_ID
+	</select>
+
+	<!-- 조건에 의한 AACRUD로그 COUNT 조회 -->
+	<select id="selectCrudCnt" parameterClass="map" resultClass="int">
+	<![CDATA[ /* sysMng.selectCrudCnt */ ]]>
+	SELECT COUNT(*) LOG_CNT
+	  FROM AA_CRUD_LOG
+	 WHERE 1=1
+       AND DEM_URL = #requestUrl#
+	   AND QURY_ID = #queryId#
+	   AND MENU_ID = #menuId#
+	   AND TABL_ID = #tableId#
+	</select>
+
+	<!-- 조건에 의한 AACRUD로그 CRUD 조회 -->
+	<select id="selectCrud" parameterClass="map" resultClass="com.dwenc.cmas.common.sysMng.domain.Crud">
+	<![CDATA[ /* sysMng.selectCrud */ ]]>
+	SELECT CRUD_CLS
+	  FROM AA_CRUD_LOG
+	 WHERE 1=1
+       AND DEM_URL = #requestUrl#
+	   AND QURY_ID = #queryId#
+	   AND MENU_ID = #menuId#
+	   AND TABL_ID = #tableId#
+	</select>
+
+	<insert id="createCrud" parameterClass="map">
+	<![CDATA[ /* sysMng.createCrud */ ]]>
+	INSERT INTO AA_CRUD_LOG
+	(
+	      SEQ
+	    , DEM_URL
+	    , QURY_ID
+	    , MENU_ID
+	    , TABL_ID
+	    , TABL_NM
+	    , CRUD_CLS
+	    , MENU_URL
+	)
+	VALUES
+	(
+	      (SELECT COUNT(*) + 1 FROM AA_CRUD_LOG )
+	    , #requestUrl#
+	    , #queryId#
+	    , #menuId#
+	    , #tableId#
+	    , #tableNm#
+	    , #crud#
+	    , #menuUrl#
+	)
+	</insert>
+
+	<!-- AACRUD로그 수정 -->
+	<update id="modifyCrud" parameterClass="map">
+	<![CDATA[ /* sysMng.modifyCrud */ ]]>
+     UPDATE AA_CRUD_LOG
+        SET CRUD_CLS = #crud#
+	  WHERE 1=1
+        AND DEM_URL = #requestUrl#
+	    AND QURY_ID = #queryId#
+	    AND MENU_ID = #menuId#
+	    AND TABL_ID = #tableId#
+	</update>
+
+	<!-- 조건에 의한 AACRUD로그 삭제 -->
+	<delete id="deleteCrudList" parameterClass="map">
+	<![CDATA[ /* sysMng.deleteCrudList */ ]]>
+	DELETE FROM AA_CRUD_LOG
+	</delete>
+</sqlMap>
+

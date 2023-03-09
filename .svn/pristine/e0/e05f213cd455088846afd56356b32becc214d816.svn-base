@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!-- 첨부파일 관리 -->
+<sqlMap namespace="eAcct">
+
+    <!--***************************************************************
+    * 설명         : 전표번호로 전표유형 조회
+    * 작성일자     : 2012.04.04
+    * 작성자       : 변형구
+    ****************************************************************-->
+    <resultMap id="workCdLst" class="java.util.HashMap">
+	   <result property="workCd" 	column="WORK_CD"/>
+	</resultMap>
+	<select id="retrieveWorkCd" parameterClass="map" resultMap="workCdLst" >
+	  <![CDATA[ /* eAcct.retrieveWorkCd */ ]]>
+	   SELECT DISTINCT WORK_CD AS WORK_CD
+         FROM TB_ACC_MST
+      <dynamic prepend="WHERE">
+		<isNotEmpty prepend="AND" property="refKey">
+	       REF_KEY = #refKey#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="mngNo">
+	       MNG_NO = #mngNo#
+		</isNotEmpty>
+	  </dynamic>
+	</select>
+
+    <!--***************************************************************
+    * 설명         : 전표유형으로 필수 첨부 증빙 체크 항목을 조회
+    * 작성일자     : 2012.04.04
+    * 작성자       : 변형구
+    ****************************************************************-->
+    <resultMap id="eAcctAttTmpl" class="java.util.HashMap">
+	   <result property="workCd" 	column="WORK_CD"/>
+	   <result property="docCd" 	column="DOC_CD"/>
+	   <result property="docGubun" 	column="DOC_GUBUN"/>
+	   <result property="docSort" 	column="DOC_SORT"/>
+	   <result property="docNm"     column="DOC_NM"/>
+	   <result property="docGrp" 	column="DOC_GRP"/>
+	</resultMap>
+	<select id="retrieveEacctAttTmpl" parameterClass="map" resultMap="eAcctAttTmpl" >
+	  <![CDATA[ /* eAcct.retrieveEacctAttTmpl */ ]]>
+	  SELECT  A.WORK_CD
+	          , A.DOC_CD
+              , A.DOC_GUBUN
+              , A.DOC_SORT
+              , B.DOC_NM
+              , B.DOC_GRP
+        FROM  TB_DOC_WORK A
+       LEFT JOIN TB_DOC_ITEM B
+           ON (
+               A.DOC_CD    = B.DOC_CD
+               )
+       WHERE
+               A.WORK_CD   = #workCd#
+           AND A.DOC_GUBUN = 1
+     ORDER BY B.DOC_GRP
+	</select>
+
+    <!--***************************************************************
+    * 설명         : 실제 전표번호로 첨부된 증빙이 있는지 검증한다.
+    * 작성일자     : 2012.04.04
+    * 작성자       : 변형구
+    ****************************************************************-->
+	<select id="retrieveEacctAtchCnt" parameterClass="map" resultClass="java.lang.Integer" >
+	  <![CDATA[ /* eAcct.retrieveEacctAtchCnt */ ]]>
+	  SELECT COUNT(IMG_KEY) AS EACCT_ATCH
+        FROM TB_ACC_MST
+       WHERE DOC_CD  = #docCd#
+       <isNotEmpty prepend="AND" property="refKey">
+	      REF_KEY    = #refKey#
+	   </isNotEmpty>
+	   <isNotEmpty prepend="AND" property="mngNo">
+	      MNG_NO     = #mngNo#
+	   </isNotEmpty>
+	</select>
+
+</sqlMap>
+

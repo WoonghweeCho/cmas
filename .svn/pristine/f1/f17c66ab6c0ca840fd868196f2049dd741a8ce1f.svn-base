@@ -1,0 +1,237 @@
+<?xml version="1.0"?>
+<!--Rexpert DataSet XML File -->
+<rexdataset>
+	<rexrow>
+		<OrderID>10452</OrderID>
+		<Customers.CompanyName>알프스 무역 ㈜</Customers.CompanyName>
+		<LastName>선하라</LastName>
+		<OrderDate>1997-02-20</OrderDate>
+		<ShippedDate>1997-02-26</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>140000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10446</OrderID>
+		<Customers.CompanyName>산타페 ㈜</Customers.CompanyName>
+		<LastName>김찬진</LastName>
+		<OrderDate>1997-02-14</OrderDate>
+		<ShippedDate>1997-02-19</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>15000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10750</OrderID>
+		<Customers.CompanyName>이화 무역 ㈜</Customers.CompanyName>
+		<LastName>유가을</LastName>
+		<OrderDate>1997-11-21</OrderDate>
+		<ShippedDate>1997-11-24</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>79000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10457</OrderID>
+		<Customers.CompanyName>신세기 상사 ㈜</Customers.CompanyName>
+		<LastName>김덕훈</LastName>
+		<OrderDate>1997-02-25</OrderDate>
+		<ShippedDate>1997-03-03</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>12000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10595</OrderID>
+		<Customers.CompanyName>신세계 통상 ㈜</Customers.CompanyName>
+		<LastName>김덕훈</LastName>
+		<OrderDate>1997-07-10</OrderDate>
+		<ShippedDate>1997-07-14</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>97000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10894</OrderID>
+		<Customers.CompanyName>알프스 무역 ㈜</Customers.CompanyName>
+		<LastName>김소미</LastName>
+		<OrderDate>1998-02-18</OrderDate>
+		<ShippedDate>1998-02-20</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>116000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10895</OrderID>
+		<Customers.CompanyName>신세계 통상 ㈜</Customers.CompanyName>
+		<LastName>윤대현</LastName>
+		<OrderDate>1998-02-18</OrderDate>
+		<ShippedDate>1998-02-23</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>163000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10460</OrderID>
+		<Customers.CompanyName>유미 백화점 ㈜</Customers.CompanyName>
+		<LastName>선하라</LastName>
+		<OrderDate>1997-02-28</OrderDate>
+		<ShippedDate>1997-03-03</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>16000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10747</OrderID>
+		<Customers.CompanyName>TGIF ㈜</Customers.CompanyName>
+		<LastName>김찬진</LastName>
+		<OrderDate>1997-11-19</OrderDate>
+		<ShippedDate>1997-11-26</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>117000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10462</OrderID>
+		<Customers.CompanyName>ITM ㈜</Customers.CompanyName>
+		<LastName>김덕훈</LastName>
+		<OrderDate>1997-03-03</OrderDate>
+		<ShippedDate>1997-03-18</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>6000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10596</OrderID>
+		<Customers.CompanyName>신흥 교역 ㈜</Customers.CompanyName>
+		<LastName>선하라</LastName>
+		<OrderDate>1997-07-11</OrderDate>
+		<ShippedDate>1997-08-12</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>16000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10745</OrderID>
+		<Customers.CompanyName>미성 백화점 ㈜</Customers.CompanyName>
+		<LastName>유가을</LastName>
+		<OrderDate>1997-11-18</OrderDate>
+		<ShippedDate>1997-11-27</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>4000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10901</OrderID>
+		<Customers.CompanyName>칠성 상사 ㈜</Customers.CompanyName>
+		<LastName>최소라</LastName>
+		<OrderDate>1998-02-23</OrderDate>
+		<ShippedDate>1998-02-26</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>62000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10902</OrderID>
+		<Customers.CompanyName>유미 백화점 ㈜</Customers.CompanyName>
+		<LastName>김소미</LastName>
+		<OrderDate>1998-02-23</OrderDate>
+		<ShippedDate>1998-03-03</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>44000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10744</OrderID>
+		<Customers.CompanyName>천지 교역 ㈜</Customers.CompanyName>
+		<LastName>김찬진</LastName>
+		<OrderDate>1997-11-17</OrderDate>
+		<ShippedDate>1997-11-24</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>69000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10869</OrderID>
+		<Customers.CompanyName>엘르 ㈜</Customers.CompanyName>
+		<LastName>안정훈</LastName>
+		<OrderDate>1998-02-04</OrderDate>
+		<ShippedDate>1998-02-09</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>143000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10748</OrderID>
+		<Customers.CompanyName>알프스 무역 ㈜</Customers.CompanyName>
+		<LastName>윤대현</LastName>
+		<OrderDate>1997-11-20</OrderDate>
+		<ShippedDate>1997-11-28</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>233000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10472</OrderID>
+		<Customers.CompanyName>엘르 ㈜</Customers.CompanyName>
+		<LastName>선하라</LastName>
+		<OrderDate>1997-03-12</OrderDate>
+		<ShippedDate>1997-03-19</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>4000</Freight>
+	</rexrow><rexrow>
+		<OrderID>10945</OrderID>
+		<Customers.CompanyName>신천지 통상 ㈜</Customers.CompanyName>
+		<LastName>최소라</LastName>
+		<OrderDate>1998-03-12</OrderDate>
+		<ShippedDate>1998-03-18</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>10000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10757</OrderID>
+		<Customers.CompanyName>알프스 무역 ㈜</Customers.CompanyName>
+		<LastName>김찬진</LastName>
+		<OrderDate>1997-11-27</OrderDate>
+		<ShippedDate>1997-12-15</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>8000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10873</OrderID>
+		<Customers.CompanyName>미주 상사 ㈜</Customers.CompanyName>
+		<LastName>최소라</LastName>
+		<OrderDate>1998-02-06</OrderDate>
+		<ShippedDate>1998-02-09</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>1000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10667</OrderID>
+		<Customers.CompanyName>신세계 통상 ㈜</Customers.CompanyName>
+		<LastName>오영수</LastName>
+		<OrderDate>1997-09-12</OrderDate>
+		<ShippedDate>1997-09-19</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>78000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10591</OrderID>
+		<Customers.CompanyName>천지 교역 ㈜</Customers.CompanyName>
+		<LastName>김소미</LastName>
+		<OrderDate>1997-07-07</OrderDate>
+		<ShippedDate>1997-07-16</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>56000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10592</OrderID>
+		<Customers.CompanyName>동방 무역 ㈜</Customers.CompanyName>
+		<LastName>윤대현</LastName>
+		<OrderDate>1997-07-08</OrderDate>
+		<ShippedDate>1997-07-16</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>32000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10890</OrderID>
+		<Customers.CompanyName>양정 물산 ㈜</Customers.CompanyName>
+		<LastName>오영수</LastName>
+		<OrderDate>1998-02-16</OrderDate>
+		<ShippedDate>1998-02-18</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>33000</Freight>
+	</rexrow>
+	<rexrow>
+		<OrderID>10878</OrderID>
+		<Customers.CompanyName>미성 백화점 ㈜</Customers.CompanyName>
+		<LastName>최소라</LastName>
+		<OrderDate>1998-02-10</OrderDate>
+		<ShippedDate>1998-02-12</ShippedDate>
+		<Shippers.CompanyName>대륙 통운 ㈜</Shippers.CompanyName>
+		<Freight>47000</Freight>
+	</rexrow>
+</rexdataset>

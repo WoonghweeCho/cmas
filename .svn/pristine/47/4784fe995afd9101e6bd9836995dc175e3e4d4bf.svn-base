@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CVA0201
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveGroupCodeList 조건에 의한 그룹 코드 조회
+
+*************************************************************************************-->
+<sqlMap namespace="Site">
+	<resultMap class="java.util.HashMap" id="rmGroupCodeList">
+	   <result property="sysCd" column="SYS_CD"/>
+	   <result property="commGrpCd" column="COMM_GRP_CD"/>
+	   <result property="hgrCommGrpCd" column="HGR_COMM_GRP_CD"/>
+	   <result property="commGrpCdNm" column="COMM_GRP_CD_NM"/>
+	   <result property="dutySysCd" column="duty_sys_cd"/>
+	   <result property="useYn" column="USE_YN"/>
+	   <result property="fstRegDt1" column="FST_REG_DT1"/>
+	   <result property="fstRegUserId" column="FST_REG_USER_ID"/>
+	   <result property="fnlEditDt1" column="FNL_EDIT_DT1"/>
+	   <result property="fnlEditUserId" column="FNL_EDIT_USER_ID"/>
+	   <result property="fstRegUserIdName" column="FST_REG_USER_ID_NAME"/>
+	   <result property="fnlEditUserIdName" column="FNL_EDIT_USER_ID_NAME"/>
+	</resultMap>
+
+    <!-- 코드 그룹 조회 -->
+    <select id="siteLocList" parameterClass="map" resultClass="com.dwenc.cmas.info.domain.SiteDomain" >
+        <![CDATA[ /* info.siteLocList */ ]]>
+		  SELECT
+				SITE_CD
+				, SITE_NM
+				, ZIPCD
+				, ADDR
+				, TEL
+				, LATITUDE
+				, LONGITUDE
+				, CON_OUTLINE
+				, CON_NM
+				, CONST_DATE
+				, CONEND_DATE
+				, CONST_DATE || '~' || CONEND_DATE as CON_DATE
+				, CONST_YMD
+				, SITE_SV_NM
+				, ORDER_PL
+				, GUBUN
+				, ROWNUM as SORT_NO
+
+		  FROM V_PM_SITE_LOCA_4_DMOS A
+		  WHERE longitude is not null
+	    <isNotEmpty prepend="AND" property="siteCd">
+	    	SITE_CD LIKE '%'||#siteCd#||'%'
+	    </isNotEmpty>
+    </select>
+
+
+</sqlMap>

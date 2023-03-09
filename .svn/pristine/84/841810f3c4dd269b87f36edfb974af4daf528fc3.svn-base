@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : Sms
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* createSmsSend SMS 전송 INSERT
+* createSmsSend1 SMS 전송 INSERT
+*************************************************************************************-->
+<sqlMap namespace="Sms">
+
+	<!-- SMS 전송 INSERT -->
+	<insert id="createSmsSend" parameterClass="map">
+		INSERT INTO SMSDATA (    sendid      ,sendname    ,rphone1     ,rphone2     ,rphone3
+                                ,recvname   ,sphone1     ,sphone2     ,sphone3     ,msg
+                                ,rdate      ,rtime       ,kind        ,sys_cd      ,rem1
+                                ,emp_no
+                                ,indate, intime, member, result
+				 )
+		             VALUES (  nvl(#sendid#, 'Def') ,#sendname#  ,#rphone1#   ,#rphone2#   ,#rphone3#
+                              ,#recvname#   ,#sphone1#   ,#sphone2#   ,#sphone3#   ,#msg#
+                              ,#rdate#      ,#rtime#     ,'S'         ,'ICM'       ,TO_CHAR(SYSDATE, 'YYYY.MM.DD')
+                              ,#empNo#
+                              ,TO_CHAR(SYSDATE, 'YYYYMMDD') ,TO_CHAR(SYSDATE, 'HH24MISS'), 0, '0'
+				)
+	</insert>
+
+	<!-- SMS 전송 INSERT -->
+	<insert id="createSmsSend1" parameterClass="map">
+		INSERT INTO SMSDATA (    sendid      ,sendname    ,rphone1     ,rphone2     ,rphone3
+                                ,recvname   ,sphone1     ,sphone2     ,sphone3     ,msg
+                                ,rdate      ,rtime       ,kind        ,sys_cd      ,rem1
+                                ,emp_no
+                                ,indate, intime, member, result
+				 )
+		             VALUES (  nvl(#sendid#, 'Def') ,#sendname#  ,#rphone1#   ,#rphone2#   ,#rphone3#
+                              ,#recvname#   ,#sphone1#   ,#sphone2#   ,#sphone3#   ,#msg#
+                              ,#rdate#      ,#rtime#     ,'S'         ,'ICM'       ,TO_CHAR(SYSDATE, 'YYYY.MM.DD')
+                              ,#empNo#
+                              ,TO_CHAR(SYSDATE, 'YYYYMMDD') ,TO_CHAR(SYSDATE, 'HH24MISS'), 0, '0'
+                )
+	</insert>
+	<!-- SMS 발신함/예약함 관리 -->
+	<select id="retrieveSms" parameterClass="map" resultClass="com.dwenc.cmas.common.sms.domain.Sms">
+	<![CDATA[ /* Sms.retrieveSms */ ]]>
+	SELECT SEQNO
+       , INDATE
+       , INTIME
+       , MEMBER
+       , SENDID
+       , SENDNAME
+       , RPHONE1
+       , RPHONE2
+       , RPHONE3
+       , RECVNAME
+       , SPHONE1
+       , SPHONE2
+       , SPHONE3
+       , MSG
+       , URL
+       , RDATE
+       , RTIME
+       , RESULT
+       , KIND
+       , ERRCODE
+       , SYS_CD
+       , DEPT_CD
+       , REM1
+       , DISP_YN
+       , SUB_SYS_CD
+       , REM2
+       , EMP_NO
+       , REM3
+	  FROM SMSDATA A
+  	 WHERE 1=1
+     <isNotEmpty prepend="AND" property="sphone">
+          TRIM(SPHONE1)||TRIM(SPHONE2)||TRIM(SPHONE3) = REPLACE(REPLACE(#sphone#, '-', ''),' ','')
+     </isNotEmpty>
+     <isNotEmpty prepend="AND" property="reserve">
+          TRIM(NVL(RDATE, '00000000')||NVL(TRIM(RTIME), '000000')) > TO_CHAR(SYSDATE, 'YYYYMMDDHH24:MI:SS')
+     </isNotEmpty>
+  	 ORDER BY INDATE DESC, INTIME DESC
+	</select>
+</sqlMap>

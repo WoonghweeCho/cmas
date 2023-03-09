@@ -1,0 +1,992 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!-- 첨부파일 관리 -->
+<sqlMap namespace="dmBarocon">
+
+    <!--***************************************************************
+    * 설명            : 신규 파일묶음번호 조회
+    * 작성일자  : 2011.09.29
+    * 작성자       :
+    ****************************************************************-->
+
+    <!-- 0-1. 현장문서파일 존재여부 체크 -->
+    <select id="existSiteFileCheck" parameterClass="map" resultClass="java.lang.String" >
+	<![CDATA[ /* dmBarocon.existSiteFileCheck */ ]]>
+	SELECT    CASE WHEN COUNT(A.DOC_MNO) = 0 THEN 'N' ELSE 'Y' END AS EXIST_YN
+	FROM      DMB_SITEDOC A
+              INNER JOIN DMB_SITEDOC_FILE B
+    ON        A.DOC_MNO = B.DOC_MNO
+    WHERE     A.SITE_CD   = #siteCd#
+    AND       A.DOCCLS_CD = #docclsCd#
+    AND       A.SYS_DOCNO = #docno#
+    AND       B.ATCH_SEQ  = #atchFileSeq#
+	</select>
+
+	<!-- 0-2. PSCS문서파일 존재여부 체크 -->
+    <select id="existPscsFileCheck" parameterClass="map" resultClass="java.lang.String" >
+	<![CDATA[ /* dmBarocon.existPscsFileCheck */ ]]>
+	SELECT    CASE WHEN COUNT(A.BUYSCH_DOC_MNO) = 0 THEN 'N' ELSE 'Y' END AS EXIST_YN
+	FROM      DMD_SITE_BUYSCH_DOC A
+              INNER JOIN DMD_SITEDOC_FILE B
+    ON        A.BUYSCH_DOC_MNO = B.SITEDOC_MNO
+    WHERE     A.SITE_CD      = #siteCd#
+    AND       A.PROG_CLSCD   = '05'
+    AND       A.DOCCLS_CD    = #docclsCd#
+    AND       A.BUYSCH_DOCNO = #docno#
+    AND       B.ATCH_SEQ     = #atchFileSeq#
+	</select>
+
+	<!-- 0-3. 본사문서파일 존재여부 체크 -->
+    <select id="existTeamFileCheck" parameterClass="map" resultClass="java.lang.String" >
+	<![CDATA[ /* dmBarocon.existTeamFileCheck */ ]]>
+	SELECT    CASE WHEN COUNT(A.DOC_MNO) = 0 THEN 'N' ELSE 'Y' END AS EXIST_YN
+	FROM      DMB_TEAMDOC A
+              INNER JOIN DMB_TEAMDOC_FILE B
+    ON        A.DOC_MNO = B.DOC_MNO
+    WHERE     A.ORG_CD    = #siteCd#
+    AND       A.DOCCLS_CD = #docclsCd#
+    AND       A.SYS_DOCNO = #docno#
+    AND       B.ATCH_SEQ  = #atchFileSeq#
+	</select>
+
+    <!-- 1-1. 현장문서 존재여부 체크 -->
+    <select id="retrieveExistSitedoc" parameterClass="map" resultClass="java.lang.Long" >
+	<![CDATA[ /* dmBarocon.retrieveExistSitedoc */ ]]>
+	SELECT    CASE WHEN COUNT(DOC_MNO) = 1 THEN MAX(DOC_MNO)
+	               WHEN COUNT(DOC_MNO) > 1 THEN -1
+	               ELSE 0 END AS DOC_MNO
+	FROM      DMB_SITEDOC
+	WHERE     SITE_CD   = #siteCd#
+	AND       DOCCLS_CD = #docclsCd#
+	AND       SYS_DOCNO = #docno#
+	</select>
+
+	<!-- 1-2. 현장문서 파일 삭제 -->
+	<delete id="deleteSitedocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteSitedocFile */ ]]>
+	DELETE    FROM DMB_SITEDOC_FILE
+	WHERE     DOC_MNO   = #docMno#
+	AND       REVISN_CD = '0'
+	AND       ATCH_SEQ  = #atchFileSeq#
+	</delete>
+
+	<!-- 1-3. 현장문서관리번호 채번 -->
+	<select id="siteDocMnoSeq" parameterClass="map" resultClass="java.lang.Long" >
+	<![CDATA[ /* dmBarocon.siteDocMnoSeq */ ]]>
+	SELECT DMB_SITEDOC_SQ_01.NEXTVAL AS MNO FROM DUAL
+	</select>
+
+	<!--  1-4. 현장문서 등록 -->
+	<insert id="insertSitedoc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertSitedoc */ ]]>
+	INSERT INTO DMB_SITEDOC
+	(
+	    DOC_MNO
+	  , SITE_CD
+	  , DOCCLS_CD
+	  , DOC_CD_SEQ
+	  , SYS_DOCNO
+	  , SUB_DOCNO
+	  , DTL_CLSCD
+	  , TITLE
+	  , KEYWD
+	  , DOCKND_CD
+	  , PLNT_YN
+	  , TDMS_ORG_CD
+	  , SCRT_GRDCD
+	  , INCHRG_USER_ID
+	  , REG_PATH_CD
+	  , QRY_YN
+	  , USE_YN
+	  , EXPL
+	  , FST_REG_DT
+	  , FST_REG_USER_ID
+	  , FNL_EDIT_DT
+	  , FNL_EDIT_USER_ID
+	  , OGG_CD
+	  , OGG_TIME
+	)
+	SELECT
+	         #docMno#
+	       , #siteCd#
+	       , #docclsCd#
+	       , NVL( ( SELECT    MAX(DOC_CD_SEQ) + 1
+		            FROM      DMB_SITEDOC
+		            WHERE     SITE_CD   = #siteCd#
+	     		    AND       DOCCLS_CD = #docclsCd#
+		       ), 1)
+	       , #docno#
+	       , NULL
+	       , NULL
+	       , #title#
+	       , #keywd#
+	       , '01'
+	       , NULL
+	       , 'A'
+	       , '06'
+	       , #userId#
+	       , '02'
+	       , CASE WHEN #signDemYn# = 'Y' THEN 'N' ELSE 'Y' END
+	       , 'Y'
+	       , NULL
+	       , SYSDATE
+	       , #fstRegUserId#
+	       , SYSDATE
+	       , #fnlEditUserId#
+	       , #oggCd#
+	       , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	FROM     DUAL
+	</insert>
+
+	<!-- 1-5. 현장문서파일 등록 -->
+	<insert id="insertSitedocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertSitedocFile */ ]]>
+	MERGE INTO DMB_SITEDOC_FILE T
+	USING (
+	        SELECT    #docMno#      AS DOC_MNO
+	                , #atchFileSeq# AS ATCH_SEQ
+	        FROM      DUAL
+	      ) A
+	ON   (
+	                  A.DOC_MNO  = T.DOC_MNO
+	        AND       A.ATCH_SEQ = T.ATCH_SEQ
+	      )
+    WHEN MATCHED THEN
+        UPDATE
+        SET       REVISN_REG_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , FILE_ATCH_ID   = #fileAtchId#
+	            , FILE_ID        = #fileId#
+	            , REF_DOC_MNO    = #refDocMno#
+	            , REF_REVISN_CD  = #refRevisnCd#
+	            , REF_ATCH_SEQ   = #refAtchSeq#
+	            , FNL_EDIT_DT    = SYSDATE
+	            , FNL_EDIT_USER_ID = #fnlEditUserId#
+	            , OGG_TIME     = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    WHEN NOT MATCHED THEN
+        INSERT
+		(
+		    DOC_MNO
+		  , REVISN_CD
+		  , ATCH_SEQ
+		  , BEF_ATCH_SEQ
+		  , REVISN_REG_YMD
+		  , NEW_YN
+		  , REVISN_CONT
+		  , ACCESS_STS_CD
+		  , FORM_WRITE_YN
+		  , FORM_FILE_SEQ
+		  , DSPT_CORR_MNO
+		  , COVER_YN
+		  , SIGN_SUBMIT_YN
+		  , FILE_ATCH_ID
+		  , FILE_ID
+		  , REF_DOC_MNO
+		  , REF_REVISN_CD
+		  , REF_ATCH_SEQ
+		  , USE_YN
+		  , FST_REG_DT
+		  , FST_REG_USER_ID
+		  , FNL_EDIT_DT
+		  , FNL_EDIT_USER_ID
+		  , OGG_CD
+		  , OGG_TIME
+		)
+		VALUES (
+		         #docMno#
+		       , '0'
+		       , #atchFileSeq#
+		       , NULL
+		       , TO_CHAR(SYSDATE, 'YYYYMMDD')
+		       , 'Y'
+		       , NULL
+		       , '03'
+		       , 'N'
+		       , NULL
+		       , NULL
+		       , 'N'
+		       , 'N'
+		       , #fileAtchId#
+		       , #fileId#
+		       , #refDocMno#
+		       , #refRevisnCd#
+		       , #refAtchSeq#
+		       , 'Y'
+		       , SYSDATE
+		       , #fstRegUserId#
+		       , SYSDATE
+		       , #fnlEditUserId#
+		       , #oggCd#
+		       , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+		)
+	</insert>
+
+    <!-- 2-1. 팀문서 존재여부 체크 -->
+    <select id="retrieveExistTeamdoc" parameterClass="map" resultClass="java.lang.Long" >
+	<![CDATA[ /* dmBarocon.retrieveExistTeamdoc */ ]]>
+	SELECT    CASE WHEN COUNT(DOC_MNO) = 1 THEN MAX(DOC_MNO)
+	               WHEN COUNT(DOC_MNO) > 1 THEN -1
+	               ELSE 0 END AS DOC_MNO
+	FROM      DMB_TEAMDOC
+	WHERE     ORG_CD    = #siteCd#
+	AND       DOCCLS_CD = #docclsCd#
+	AND       SYS_DOCNO = #docno#
+	</select>
+
+	<!-- 2-2. 팀문서 파일 삭제 -->
+	<delete id="deleteTeamdocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteTeamdocFile */ ]]>
+	DELETE    FROM DMB_TEAMDOC_FILE
+	WHERE     DOC_MNO   = #docMno#
+	AND       REVISN_CD = '0'
+	AND       ATCH_SEQ  = #atchFileSeq#
+	</delete>
+
+	<!-- 2-3. 팀문서관리번호 채번 -->
+	<select id="teamDocMnoSeq" parameterClass="map" resultClass="java.lang.Long" >
+	<![CDATA[ /* dmBarocon.teamDocMnoSeq */ ]]>
+	SELECT DMB_TEAM_DOC_SQ_01.NEXTVAL AS MNO FROM DUAL
+	</select>
+
+	<!--  2-4. 팀문서 등록 -->
+	<insert id="insertTeamdoc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertTeamdoc */ ]]>
+	INSERT INTO DMB_TEAMDOC
+	(
+	    DOC_MNO
+	  , ORG_CD
+	  , DOCCLS_CD
+	  , DOC_CD_SEQ
+	  , SYS_DOCNO
+	  , SUB_DOCNO
+	  , DTL_CLSCD
+	  , TITLE
+	  , KEYWD
+	  , DOCKND_CD
+	  , INCHRG_USER_ID
+	  , QRY_YN
+	  , USE_YN
+	  , EXPL
+	  , FST_REG_DT
+	  , FST_REG_USER_ID
+	  , FNL_EDIT_DT
+	  , FNL_EDIT_USER_ID
+	  , OGG_CD
+	  , OGG_TIME
+	)
+	SELECT
+	         #docMno#
+	       , NVL(#orgCd#, #siteCd#)
+	       , #docclsCd#
+	       , NVL( ( SELECT    MAX(DOC_CD_SEQ) + 1
+		            FROM      DMB_TEAMDOC
+		            WHERE     ORG_CD    = #siteCd#
+	     		    AND       DOCCLS_CD = #docclsCd#
+		       ), 1)
+	       , #docno#
+	       , NULL
+	       , NULL
+	       , #title#
+	       , #keywd#
+	       , '01'
+	       , #userId#
+	       , CASE WHEN #signDemYn# = 'Y' THEN 'N' ELSE 'Y' END
+	       , 'Y'
+	       , NULL
+	       , SYSDATE
+	       , #fstRegUserId#
+	       , SYSDATE
+	       , #fnlEditUserId#
+	       , #oggCd#
+	       , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	FROM     DUAL
+	</insert>
+
+	<!-- 2-5. 팀문서파일 등록 -->
+	<insert id="insertTeamdocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertTeamdocFile */ ]]>
+	MERGE INTO DMB_TEAMDOC_FILE T
+	USING (
+	        SELECT    #docMno#      AS DOC_MNO
+	                , #atchFileSeq# AS ATCH_SEQ
+	        FROM      DUAL
+	      ) A
+	ON   (
+	                  A.DOC_MNO  = T.DOC_MNO
+	        AND       A.ATCH_SEQ = T.ATCH_SEQ
+	      )
+	WHEN MATCHED THEN
+        UPDATE
+        SET       REVISN_REG_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , FILE_ATCH_ID   = #fileAtchId#
+	            , FILE_ID        = #fileId#
+	            , FNL_EDIT_DT    = SYSDATE
+	            , FNL_EDIT_USER_ID = #fnlEditUserId#
+	            , OGG_TIME     = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISS')
+	WHEN NOT MATCHED THEN
+		INSERT
+		(
+		    DOC_MNO
+		  , REVISN_CD
+		  , ATCH_SEQ
+		  , BEF_ATCH_SEQ
+		  , REVISN_REG_YMD
+		  , NEW_YN
+		  , REVISN_CONT
+		  , ACCESS_STS_CD
+		  , FORM_WRITE_YN
+		  , FORM_FILE_SEQ
+		  , COVER_YN
+		  , SIGN_SUBMIT_YN
+		  , FILE_ATCH_ID
+		  , FILE_ID
+		  , USE_YN
+		  , FST_REG_DT
+		  , FST_REG_USER_ID
+		  , FNL_EDIT_DT
+		  , FNL_EDIT_USER_ID
+		  , OGG_CD
+		  , OGG_TIME
+		)
+		VALUES (
+		         #docMno#
+		       , '0'
+		       , #atchFileSeq#
+		       , NULL
+		       , TO_CHAR(SYSDATE, 'YYYYMMDD')
+		       , 'Y'
+		       , NULL
+		       , '03'
+		       , 'N'
+		       , NULL
+		       , 'N'
+		       , 'N'
+		       , #fileAtchId#
+		       , #fileId#
+		       , 'Y'
+		       , SYSDATE
+		       , #fstRegUserId#
+		       , SYSDATE
+		       , #fnlEditUserId#
+		       , #oggCd#
+		       , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+		)
+	</insert>
+
+	<!-- 3-1. 구매일정문서 존재여부 체크 -->
+    <select id="retrieveExistPscsdoc" parameterClass="map" resultClass="java.lang.Long" >
+	<![CDATA[ /* dmBarocon.retrieveExistPscsdoc */ ]]>
+	SELECT    CASE WHEN COUNT(BUYSCH_DOC_MNO) = 1 THEN MAX(BUYSCH_DOC_MNO)
+	               WHEN COUNT(BUYSCH_DOC_MNO) > 1 THEN -1
+	               ELSE 0 END AS DOC_MNO
+	FROM      DMD_SITE_BUYSCH_DOC
+	WHERE     SITE_CD      = #siteCd#
+	AND       PROG_CLSCD   = '05'
+	AND       BUYSCH_DOCNO = #docno#
+	AND       DOCCLS_CD    = #docclsCd#
+	</select>
+
+	<!-- 3-2. 현장문서 파일 삭제 -->
+	<delete id="deletePscsdocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deletePscsdocFile */ ]]>
+	DELETE    FROM DMD_SITEDOC_FILE
+	WHERE     SITEDOC_MNO = #docMno#
+	AND       REVISN_CD   = '0'
+	AND       PROG_CLSCD  = '05'
+	AND       ATCH_SEQ    = #atchFileSeq#
+	</delete>
+
+	<!-- 3-3. 현장문서관리번호 채번 -->
+	<select id="pscsDocMnoSeq" parameterClass="map" resultClass="java.lang.Long" >
+	<![CDATA[ /* dmBarocon.pscsDocMnoSeq */ ]]>
+	SELECT DMD_SITE_BUYSCH_DOC_SQ_01.NEXTVAL AS MNO FROM DUAL
+	</select>
+
+	<!--  3-4. 구매일정문서 등록 -->
+	<insert id="insertPscsdoc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertPscsdoc */ ]]>
+	INSERT INTO DMD_SITE_BUYSCH_DOC
+	(
+	    BUYSCH_DOC_MNO
+      , SITE_CD
+      , PROG_CLSCD
+      , BUYSCH_DOCNO
+      , STEP_CD
+      , DOCCLS_CD
+      , DTL_CLSCD
+      , DOC_CD_SEQ
+      , TITLE
+      , KEYWD
+      , SCRT_GRDCD
+      , WK_CD
+      , MR_OUT_NO
+      , MR_OUT_NM
+      , PO_OUT_NO
+      , PO_OUT_NM
+      , INCHRG_ORG_CD
+      , INCHRG_USER_ID
+      , QRY_YN
+      , USE_YN
+      , EXPL
+      , FST_REG_DT
+      , FST_REG_USER_ID
+      , FNL_EDIT_DT
+      , FNL_EDIT_USER_ID
+      , OGG_CD
+      , OGG_TIME
+	)
+	SELECT
+	         #docMno#
+	       , #siteCd#
+	       , '05'
+	       , #docno#
+           , NVL( ( SELECT    MAX(STEP_CD)
+                    FROM      DMD_SITE_BUYSCH_STEP_CLS
+                    WHERE     DOCCLS_CD = #docclsCd#
+                  ), '01'
+                )
+	       , #docclsCd#
+	       , NULL
+	       , NVL( ( SELECT    MAX(DOC_CD_SEQ) + 1
+		            FROM      DMD_SITE_BUYSCH_DOC
+		            WHERE     SITE_CD   = #siteCd#
+	     		    AND       DOCCLS_CD = #docclsCd#
+		       ), 1)
+	       , #title#
+	       , #keywd#
+	       , '06'
+	       , #wkCd#
+           , #mrOutNo#
+           , NULL
+           , #poOutNo#
+           , NULL
+           , 'A'
+           , #userId#
+           , CASE WHEN #signDemYn# = 'Y' THEN 'N' ELSE 'Y' END
+           , 'Y'
+           , NULL
+	       , SYSDATE
+	       , #fstRegUserId#
+	       , SYSDATE
+	       , #fnlEditUserId#
+	       , #oggCd#
+	       , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	FROM     DUAL
+	</insert>
+
+	<!-- 3-5. 구매일정문서파일 등록 -->
+	<insert id="insertPscsdocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertPscsdocFile */ ]]>
+	MERGE INTO DMD_SITEDOC_FILE T
+	USING (
+	        SELECT    #docMno#      AS SITEDOC_MNO
+	                , '05'          AS PROG_CLSCD
+	                , #atchFileSeq# AS ATCH_SEQ
+	        FROM      DUAL
+	      ) A
+	ON   (
+	                  A.SITEDOC_MNO = T.SITEDOC_MNO
+	        AND       A.PROG_CLSCD  = T.PROG_CLSCD
+	        AND       A.ATCH_SEQ    = T.ATCH_SEQ
+	      )
+    WHEN MATCHED THEN
+        UPDATE
+        SET       REVISN_REG_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                , FILE_ATCH_ID   = #fileAtchId#
+	            , FILE_ID        = #fileId#
+	            , FNL_EDIT_DT    = SYSDATE
+	            , FNL_EDIT_USER_ID = #fnlEditUserId#
+	            , OGG_TIME     = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISS')
+	WHEN NOT MATCHED THEN
+		INSERT
+		(
+		    SITEDOC_MNO
+	      , REVISN_CD
+	      , PROG_CLSCD
+	      , ATCH_SEQ
+	      , BEF_ATCH_SEQ
+	      , REVISN_REG_YMD
+	      , NEW_YN
+	      , REVISN_CONT
+	      , ACCESS_STS_CD
+	      , FORM_WRITE_YN
+	      , FORM_FILE_SEQ
+	      , DSPT_CORR_MNO
+	      , COVER_YN
+	      , SIGN_SUBMIT_YN
+	      , FILE_ATCH_ID
+	      , FILE_ID
+	      , USE_YN
+	      , FST_REG_DT
+	      , FST_REG_USER_ID
+	      , FNL_EDIT_DT
+	      , FNL_EDIT_USER_ID
+	      , OGG_CD
+	      , OGG_TIME
+		)
+		VALUES (
+		         #docMno#
+		       , '0'
+		       , '05'
+		       , #atchFileSeq#
+		       , NULL
+		       , TO_CHAR(SYSDATE, 'YYYYMMDD')
+		       , 'Y'
+		       , NULL
+		       , '03'
+		       , 'N'
+		       , NULL
+		       , NULL
+		       , 'N'
+		       , 'N'
+		       , #fileAtchId#
+		       , #fileId#
+		       , 'Y'
+		       , SYSDATE
+		       , #fstRegUserId#
+		       , SYSDATE
+		       , #fnlEditUserId#
+		       , #oggCd#
+		       , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+		)
+	</insert>
+
+	<!-- SING-1. 바로콘 연동 : 문서분류코드 및 본사/현장 여부 조회 -->
+	<select id="retrieveMpInfo" parameterClass="map" resultClass="map">
+	<![CDATA[ /* dmBarocon.retrieveMpInfo */ ]]>
+	SELECT    HO_SITE_CLS
+		    , DOCCLS_CD
+		    , NVL(MP_TP_CD, '01') AS MP_TP_CD
+    FROM      DMB_SITEDOC_MP_DTL
+	WHERE     PROG_ID       = #progId#
+	AND       ATCH_GRP      = #atchGrp#
+	AND       ATCH_FILE_SEQ = #atchFileSeq#
+	</select>
+
+    <!-- 1-1-1. 현장별 문서분류별 문서번호 존재여부 체크 -->
+	<select id="retrieveSiteDocMno" parameterClass="map" resultClass="java.lang.Long">
+	<![CDATA[ /* dmBarocon.retrieveSiteDocMno */ ]]>
+	SELECT    CASE WHEN COUNT(DOC_MNO) = 1 THEN MAX(DOC_MNO) ELSE 0 END AS DOC_MNO
+	FROM      DMB_SITEDOC
+	WHERE     SITE_CD   = #siteCd#
+	AND       DOCCLS_CD = #docclsCd#
+	AND       SYS_DOCNO = #docno#
+	</select>
+
+	<!-- 1-1-3. 현장별 문서분류별 문서번호 존재여부 체크 ( PSCS ) -->
+	<select id="retrievePscsDocMno" parameterClass="map" resultClass="java.lang.Long">
+	<![CDATA[ /* dmBarocon.retrievePscsDocMno */ ]]>
+	SELECT    CASE WHEN COUNT(BUYSCH_DOCNO) = 1 THEN MAX(BUYSCH_DOCNO) ELSE 0 END AS DOC_MNO
+	FROM      DMD_SITE_BUYSCH_DOC
+	WHERE     SITE_CD      = #siteCd#
+	AND       PROG_CLSCD   = '05'
+	AND       BUYSCH_DOCNO = #docno#
+	AND       DOCCLS_CD    = #docclsCd#
+	</select>
+
+    <!-- 1-1-2. 팀별 문서분류별 문서번호 존재여부 체크 -->
+	<select id="retrieveTeamDocMno" parameterClass="map" resultClass="java.lang.Long">
+	<![CDATA[ /* dmBarocon.retrieveTeamDocMno */ ]]>
+	SELECT    CASE WHEN COUNT(DOC_MNO) = 1 THEN MAX(DOC_MNO) ELSE 0 END AS DOC_MNO
+	FROM      DMB_TEAMDOC
+	WHERE     ORG_CD    = #siteCd#
+	AND       DOCCLS_CD = #docclsCd#
+	AND       SYS_DOCNO = #docno#
+	</select>
+
+	<!-- 1-2-1. 현장문서 결재파일  -->
+	<insert id="insertSitePdfSignFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertSitePdfSignFile */ ]]>
+	INSERT INTO DMB_SITEDOC_SIGN_FILE
+	(
+		  DOC_MNO
+	    , ATCH_SEQ
+	    , COVER_YN
+	    , DSPT_CORR_MNO
+	    , FILE_ATCH_ID
+	    , FILE_ID
+	    , FST_REG_DT
+	    , FST_REG_USER_ID
+	    , FNL_EDIT_DT
+	    , FNL_EDIT_USER_ID
+	    , OGG_CD
+	    , OGG_TIME
+	)
+	VALUES (
+          #docMno#
+        , #atchFileSeq#
+        , #coverYn#
+        , NULL
+	    , #fileAtchId#
+	    , #fileId#
+	    , SYSDATE
+	    , #userId#
+	    , SYSDATE
+	    , #userId#
+	    , #oggCd#
+	    , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	)
+	</insert>
+
+	<!-- 1-2-2. 현장문서 조회여부  -->
+	<update id="updateSitePdfSignFile1" parameterClass="map">
+	<![CDATA[ /* dmBarocon.updateSitePdfSignFile1 */ ]]>
+	UPDATE    DMB_SITEDOC
+	SET       QRY_YN   = 'A'
+	        , OGG_TIME = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	WHERE     DOC_MNO = #docMno#
+	</update>
+
+	<!-- 1-2-3. 현장문서 조회여부  -->
+	<update id="updateSitePdfSignFile2" parameterClass="map">
+	<![CDATA[ /* dmBarocon.updateSitePdfSignFile2 */ ]]>
+	UPDATE    DMB_SITEDOC
+	SET       USE_YN   = 'N'
+	        , OGG_TIME = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	WHERE     DOC_MNO = #docMno#
+	</update>
+
+    <!-- 1-3-1. 팀문서 결재파일  -->
+	<insert id="insertTeamPdfSignFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertTeamPdfSignFile */ ]]>
+	INSERT INTO DMB_TEAMDOC_SIGN_FILE
+	(
+		  DOC_MNO
+	    , ATCH_SEQ
+	    , COVER_YN
+	    , FILE_ATCH_ID
+	    , FILE_ID
+	    , FST_REG_DT
+	    , FST_REG_USER_ID
+	    , FNL_EDIT_DT
+	    , FNL_EDIT_USER_ID
+	    , OGG_CD
+	    , OGG_TIME
+	)
+	VALUES (
+          #docMno#
+        , #atchFileSeq#
+        , #coverYn#
+	    , #fileAtchId#
+	    , #fileId#
+	    , SYSDATE
+	    , #userId#
+	    , SYSDATE
+	    , #userId#
+	    , #oggCd#
+	    , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	)
+	</insert>
+
+	<!-- 1-3-2. 팀문서 조회여부  -->
+	<update id="updateTeamPdfSignFile1" parameterClass="map">
+	<![CDATA[ /* dmBarocon.updateTeamPdfSignFile1 */ ]]>
+	UPDATE    DMB_TEAMDOC
+	SET       QRY_YN   = 'A'
+	        , OGG_TIME = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	WHERE     DOC_MNO = #docMno#
+	</update>
+
+	<!-- 1-3-3. 팀문서 조회여부  -->
+	<update id="updateTeamPdfSignFile2" parameterClass="map">
+	<![CDATA[ /* dmBarocon.updateTeamPdfSignFile2 */ ]]>
+	UPDATE    DMB_TEAMDOC
+	SET       USE_YN   = 'N'
+	        , OGG_TIME = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	WHERE     DOC_MNO = #docMno#
+	</update>
+
+	<!-- 1-2-1. PSCS 현장문서 결재파일  -->
+	<insert id="insertPscsPdfSignFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.insertPscsPdfSignFile */ ]]>
+	INSERT INTO DMD_SITEDOC_SIGN_FILE
+	(
+		  SITEDOC_MNO
+		, PROG_CLSCD
+	    , ATCH_SEQ
+	    , COVER_YN
+	    , DSPT_CORR_MNO
+	    , FILE_ATCH_ID
+	    , FILE_ID
+	    , FST_REG_DT
+	    , FST_REG_USER_ID
+	    , FNL_EDIT_DT
+	    , FNL_EDIT_USER_ID
+	    , OGG_CD
+	    , OGG_TIME
+	)
+	VALUES (
+          #docMno#
+        , '05'
+        , #atchFileSeq#
+        , #coverYn#
+        , NULL
+	    , #fileAtchId#
+	    , #fileId#
+	    , SYSDATE
+	    , #userId#
+	    , SYSDATE
+	    , #userId#
+	    , #oggCd#
+	    , TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	)
+	</insert>
+
+	<!-- 1-2-2. PSCS 현장문서 조회여부  -->
+	<update id="updatePscsPdfSignFile1" parameterClass="map">
+	<![CDATA[ /* dmBarocon.updatePscsPdfSignFile1 */ ]]>
+	UPDATE    DMD_SITE_BUYSCH_DOC
+	SET       QRY_YN   = 'A'
+	        , OGG_TIME = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	WHERE     BUYSCH_DOC_MNO = #docMno#
+	</update>
+
+	<!-- 바로콘 삭제요청  -->
+	<!-- 1. 본사문서/현장문서 , 문서관리번호 추출 -->
+	<select id="deleteDocMno" parameterClass="map" resultClass="map">
+	<![CDATA[ /* dmBarocon.deleteDocMno */ ]]>
+	SELECT   '2' AS HO_SITE_CLS
+           , DOC_MNO
+	FROM     DMB_SITEDOC_FILE
+	WHERE    FILE_ATCH_ID = #fileAtchId#
+	AND      ROWNUM       = 1
+	UNION ALL
+	SELECT   '1' AS HO_SITE_CLS
+	       , DOC_MNO
+	FROM     DMB_TEAMDOC_FILE
+	WHERE    FILE_ATCH_ID = #fileAtchId#
+	AND      ROWNUM       = 1
+	UNION ALL
+	SELECT   '3' AS HO_SITE_CLS
+	       , SITEDOC_MNO AS DOC_MNO
+	FROM     DMD_SITEDOC_FILE
+	WHERE    FILE_ATCH_ID = #fileAtchId#
+	AND      ROWNUM       = 1
+	</select>
+
+	<!-- 2-1-1. 현장문서파일 삭제 -->
+	<delete id="deleteAllSitedocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteAllSitedocFile */ ]]>
+	DELETE
+	FROM     DMB_SITEDOC_FILE
+	WHERE    DOC_MNO = #docMno#
+	</delete>
+
+	<!-- 2-1-2. 현장문서 삭제 -->
+	<delete id="deleteAllSitedoc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteAllSitedoc */ ]]>
+	DELETE
+	FROM     DMB_SITEDOC
+	WHERE    DOC_MNO = #docMno#
+	</delete>
+
+	<!-- 2-2-1. 본사문서파일 삭제 -->
+	<delete id="deleteAllTeamdocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteAllTeamdocFile */ ]]>
+	DELETE
+	FROM     DMB_TEAMDOC_FILE
+	WHERE    DOC_MNO = #docMno#
+	</delete>
+
+	<!-- 2-2-2. 본사문서 삭제 -->
+	<delete id="deleteAllTeamdoc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteAllTeamdoc */ ]]>
+	DELETE
+	FROM     DMB_TEAMDOC
+	WHERE    DOC_MNO = #docMno#
+	</delete>
+
+	<!-- 2-3-1. PSCS문서파일 삭제 -->
+	<delete id="deleteAllPscsdocFile" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteAllPscsdocFile */ ]]>
+	DELETE
+	FROM     DMD_SITEDOC_FILE
+	WHERE    DOC_MNO    = #docMno#
+	AND      PROG_CLSCD = '05'
+	</delete>
+
+	<!-- 2-3-2. PSCS문서 삭제 -->
+	<delete id="deleteAllPscsdoc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteAllPscsdoc */ ]]>
+	DELETE
+	FROM     DMD_SITE_BUYSCH_DOC
+	WHERE    DOC_MNO = #docMno#
+	</delete>
+
+	<!-- 결재상태 업데이트 요청  -->
+	<!-- 본사문서/현장문서 , 문서관리번호 추출 -->
+	<select id="deleteSignDocMno" parameterClass="map" resultClass="map">
+	<![CDATA[ /* dmBarocon.deleteSignDocMno */ ]]>
+	SELECT   '2' AS HO_SITE_CLS
+           , DOC_MNO
+	FROM     DMB_SITEDOC_SIGN_FILE
+	WHERE    FILE_ATCH_ID = #fileAtchId#
+	AND      ROWNUM       = 1
+	UNION ALL
+	SELECT   '1' AS HO_SITE_CLS
+	       , DOC_MNO
+	FROM     DMB_TEAMDOC_SIGN_FILE
+	WHERE    FILE_ATCH_ID = #fileAtchId#
+	AND      ROWNUM       = 1
+	UNION ALL
+	SELECT   '3' AS HO_SITE_CLS
+	       , SITEDOC_MNO AS DOC_MNO
+	FROM     DMD_SITEDOC_SIGN_FILE
+	WHERE    FILE_ATCH_ID = #fileAtchId#
+	AND      ROWNUM       = 1
+	</select>
+
+	<!-- 결재 시스템에서 삭제요청시 정보 추출 -->
+	<select id="signMpInfoAll" parameterClass="map" resultClass="map">
+	<![CDATA[ /* dmBarocon.signMpInfoAll */ ]]>
+	SELECT    HO_SITE_CLS
+		    , DOCCLS_CD
+		    , NVL(MP_TP_CD, '01') AS MP_TP_CD
+    FROM      DMB_SITEDOC_MP_DTL
+	WHERE     PROG_ID  = #progId#
+	AND       ATCH_GRP = #atchGrp#
+	AND       ROWNUM   = 1
+	</select>
+
+	<!-- 현장문서 결재파일 ALL 삭제 -->
+	<delete id="deleteSignSitedocFile1" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteSignSitedocFile1 */ ]]>
+	DELETE
+	FROM     DMB_SITEDOC_SIGN_FILE
+	WHERE    DOC_MNO IN (
+	                      SELECT    DOC_MNO
+	                      FROM      DMB_SITEDOC
+	                      WHERE     SITE_CD   = #siteCd#
+                          AND       DOCCLS_CD = #docclsCd#
+                          AND       SYS_DOCNO = #docno#
+                        )
+	</delete>
+
+	<!-- 본사문서파일 ALL 삭제 -->
+	<delete id="deleteSignTeamdocFile1" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteSignTeamdocFile1 */ ]]>
+	DELETE
+	FROM     DMB_TEAMDOC_SIGN_FILE
+	WHERE    DOC_MNO IN (
+	                      SELECT    DOC_MNO
+	                      FROM      DMB_TEAMDOC
+	                      WHERE     ORG_CD    = #siteCd#
+                          AND       DOCCLS_CD = #docclsCd#
+                          AND       SYS_DOCNO = #docno#
+                        )
+	</delete>
+
+	<!-- PSCS 현장문서 결재파일 ALL 삭제 -->
+	<delete id="deleteSignPscsdocFile1" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteSignPscsdocFile1 */ ]]>
+	DELETE
+	FROM     DMD_SITEDOC_SIGN_FILE
+	WHERE    SITEDOC_MNO IN (
+	                          SELECT    BUYSCH_DOC_MNO
+	                          FROM      DMD_SITE_BUYSCH_DOC
+	                          WHERE     SITE_CD      = #siteCd#
+	                          AND       PROG_CLSCD   = '05'
+                              AND       DOCCLS_CD    = #docclsCd#
+                              AND       BUYSCH_DOCNO = #docno#
+                            )
+	AND      PROG_CLSCD  = '05'
+	</delete>
+
+	<!-- 결재 시스템에서 삭제요청시 정보 추출 -->
+	<select id="signMpInfoEtc" parameterClass="map" resultClass="map">
+	<![CDATA[ /* dmBarocon.signMpInfoEtc */ ]]>
+	SELECT    HO_SITE_CLS
+		    , DOCCLS_CD
+		    , NVL(MP_TP_CD, '01') AS MP_TP_CD
+    FROM      DMB_SITEDOC_MP_DTL
+	WHERE     PROG_ID       = #progId#
+	AND       ATCH_GRP      = #atchGrp#
+	AND       ATCH_FILE_SEQ = #atchFileSeq#
+	</select>
+
+	<!-- 현장문서 결재파일 단건 삭제 -->
+	<delete id="deleteSignSitedocFileEtc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteSignSitedocFileEtc */ ]]>
+	DELETE
+	FROM     DMB_SITEDOC_SIGN_FILE
+	WHERE    DOC_MNO IN (
+	                      SELECT    DOC_MNO
+	                      FROM      DMB_SITEDOC
+	                      WHERE     SITE_CD   = #siteCd#
+                          AND       DOCCLS_CD = #docclsCd#
+                          AND       SYS_DOCNO = #docno#
+                        )
+	AND      ATCH_SEQ = #atchFileSeq#
+	</delete>
+
+	<!-- 본사문서 결재파일 단건 삭제 -->
+	<delete id="deleteSignTeamdocFileEtc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deleteSignTeamdocFileEtc */ ]]>
+	DELETE
+	FROM     DMB_TEAMDOC_SIGN_FILE
+	WHERE    DOC_MNO IN (
+	                      SELECT    DOC_MNO
+	                      FROM      DMB_TEAMDOC
+	                      WHERE     ORG_CD    = #siteCd#
+                          AND       DOCCLS_CD = #docclsCd#
+                          AND       SYS_DOCNO = #docno#
+                        )
+	AND      ATCH_SEQ = #atchFileSeq#
+	</delete>
+
+	<!-- PSCS 현장문서 결재파일 단건 삭제 -->
+	<delete id="deletePscsSitedocFileEtc" parameterClass="map">
+	<![CDATA[ /* dmBarocon.deletePscsSitedocFileEtc */ ]]>
+	DELETE
+	FROM     DMD_SITEDOC_SIGN_FILE
+	WHERE    SITEDOC_MNO IN (
+	                          SELECT    BUYSCH_DOC_MNO
+	                          FROM      DMD_SITE_BUYSCH_DOC
+	                          WHERE     SITE_CD      = #siteCd#
+	                          AND       PROG_CLSCD   = '05'
+                              AND       DOCCLS_CD    = #docclsCd#
+                              AND       BUYSCH_DOCNO = #docno#
+                            )
+	AND      PROG_CLSCD   = '05'
+	AND      ATCH_SEQ     = #atchFileSeq#
+	</delete>
+
+    <!-- 조건에 의한 DMB현장문서매핑상세 조회 -->
+	<select id="selectSitedocMpDtlList" parameterClass="map" resultClass="com.dwenc.cmas.common.duty.dm.dmz.domain.SitedocMpDtl">
+	<![CDATA[ /* dmBarocon.selectSitedocMpDtlList */ ]]>
+	SELECT A.PROG_ID
+ 	     , A.ATCH_GRP
+ 	     , A.ATCH_FILE_SEQ
+ 	     , A.HO_SITE_CLS
+ 	     , A.DOCCLS_CD
+         , NVL(NVL(B.DOCCLS_NM, C.DOCCLS_NM), '기타') AS DOCCLS_NM
+ 	     , A.FILE_NM
+ 	     , A.ATCH_TP_CD
+ 	     , A.COVER_YN
+ 	     , A.UPLD_CLSCD
+ 	     , A.USE_YN
+ 	     , A.EXPL
+	     , TO_CHAR(A.FST_REG_DT,'YYYYMMDDHH24MISS') AS FST_REG_DT
+ 	     , A.FST_REG_USER_ID
+	     , TO_CHAR(A.FNL_EDIT_DT,'YYYYMMDDHH24MISS') AS FNL_EDIT_DT
+ 	     , A.FNL_EDIT_USER_ID
+ 	     , A.MP_TP_CD
+
+	  FROM DMB_SITEDOC_MP_DTL A
+      	   LEFT OUTER JOIN
+           DMB_SITEDOC_CLS B
+           ON (A.DOCCLS_CD = B.DOCCLS_CD AND A.HO_SITE_CLS = 2)
+           LEFT OUTER JOIN
+           DMB_HODOC_CLS C
+           ON (A.DOCCLS_CD = C.DOCCLS_CD AND A.HO_SITE_CLS = 1)
+	<dynamic prepend="WHERE">
+			<isNotEmpty property="progId" prepend=" AND ">
+			A.PROG_ID IN (SELECT PROG_ID FROM DMB_SITEDOC_MP WHERE PROG_ID = #progId# OR HGR_PROG_ID = #progId#)
+		</isNotEmpty>
+		<isNotEmpty property="atchGrp" prepend=" AND ">
+			A.ATCH_GRP = #atchGrp#
+		</isNotEmpty>
+	</dynamic>
+	</select>
+</sqlMap>
+
+

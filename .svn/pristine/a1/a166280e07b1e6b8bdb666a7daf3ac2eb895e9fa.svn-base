@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : Logging 관련
+* 설    명 : Logging 관련
+* 작 성 자 : 신용지
+* 작성일자 : 2018-02-01
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+*************************************************************************************-->
+<sqlMap namespace="access">
+
+	<update id="updateAccessMenu">
+		INSERT INTO CO_MENU_ACCESS_LOG (
+			SYS_CD,
+			LOG_SEQ,
+			MENU_CD,
+			MENU_URL,
+			USER_ID,
+			USER_IP,
+			ACCESS_SRC,
+			OPRS,
+			MACH,
+			WHOLE_INFO,
+			FST_REG_DT,
+			FST_REG_USER_ID,
+			FNL_EDIT_DT,
+			FNL_EDIT_USER_ID
+		) VALUES (
+			#sysCd#,
+			(SELECT TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDHH24MISSFF3') || TRIM(TO_CHAR(DBMS_RANDOM.VALUE(1, 100), '000')) FROM DUAL),
+			#menuCd#,
+			SUBSTR(NVL(#menuUrl#, (SELECT MENU_URL FROM CO_MENU WHERE SYS_CD = #sysCd# AND MENU_CD = #menuCd#)), 0, 200),
+<!-- 			SUBSTR(#menuUrl#, 0, 200), -->
+			#userId#,
+			#userIp#,
+			SUBSTR(#accessSrc#, 0, 1000),
+			#oprs#,
+			#mach#,
+			SUBSTR(#wholeInfo#, 0, 4000),
+			SYSDATE,
+			#userId#,
+			SYSDATE,
+			#userId#
+		)
+	</update>
+
+</sqlMap>

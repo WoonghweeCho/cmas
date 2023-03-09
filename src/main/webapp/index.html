@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body>
+<form name='aform' id='aform' action='index.jsp' method='POST'>
+</form>
+<script type="text/javascript">
+
+	var frm = document.getElementById("aform");
+	if ( window.top != window ) {
+		try{
+		if(window.top.location.host == window.location.host)
+			top.location.href = "index.jsp";
+		}catch(e){
+			location.href = "index.jsp";
+		}
+	}
+	else {
+		frm.submit();
+	}
+
+</script>
+</body>
+</html>

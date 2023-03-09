@@ -1,0 +1,607 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : priv
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveUserList 사용자 목록 조회
+* retrievePrivList 권한 목록 조회
+* retrievePrivCdList 권한 코드 목록 조회
+* retrievecPrivMenuList 권한별 메뉴 목록 조회
+* retrievePrivMenuList 권한별 메뉴 목록 조회
+* retrieveUserMenuList 사용자별 메뉴 목록 조회
+* retrieveMenuListByPriv 권한별 메뉴목록 조회
+* retrieveTopMenuList Top 메뉴 목록 조회
+* retrieveMyPrivCd 사용자의 권한에 따른 메뉴 코드 조회
+* isPrivMenuExist 메뉴 권한 존재여부 체크
+*************************************************************************************-->
+<sqlMap namespace="priv">
+
+	<resultMap class="java.util.Map" id="rmProject">
+	   <result property="siteCd" column="site_cd"/>
+	   <result property="code" column="code"/>
+	   <result property="value" column="value"/>
+	   <result property="array_ord" column="array_ord"/>
+	   <result property="addjob_yn" column="addjob_yn"/>
+	</resultMap>
+
+    <sql id="where_retrievePriv">
+<!--	    <isNotEmpty prepend="AND" property="dutySysCd">
+			<iterate property="dutySysCd" open="(" close=")" conjunction="OR">
+				DUTY_SYS_CD = #dutySysCd[]#
+			</iterate>
+	    </isNotEmpty>-->
+	    <isNotEmpty prepend="AND" property="today">
+	    	#today# BETWEEN PRIV_ST_YMD AND PRIV_ED_YMD
+	    </isNotEmpty>
+    </sql>
+
+	<resultMap class="java.util.Map" id="rmUserList">
+	   <result property="userId" column="user_id"/>
+	   <result property="userKnm" column="user_knm"/>
+	   <result property="telno" column="telno"/>
+	   <result property="email" column="email"/>
+	   <result property="userTpCd" column="user_tp_cd"/>
+	   <result property="userKnmEng" column="user_knm_eng"/>
+	</resultMap>
+
+    <!-- 사용자 목록 조회 -->
+    <select id="retrieveUserList" parameterClass="map" resultMap="rmUserList" >
+    <![CDATA[ /* priv.retrieveUserList */ ]]>
+        SELECT  A.USER_ID
+             ,  A.USER_KNM
+             ,  A.TELNO
+             ,  A.EMAIL
+             ,  A.USER_TP_CD
+             ,  A.USER_KNM_ENG
+          FROM  CO_USER A
+         WHERE  A.USE_YN = 'Y'
+		<isNotEmpty prepend="AND" property="userId">
+			A.USER_ID = #userId#
+	    </isNotEmpty>
+		<isNotEmpty prepend="AND" property="userKnm">
+			a.USER_KNM LIKE #userKnm# || '%'
+	    </isNotEmpty>
+	    <isNotEmpty prepend="AND" property="orgLis">
+	       ORG_CD IN <iterate property="orgLis" open="(" close=")" conjunction=",">#orgLis[]#</iterate>
+	    </isNotEmpty>
+    </select>
+
+	<resultMap id="rmPrivList" class="java.util.Map">
+	   <result property="privCd" column="priv_cd"/>
+	   <result property="privNm" column="priv_nm"/>
+	   <result property="privExpl" column="priv_expl"/>
+	   <result property="dutySysCd" column="duty_sys_cd"/>
+	   <result property="sitePrivYn" column="site_priv_yn"/>
+	</resultMap>
+
+	<select id="retrievePrivList" parameterClass="map" resultMap="rmPrivList" >
+		<![CDATA[ /* priv.retrievePrivList */ ]]>
+		SELECT PRIV_CD
+		     , PRIV_NM
+		     , PRIV_EXPL
+		     , DUTY_SYS_CD
+		     , SITE_PRIV_YN
+		  FROM CO_PRIV
+	    <dynamic prepend="WHERE">
+		<isNotEmpty prepend="AND" property="privCd">
+			PRIV_CD LIKE '%'||#privCd#||'%'
+	    </isNotEmpty>
+		<isNotEmpty prepend="AND" property="queryPrivCd2">
+			PRIV_CD LIKE '%'||#queryPrivCd2#||'%'
+	    </isNotEmpty>
+		<isNotEmpty prepend="AND" property="privNm">
+			PRIV_NM LIKE '%'||#privNm#||'%'
+	    </isNotEmpty>
+		<isNotEmpty prepend="AND" property="dutySysCd">
+			(DUTY_SYS_CD = #dutySysCd# OR DUTY_SYS_CD = 'CO')
+	    </isNotEmpty>
+		<isNotEmpty prepend="AND" property="sitePrivYn">
+			SITE_PRIV_YN = #sitePrivYn#
+	    </isNotEmpty>
+	    </dynamic>
+	</select>
+
+	<resultMap class="java.util.Map" id="rmComboCode">
+	   <result property="code" column="code"/>
+	   <result property="value" column="value"/>
+	</resultMap>
+
+	<select id="retrievePrivCdList" parameterClass="map" resultMap="rmComboCode" >
+		<![CDATA[ /* priv.retrievePrivCdList */ ]]>
+		SELECT PRIV_CD AS CODE
+		     , PRIV_NM AS VALUE
+		  FROM CO_PRIV
+	    <dynamic prepend="WHERE">
+		<isNotEmpty prepend="AND" property="sitePrivYn">
+			SITE_PRIV_YN != 'Y'
+	    </isNotEmpty>
+		ORDER BY PRIV_NM
+	    </dynamic>
+	</select>
+
+	<resultMap class="java.util.Map" id="rmCPrivMenuList">
+		<result property="privCd" column="priv_cd"/>
+		<result property="menuId" column="menu_id"/>
+		<result property="addBttnAbleYn" column="add_bttn_able_yn"/>
+		<result property="scrnQryAbleYn" column="scrn_qry_able_yn"/>
+		<result property="stoBttnAbleYn" column="sto_bttn_able_yn"/>
+		<result property="delBttnAbleYn" column="del_bttn_able_yn"/>
+		<result property="mvBttnAbleYn" column="mv_bttn_able_yn"/>
+		<result property="prtBttnAbleYn" column="prt_bttn_able_yn"/>
+		<result property="dwldBttnAbleYn" column="dwld_bttn_able_yn"/>
+		<result property="upldBttnAbleYn" column="upld_bttn_able_yn"/>
+		<result property="apprBttnAbleYn" column="appr_bttn_able_yn"/>
+		<result property="dtrmnBttnAbleYn" column="dtrmn_bttn_able_yn"/>
+		<result property="etcBttn1AbleYn" column="etc_bttn_1_able_yn"/>
+		<result property="etcBttn2AbleYn" column="etc_bttn_2_able_yn"/>
+		<result property="etcBttn3AbleYn" column="etc_bttn_3_able_yn"/>
+		<result property="etcBttn4AbleYn" column="etc_bttn_4_able_yn"/>
+		<result property="etcBttn5AbleYn" column="etc_bttn_5_able_yn"/>
+		<result property="menuPriv" column="menu_priv"/>
+	</resultMap>
+
+	<select id="retrievecPrivMenuList" parameterClass="map" resultMap="rmCPrivMenuList" >
+		<![CDATA[ /* priv.retrievecPrivMenuList */ ]]>
+		SELECT PRIV_CD
+		     , MENU_ID
+			 , ADD_BTTN_ABLE_YN
+			 , SCRN_QRY_ABLE_YN
+			 , STO_BTTN_ABLE_YN
+			 , DEL_BTTN_ABLE_YN
+			 , MV_BTTN_ABLE_YN
+			 , PRT_BTTN_ABLE_YN
+			 , DWLD_BTTN_ABLE_YN
+			 , UPLD_BTTN_ABLE_YN
+			 , APPR_BTTN_ABLE_YN
+			 , DTRMN_BTTN_ABLE_YN
+			 , ETC_BTTN_1_ABLE_YN
+			 , ETC_BTTN_2_ABLE_YN
+			 , ETC_BTTN_3_ABLE_YN
+			 , ETC_BTTN_4_ABLE_YN
+			 , ETC_BTTN_5_ABLE_YN
+	      FROM CO_PRIV_CTG_MENU
+	     WHERE PRIV_CD IN (#privCd:in#)
+	</select>
+
+	<resultMap id="rmPrivMenuList" extends="rmCPrivMenuList" class="java.util.Map">
+		<result property="menuCd" column="menu_cd"/>
+		<result property="menuNm2" column="menu_nm2"/>
+		<result property="menuLvl" column="menu_lvl" javaType="java.lang.Integer"/>
+		<result property="hgrMenuId" column="hgr_menu_id"/>
+		<result property="menuNm" column="menu_nm"/>
+	</resultMap>
+
+	<select id="retrievePrivMenuList" parameterClass="map" resultMap="rmPrivMenuList" >
+        <![CDATA[ /* priv.retrievePrivMenuList */ ]]>
+         SELECT  B.MENU_ID
+              ,  B.MENU_CD
+              ,  B.MENU_NM MENU_NM2
+              ,  #privCd# AS PRIV_CD
+              ,  MENU_LVL
+              , (CASE A.PRIV_CD WHEN NULL THEN 'N' ELSE SCRN_QRY_ABLE_YN END) USE_YN
+              ,  HGR_MENU_ID
+              ,  MENU_NM,
+              , (CASE SCRN_QRY_ABLE_YN WHEN NULL THEN 'N' ELSE SCRN_QRY_ABLE_YN END) SCRN_QRY_ABLE_YN
+              , (CASE ADD_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE ADD_BTTN_ABLE_YN END) ADD_BTTN_ABLE_YN
+              , (CASE STO_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE STO_BTTN_ABLE_YN END) STO_BTTN_ABLE_YN
+              , (CASE DEL_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE DEL_BTTN_ABLE_YN END) DEL_BTTN_ABLE_YN
+              , (CASE PRT_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE PRT_BTTN_ABLE_YN END) PRT_BTTN_ABLE_YN
+              , (CASE MV_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE MV_BTTN_ABLE_YN END) MV_BTTN_ABLE_YN
+              , (CASE UPLD_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE UPLD_BTTN_ABLE_YN END) UPLD_BTTN_ABLE_YN
+              , (CASE DWLD_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE DWLD_BTTN_ABLE_YN END) DWLD_BTTN_ABLE_YN
+              , (CASE APPR_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE APPR_BTTN_ABLE_YN END) APPR_BTTN_ABLE_YN
+              , (CASE DTRMN_BTTN_ABLE_YN WHEN NULL THEN 'N' ELSE DTRMN_BTTN_ABLE_YN END) DTRMN_BTTN_ABLE_YN
+              , (CASE ETC_BTTN_1_ABLE_YN WHEN NULL THEN 'N' ELSE ETC_BTTN_1_ABLE_YN END) ETC_BTTN_1_ABLE_YN
+              , (CASE ETC_BTTN_2_ABLE_YN WHEN NULL THEN 'N' ELSE ETC_BTTN_2_ABLE_YN END) ETC_BTTN_2_ABLE_YN
+              , (CASE ETC_BTTN_3_ABLE_YN WHEN NULL THEN 'N' ELSE ETC_BTTN_3_ABLE_YN END) ETC_BTTN_3_ABLE_YN
+              , (CASE ETC_BTTN_4_ABLE_YN WHEN NULL THEN 'N' ELSE ETC_BTTN_4_ABLE_YN END) ETC_BTTN_4_ABLE_YN
+              , (CASE ETC_BTTN_5_ABLE_YN WHEN NULL THEN 'N' ELSE ETC_BTTN_5_ABLE_YN END) ETC_BTTN_5_ABLE_YN
+           FROM  CO_MENU                                                     B
+      LEFT JOIN (SELECT * FROM CO_PRIV_CTG_MENU WHERE PRIV_CD = #privCd#) AS A ON (B.MENU_ID = A.MENU_ID)
+          WHERE  MENU_LVL != 0
+            AND  B.USE_YN = 'Y'
+		<isNotEmpty prepend="AND" property="useYn">
+			(CASE A.PRIV_CD WHEN NULL THEN 'N' ELSE 'Y' END) = 'Y'
+	    </isNotEmpty>
+		<isNotEmpty prepend="AND" property="queryMenuNm">
+			C.MESSAGE LIKE '%'||#queryMenuNm#||'%'
+	    </isNotEmpty>
+	    <isEmpty property="menuList">
+	        START WITH B.MENU_ID = #hgrMenuId#
+	      CONNECT BY  PRIOR B.MENU_ID = HGR_MENU_ID
+	        ORDER SIBLINGS BY MENU_CD
+	    </isEmpty>
+	    <isNotEmpty property="menuList">
+			<iterate property="orgLis" open="(" close=")" conjunction="OR">
+				AND B.MENU_ID = #menuList[]#
+			</iterate>
+	    </isNotEmpty>
+  </select>
+
+	<resultMap class="java.util.Map" id="rmUserMenuList">
+	   <result property="menuId" column="menu_id"/>
+	   <result property="menuCd" column="menu_cd"/>
+	   <result property="menuUrl" column="menu_url"/>
+	   <result property="userPriv" column="user_priv"/>
+	   <result property="menuPriv" column="menu_priv"/>
+	</resultMap>
+
+	<select id="retrieveUserMenuList" parameterClass="map" resultMap="rmUserMenuList" >
+		<![CDATA[ /* priv.retrieveUserMenuList */ ]]>
+      SELECT
+            Z.MENU_ID
+          , Z.MENU_CD
+          , Z.MENU_URL
+          , CASE CASE WHEN INSTR(Z.SCRN_QRY_ABLE_YN  , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'R:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.ADD_BTTN_ABLE_YN  , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'C:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.STO_BTTN_ABLE_YN  , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'U:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.DEL_BTTN_ABLE_YN  , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'D:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.PRT_BTTN_ABLE_YN  , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'P:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.MV_BTTN_ABLE_YN   , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'N:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.UPLD_BTTN_ABLE_YN , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'W:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.DWLD_BTTN_ABLE_YN , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'X:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.APPR_BTTN_ABLE_YN , 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'Q:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.DTRMN_BTTN_ABLE_YN, 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'A:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.ETC_BTTN_1_ABLE_YN, 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'E:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.ETC_BTTN_2_ABLE_YN, 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'F:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.ETC_BTTN_3_ABLE_YN, 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'G:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.ETC_BTTN_4_ABLE_YN, 'Y') > 0 THEN 'Y' ELSE 'N' END WHEN 'Y' THEN 'H:' ELSE ':' END ||
+            CASE CASE WHEN INSTR(Z.ETC_BTTN_5_ABLE_YN, 'Y') > 0 THEN 'Y' ELSE 'N' END  WHEN 'Y' THEN 'I:' ELSE ':' END  AS USER_PRIV
+          , Z.MENU_PRIV
+      FROM
+      (
+        SELECT M.MENU_ID
+             , M.MENU_CD
+             , M.MENU_URL
+             , LTRIM (SYS_CONNECT_BY_PATH (M.SCRN_QRY_ABLE_YN  , '+'), '+') AS SCRN_QRY_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.ADD_BTTN_ABLE_YN  , '+'), '+') AS ADD_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.STO_BTTN_ABLE_YN  , '+'), '+') AS STO_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.DEL_BTTN_ABLE_YN  , '+'), '+') AS DEL_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.PRT_BTTN_ABLE_YN  , '+'), '+') AS PRT_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.MV_BTTN_ABLE_YN   , '+'), '+') AS MV_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.UPLD_BTTN_ABLE_YN , '+'), '+') AS UPLD_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.DWLD_BTTN_ABLE_YN , '+'), '+') AS DWLD_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.APPR_BTTN_ABLE_YN , '+'), '+') AS APPR_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.DTRMN_BTTN_ABLE_YN, '+'), '+') AS DTRMN_BTTN_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.ETC_BTTN_1_ABLE_YN, '+'), '+') AS ETC_BTTN_1_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.ETC_BTTN_2_ABLE_YN, '+'), '+') AS ETC_BTTN_2_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.ETC_BTTN_3_ABLE_YN, '+'), '+') AS ETC_BTTN_3_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.ETC_BTTN_4_ABLE_YN, '+'), '+') AS ETC_BTTN_4_ABLE_YN
+             , LTRIM (SYS_CONNECT_BY_PATH (M.ETC_BTTN_5_ABLE_YN, '+'), '+') AS ETC_BTTN_5_ABLE_YN
+            ,  LTRIM (SYS_CONNECT_BY_PATH (M.PRIV_CD           , '+'), '+') AS MENU_PRIV
+        FROM (
+           SELECT A.MENU_ID
+                , D.MENU_CD
+                , D.MENU_URL
+                , MAX(A.SCRN_QRY_ABLE_YN)   AS SCRN_QRY_ABLE_YN
+                , MAX(A.ADD_BTTN_ABLE_YN)   AS ADD_BTTN_ABLE_YN
+                , MAX(A.STO_BTTN_ABLE_YN)   AS STO_BTTN_ABLE_YN
+                , MAX(A.DEL_BTTN_ABLE_YN)   AS DEL_BTTN_ABLE_YN
+                , MAX(A.PRT_BTTN_ABLE_YN)   AS PRT_BTTN_ABLE_YN
+                , MAX(A.MV_BTTN_ABLE_YN)    AS MV_BTTN_ABLE_YN
+                , MAX(A.UPLD_BTTN_ABLE_YN)  AS UPLD_BTTN_ABLE_YN
+                , MAX(A.DWLD_BTTN_ABLE_YN)  AS DWLD_BTTN_ABLE_YN
+                , MAX(A.APPR_BTTN_ABLE_YN)  AS APPR_BTTN_ABLE_YN
+                , MAX(A.DTRMN_BTTN_ABLE_YN) AS DTRMN_BTTN_ABLE_YN
+                , MAX(A.ETC_BTTN_1_ABLE_YN) AS ETC_BTTN_1_ABLE_YN
+                , MAX(A.ETC_BTTN_2_ABLE_YN) AS ETC_BTTN_2_ABLE_YN
+                , MAX(A.ETC_BTTN_3_ABLE_YN) AS ETC_BTTN_3_ABLE_YN
+                , MAX(A.ETC_BTTN_4_ABLE_YN) AS ETC_BTTN_4_ABLE_YN
+                , MAX(A.ETC_BTTN_5_ABLE_YN) AS ETC_BTTN_5_ABLE_YN
+                , A.PRIV_CD
+                , ROW_NUMBER () OVER(PARTITION BY A.MENU_ID ORDER BY A.MENU_ID) AS RN
+                , COUNT (*) OVER(PARTITION BY A.MENU_ID) AS CNT
+             FROM CO_PRIV_CTG_MENU A
+		   INNER JOIN <isEmpty property="appSysMenuIds">
+				    	CO_MENU
+				      </isEmpty>
+				      <isNotEmpty property="appSysMenuIds">
+				    	(
+				    	 SELECT MENU_ID
+				    	      , MENU_CD
+				    	      , MENU_URL
+				    	   FROM CO_MENU AA
+					      START WITH MENU_ID IN (#appSysMenuIds[]#)
+						CONNECT BY PRIOR AA.MENU_ID = AA.HGR_MENU_ID
+						 )
+				      </isNotEmpty>
+				      D ON A.MENU_ID = D.MENU_ID
+		        WHERE D.MENU_URL IS NOT NULL
+		          AND A.SYS_CD = #sysCd#
+		<isNotEmpty prepend="AND" property="privCd">
+			A.PRIV_CD IN <iterate property="privCd" open="(" close=")" conjunction=",">#privCd[]#</iterate>
+		</isNotEmpty>
+		        GROUP BY A.MENU_ID, D.MENU_CD, MENU_URL, A.PRIV_CD
+		     ) M
+            WHERE RN = CNT
+			<isNotEmpty property="menuId">
+			AND M.MENU_ID = #menuId#
+			</isNotEmpty>
+			<isNotEmpty property="menuCd">
+			AND M.MENU_CD = #menuCd#
+			</isNotEmpty>
+            START WITH RN = 1
+          CONNECT BY PRIOR RN = RN - 1
+       AND PRIOR MENU_ID = MENU_ID ) Z
+	</select>
+
+	<resultMap id="rmMenuListByPriv" class="java.util.Map">
+		<result property="menuId" column="menu_id"/>
+		<result property="menuCd" column="menu_cd"/>
+		<result property="menuNm" column="menu_nm"/>
+		<result property="menuExpl" column="menu_expl"/>
+		<result property="menuLvl" column="menu_lvl"/>
+		<result property="menuUrl" column="menu_url"/>
+		<result property="hgrMenuId" column="hgr_menu_id"/>
+		<result property="arrayOrd" column="array_ord"/>
+		<result property="useYn" column="use_yn"/>
+		<result property="qryYn" column="qry_yn"/>
+		<result property="popupYn" column="popup_yn"/>
+		<result property="menuHpwrdFileNm" column="menu_hpwrd_file_nm"/>
+	</resultMap>
+
+	<select id="retrieveMenuListByPriv" parameterClass="map" resultMap="rmMenuListByPriv" >
+    <![CDATA[ /* priv.retrieveMenuListByPriv */ ]]>
+        SELECT  A.MENU_ID
+             ,  A.MENU_CD
+             ,  A.MENU_NM
+             ,  A.MENU_EXPL
+             ,  A.MENU_LVL
+             ,  A.MENU_URL
+             ,  A.HGR_MENU_ID
+             ,  A.ARRAY_ORD
+             ,  A.USE_YN
+			 ,  A.QRY_YN
+			 ,  A.POPUP_YN
+             ,  A.MENU_HPWRD_FILE_NM
+          FROM  CO_MENU          A
+    INNER JOIN  CO_PRIV_CTG_MENU B ON A.MENU_ID = B.MENU_ID
+    <dynamic prepend="WHERE">
+		<isNotEmpty prepend="AND" property="privCd">
+			B.PRIV_CD = #privCd#
+		</isNotEmpty>
+	</dynamic>
+         ORDER  BY A.MENU_LVL, A.ARRAY_ORD
+	</select>
+
+<!-- 	<select id="retrieveTopMenuList" parameterClass="map" resultMap="rmComboCode" > -->
+<!--     <![CDATA[ /* priv.retrieveTopMenuList */ ]]> -->
+<!--     SELECT  MENU_ID AS CODE -->
+<!--          ,  MENU_NM AS VALUE -->
+<!--       FROM  CO_MENU -->
+<!--      WHERE  MENU_LVL = 1 -->
+<!--        AND  USE_YN = 'Y' -->
+<!--      ORDER  BY ARRAY_ORD -->
+<!-- 	</select> -->
+
+	<resultMap id="rmProject" extends="rmComboCode" class="java.util.Map">
+		<result property="siteCd" column="site_cd"/>
+		<result property="arrayOrd" column="array_ord" javaType="java.lang.Integer" />
+		<result property="addjobYn" column="addjob_yn"/>
+	</resultMap>
+
+	<select id="retrieveMyPrivCd" parameterClass="map" resultMap="rmProject" >
+	<![CDATA[ /* priv.retrieveMyPrivCd */ ]]>
+			SELECT  CASE ORG_CHRC_CLS
+			         WHEN 'C' THEN
+			          SITE_CD
+			         WHEN 'G' THEN
+			          SITE_CD
+			         WHEN 'J' THEN
+			          SITE_CD
+			         ELSE
+			          '00000'
+			       END SITE_CD,
+			       CASE SITE_CD
+			         WHEN '00000' THEN
+			          '멀티조회'
+			         ELSE
+			          CASE ORG_CHRC_CLS
+			            WHEN 'C' THEN
+			             ORG_NM
+			            WHEN 'G' THEN
+			             ORG_NM
+			            WHEN 'J' THEN
+			             ORG_NM
+			            ELSE
+			             '멀티조회'
+			          END
+			       END SITE_NM,
+			       PRIV_CD AS CODE,
+			       PRIV_NM AS VALUE,
+			       ARRAY_ORD,
+			       'N' ADDJOB_YN
+			  FROM (SELECT D.ORG_CHRC_CLS,
+			               A.SITE_CD,
+			               D.ORG_NM,
+			               A.PRIV_CD,
+			               C.PRIV_NM,
+			               A.ARRAY_ORD,
+			               A.PRIV_USER_CLS
+			          from CO_USER_CTG_PRIV A
+			          LEFT JOIN CO_USER_GRP_DTL B
+			            ON A.SYS_CD = B.SYS_CD
+			           AND A.PRIV_USER_ID = B.GRP_ID
+			         INNER JOIN CO_PRIV C
+			            ON A.SYS_CD = C.SYS_CD
+			           AND A.PRIV_CD = C.PRIV_CD
+			          LEFT JOIN CO_ORG D
+			            ON A.SITE_CD = D.ORG_CD
+			         WHERE A.PRIV_USER_ID = #userId#
+			           AND A.SYS_CD = #sysCd#
+			           AND #today# BETWEEN A.PRIV_ST_YMD AND A.PRIV_ED_YMD
+			           AND NVL(C.USE_YN, 'N') = 'Y'
+			        UNION ALL
+			        SELECT D.ORG_CHRC_CLS,
+			               A.SITE_CD,
+			               D.ORG_NM,
+			               A.PRIV_CD,
+			               C.PRIV_NM,
+			               A.ARRAY_ORD,
+			               A.PRIV_USER_CLS
+			          FROM CO_USER_CTG_PRIV A
+			          LEFT JOIN CO_USER_GRP_DTL B
+			            ON A.SYS_CD = B.SYS_CD
+			           AND A.PRIV_USER_ID = B.GRP_ID
+			         INNER JOIN CO_PRIV C
+			            ON A.SYS_CD = C.SYS_CD
+			           AND A.PRIV_CD = C.PRIV_CD
+			          LEFT JOIN CO_ORG D
+			            ON A.SITE_CD = D.ORG_CD
+			         WHERE B.GRP_USER_ID = #userId#
+			           AND A.SYS_CD = #sysCd#
+			           AND #today# BETWEEN A.PRIV_ST_YMD AND A.PRIV_ED_YMD
+			           AND NVL(C.USE_YN, 'N') = 'Y'
+			        UNION ALL
+			        SELECT D.ORG_CHRC_CLS,
+			               A.SITE_CD,
+			               D.ORG_NM,
+			               A.PRIV_CD,
+			               C.PRIV_NM,
+			               A.ARRAY_ORD,
+			               A.PRIV_USER_CLS
+			          from CO_USER_CTG_PRIV A
+			          LEFT JOIN CO_USER_GRP_DTL B
+			            ON A.SYS_CD = B.SYS_CD
+			           AND A.PRIV_USER_ID = B.GRP_ID
+			         INNER JOIN CO_PRIV C
+			            ON A.SYS_CD = C.SYS_CD
+			           AND A.PRIV_CD = C.PRIV_CD
+			          LEFT JOIN CO_ORG D
+			            ON A.SITE_CD = D.ORG_CD
+			         WHERE A.PRIV_USER_ID IN
+			               (SELECT ORG_CD FROM CO_USER B WHERE B.USER_ID = #userId#)
+			           AND A.SYS_CD = #sysCd#
+			           AND #today# BETWEEN A.PRIV_ST_YMD AND A.PRIV_ED_YMD
+			           AND NVL(C.USE_YN, 'N') = 'Y'
+			        UNION ALL
+			        SELECT D.ORG_CHRC_CLS,
+			               A.SITE_CD,
+			               D.ORG_NM,
+			               A.PRIV_CD,
+			               C.PRIV_NM,
+			               A.ARRAY_ORD,
+			               A.PRIV_USER_CLS
+			          from CO_USER_CTG_PRIV A
+			          LEFT JOIN CO_USER_GRP_DTL B
+			            ON A.SYS_CD = B.SYS_CD
+			           AND A.PRIV_USER_ID = B.GRP_ID
+			         INNER JOIN CO_PRIV C
+			            ON A.SYS_CD = C.SYS_CD
+			           AND A.PRIV_CD = C.PRIV_CD
+			          LEFT JOIN CO_ORG D
+			            ON A.SITE_CD = D.ORG_CD
+			         WHERE B.GRP_USER_ID IN
+			               (SELECT A.ORG_CD
+			                  FROM CO_ORG A
+			                 WHERE A.USE_YN = 'Y'
+			                 START WITH A.ORG_CD IN
+			                            (SELECT ORG_CD
+			                               FROM CO_USER B
+			                              WHERE B.USER_ID = #userId#)
+			                CONNECT BY prior A.ORG_CD = A.HGR_ORG_CD)
+			           AND A.SYS_CD = #sysCd#
+			           AND NVL(C.USE_YN, 'N') = 'Y'
+			           AND #today# BETWEEN A.PRIV_ST_YMD AND A.PRIV_ED_YMD)
+			 ORDER BY CASE PRIV_USER_CLS
+			            WHEN 'U' THEN
+			             '01'
+			            WHEN 'O' THEN
+			             '02'
+			            ELSE
+			             '03'
+			          END,
+			          ARRAY_ORD
+
+    </select>
+
+    <!-- 메뉴 권한 존재여부 체크 -->
+    <select id="isPrivMenuExist" parameterClass="map" resultClass="string" >
+    <![CDATA[ /* priv.isPrivMenuExist */ ]]>
+        SELECT MENU_ID
+          FROM CO_PRIV_CTG_MENU
+         WHERE PRIV_CD = #privCd#
+           AND MENU_ID = #menuId#
+    </select>
+
+	<resultMap id="rmAppt" class="java.util.Map">
+		<result property="apptCls" column="APPT_CLS"/>
+		<result property="userId" column="USER_ID"/>
+		<result property="code" column="CODE"/>
+		<result property="value" column="VALUE"/>
+		<result property="siteCd" column="SITE_CD"/>
+		<result property="siteNm" column="SITE_NM"/>
+		<result property="siteNmEn" column="SITE_NM_EN"/>
+		<result property="orgCd" column="ORG_CD"/>
+		<result property="orgNm" column="ORG_NM"/>
+		<result property="orgNmEn" column="ORG_NM_EN"/>
+		<result property="userPositCd" column="USER_POSIT_CD"/>
+		<result property="userRpswrkCd" column="USER_RPSWRK_CD"/>
+		<result property="userJobspCd" column="USER_JOBSP_CD"/>
+		<result property="userDutyCd" column="USER_DUTY_CD"/>
+		<result property="orgChrcCls" column="ORG_CHRC_CLS"/>
+	</resultMap>
+
+	<select id="retrieveMyAppt" parameterClass="map" resultMap="rmAppt" >
+    <![CDATA[ /* priv.retrieveMyAppt */ ]]>
+		SELECT APPT_CLS, USER_ID
+		     , '' CODE
+		     , '' VALUE
+		     , ORG_CD ORG_CD
+		     , ORG_NM ORG_NM
+		     , ORG_NM_EN ORG_NM_EN
+		     , CASE ORG_CHRC_CLS
+		        WHEN 'C' THEN
+		          ORG_CD
+		        WHEN 'G' THEN
+		          ORG_CD
+		        WHEN 'J' THEN
+		          ORG_CD
+		        ELSE
+		          '00000'
+		        END SITE_CD
+	         , CASE ORG_CHRC_CLS
+	            WHEN 'C' THEN
+	              ORG_NM
+	            WHEN 'G' THEN
+	              ORG_NM
+	            WHEN 'J' THEN
+			          ORG_NM
+			    ELSE
+			          '멀티조회'
+			    END SITE_NM
+			 , CASE ORG_CHRC_CLS
+	            WHEN 'C' THEN
+	              ORG_NM_EN
+	            WHEN 'G' THEN
+	              ORG_NM_EN
+	            WHEN 'J' THEN
+			          ORG_NM_EN
+			    ELSE
+			          'MULTI SELECT'
+			    END SITE_NM_EN
+
+		     , NVL(ORG_CHRC_CLS, '0') ORG_CHRC_CLS
+		FROM (
+		      SELECT '01' APPT_CLS, A.USER_ID, A.ORG_CD, C.ORG_NM, NVL(ORG_CHRC_CLS, '0') ORG_CHRC_CLS, C.ORG_NM_EN
+		        FROM CO_USER A
+		       INNER JOIN CO_ORG C ON A.ORG_CD = C.ORG_CD
+		       WHERE A.USER_ID = #userId#
+		         AND A.USE_YN = 'Y'
+		      UNION
+		      SELECT B.APPT_CLS, B.USER_ID, B.ORG_CD, C.ORG_NM, C.ORG_CHRC_CLS, C.ORG_NM_EN
+		        FROM CO_APPT B
+		       INNER JOIN CO_ORG C ON B.ORG_CD = C.ORG_CD
+		       WHERE #today# BETWEEN B.APPT_ST_YMD AND NVL(B.APPT_ED_YMD, '29991231')
+		         AND B.USER_ID = #userId#
+		         AND B.PRIV_RFL_YN = 'Y'
+		         AND (B.USER_ID, B.ORG_CD) NOT IN (SELECT USER_ID, ORG_CD FROM CO_USER)
+		)  ORDER BY APPT_CLS
+	</select>
+</sqlMap>

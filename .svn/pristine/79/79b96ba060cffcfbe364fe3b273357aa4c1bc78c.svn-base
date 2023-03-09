@@ -1,0 +1,216 @@
+package com.dwenc.cmas.common.user.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import jcf.data.GridData;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import com.dwenc.cmas.common.user.domain.Signln;
+import com.dwenc.cmas.common.user.domain.Sign;
+import com.dwenc.cmas.common.user.domain.SignlnForExcluRegl;
+import com.dwenc.cmas.common.instance.service.support.InstcFactory;
+
+import docfbaro.common.SpringUtil;
+import docfbaro.common.StringUtil;
+import docfbaro.iam.UserInfo;
+import docfbaro.query.CommonDao;
+import docfbaro.query.callback.AbstractRowStatusCallback;
+
+/**
+ * <pre>
+ * ---------------------------------------------------------------
+ * 업무구분 :
+ * 프로그램 : CoUserService
+ * 설    명 : Co사용자 관리를 위한 service 클래스
+ * 작 성 자 : 홍두희
+ * 작성일자 : 2012-12-05
+ * 수정이력
+ * ---------------------------------------------------------------
+ * 수정일          이  름    사유
+ * ---------------------------------------------------------------
+ * 2011-12-07             최초 작성
+ * ---------------------------------------------------------------
+ * </pre>
+ * @version 1.0
+ */
+@Service
+public class SignUserService {
+
+	/**
+	 * DB처리를 위한  공통 dao
+	 */
+	@Autowired
+	@Qualifier("mainDB")
+	private CommonDao commonDao;
+
+	@Autowired
+	@Qualifier("2ndDB")		// c51
+	private CommonDao c51DB;
+
+	@Autowired
+	@Qualifier("sgnsDB")
+	private CommonDao sgnsDB;
+
+	/**
+	 * <pre>
+	 * 결재선 정보(List) 조회
+	 * </pre>
+	 * @param param
+	 * @return
+	 */
+	public List<Signln> retrieveSignln(Map<String, Object> param) {
+		return commonDao.queryForList("SignUser.selectSignln", param, Signln.class);
+	}
+
+	public List<Signln> retrieveSignUser(Map<String, Object> param) {
+		return commonDao.queryForList("SignUser.selectSignUser", param, Signln.class);
+	}
+
+	public Map<String, Object> retrieveSignlnForExcluRegl(Map<String, Object> inputData)  {
+		Map<String, Object> resMap = new HashMap<String, Object>();
+		inputData.put("orgCd", StringUtil.getText(inputData.get("orgCd")));
+		inputData.put("orgCls", StringUtil.getText(inputData.get("orgCls")));
+		inputData.put("userId", UserInfo.getUserInfo().getUserId());
+
+		/* 전결규정에 따른 임시 결재선 가져오기 인사정보 inputList */
+		List<SignlnForExcluRegl> tempUserList = commonDao.queryForList("SignUser.retrieveTempSignlnForExcluRegl", inputData, SignlnForExcluRegl.class);
+		List<Map<String, Object>> inputList = new ArrayList<Map<String, Object>>();
+
+		/* 임시 결재선에서 사번만 가져오기 */
+		for(int i = 0 ; i < tempUserList.size(); i++){
+			SignlnForExcluRegl signlnForExcluRegl = tempUserList.get(i);
+			Map<String, Object> inputData2 = new HashMap<String, Object>();
+			Map<String, Object> inputData3 = new HashMap<String, Object>();	/* inputData2로만 처리할 경우, if문 내에서 처리 시 데이터가 잘못 들어가는 현상 있음 */
+
+			/* 조직유형 : 본부/실 포함된 경우, 담당임원 추가 */
+			if(signlnForExcluRegl.getIsNeedDirector().equals("Y")) {
+				Map temp = sgnsDB.queryForMap("SignUser.retrieveDirector", inputData);
+
+				/* 기안자 본인이 담당 임원일 경우, 제외  */
+				if(temp != null && !UserInfo.getUserInfo().getUserId().equals(temp.get("userId"))) {
+					for(int j=0; j<inputList.size(); j++){
+						/* 조직장+담당임원인 경우, 제외 */
+						if(!inputList.get(j).get("userIds").equals(temp.get("userId"))) {
+							inputData3.put("userIds", temp.get("userId"));
+							inputData3.put("apperOrgCds", temp.get("orgCd"));
+							inputList.add(inputData3);
+						}
+					}
+				}
+			}
+			inputData2.put("userIds", signlnForExcluRegl.getSignUserId());
+			inputData2.put("apperOrgCds", signlnForExcluRegl.getApperOrgCd());
+			inputList.add(inputData2);
+		}
+
+		/* 결재선 순서 정렬용 */
+		List<Sign> sortedSignUserList = new ArrayList<Sign>();
+		List<Sign> signUserList = new ArrayList<Sign>();
+
+		if(inputList.size() > 0) {
+			signUserList = sgnsDB.queryForList("SignUser.retrieveSignlnForExcluRegl", inputList, Sign.class);
+			System.out.println("inputList : "+inputList);
+			System.out.println("signUserList : "+signUserList);
+		}
+
+		/* 결재선 사번리스트와 해당 사번들의 상세정보 리스트 비교 */
+		if(inputList.size() != signUserList.size()) {
+			System.out.println("결재선 사번리스트와 해당 사번들의 상세정보 리스트 비교 " + inputList.size() + ".." + signUserList.size());
+			System.out.println("inputList(전결규정기반 결재자들 사번 리스트)와 signUserList(해당 사번들의 리스트) 갯수가 다름." + inputList.size() + " vs " + signUserList.size());
+			return resMap;
+		} else {
+			/* 결재선 정렬 */
+			String tempUser = "";
+			for(int i=0; i<inputList.size(); i++) {
+				tempUser = (String)inputList.get(i).get("userIds");
+
+				for(int j=0; j<signUserList.size(); j++){
+					if(tempUser.equals(signUserList.get(j).getUserId())){
+						sortedSignUserList.add(signUserList.get(j));
+					}
+				}
+			}
+
+			/* 본인 이하 결재선 삭제 */
+			int delSignln = -1;
+			for(int i=0; i<sortedSignUserList.size(); i++){
+				if(UserInfo.getUserInfo().getUserId().equals(sortedSignUserList.get(i).getSignUserId())) {
+					delSignln = i;
+				}
+			}
+
+			for(int j=0; j<=delSignln; j++){
+				sortedSignUserList.remove(j);
+			}
+		}
+
+		resMap.put("SIGN_LIST", sortedSignUserList);
+
+		return resMap;
+    }
+
+	public Map<String, Object> retrieveUserEtcInfo(Map<String, Object> inputData)  {
+	    String userTpCd = UserInfo.getUserInfo().getUserTpCd();
+		inputData.put("orgCd", StringUtil.getText(inputData.get("orgCd")));
+		inputData.put("userId", UserInfo.getUserInfo().getUserId());
+
+		Map<String, Object> uData = new HashMap<String, Object>();
+
+		if (userTpCd.equals("01") || userTpCd.equals("02")) {	//내부사용자, 내부임시사용자
+			//사용자 직위,직급, 직책정보 Session 추가
+			uData = commonDao.queryForMap("loginXP.userEtcInfoChg", inputData);
+		}
+
+		return uData;
+    }
+
+	/**
+	 * <pre>
+	 * 결재 정보를 저장한다.
+	 *
+	 * [Table 명] : CO_SIGN
+	 * </pre>
+	 *
+	 * @param Sign
+	 */
+	public void insertSign(GridData<Sign> gData) {
+		gData.forEachRow(new AbstractRowStatusCallback<Sign>() {
+			@Override
+			public void normal(Sign sign, int rowNum) {
+				if(rowNum == 0) commonDao.update("SignUser.deleteAllSignList", sign);
+				sign.setFstRegUserId(UserInfo.getUserId());
+				sign.setFnlEditUserId(UserInfo.getUserId());
+				commonDao.update("SignUser.mergeSign", sign);
+			}
+
+//			/**
+//			 * 결재자정보 Update
+//			 * - 기안작성 시 임시저장
+//			 * - 임시저장문서 열람 시 재상신
+//			 * - 반려문서 재상신
+//			 * - 편집문서 저장
+//			 */
+//			@Override
+//			public void update(Sign newRecord, Sign oldRecord,	int rowNum) {
+//				newRecord.setFnlEditUserId(UserInfo.getUserId());
+//				commonDao.update("SignUser.mergeSign", newRecord);
+//			}
+		});
+	}
+
+	public void updateSign(Map<String, Object> map) {
+		commonDao.update("SignUser.updateSign", map);
+	}
+
+	public Map<String, Object> retrieveChiefYn(Map<String, Object> inputData)  {
+		return commonDao.queryForMap("SignUser.retrieveChiefYn", inputData);
+    }
+
+
+}

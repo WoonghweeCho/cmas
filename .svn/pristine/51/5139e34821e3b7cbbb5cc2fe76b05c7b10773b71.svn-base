@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="signPdf">
+
+	<typeAlias alias="pdfChgIf" type="com.dwenc.cmas.common.duty.dm.dmz.domain.PdfChgIf" />
+
+  	<!-- pdf 변환 정보 조회  -->
+  	<select id="retrievePdfChgIf" parameterClass="map" resultClass="pdfChgIf" >
+  		<![CDATA[ /* signPdf.retrievePdfChgIf */ ]]>
+  		SELECT
+		PDF_CHG_ID
+		, SITE_CD
+		, SIGN_ID
+		, CHG_TP
+		, ORGNL_FILE_CONT
+		, ORGNL_FILE_NM
+		, ORGNL_FILE_PWD
+		, CHG_ECM_FILE_ID
+		, CHG_ECM_FILE_NM
+		, CHG_ECM_FILE_SIZE
+		, PDF_CHG_STS
+		, PDF_OPTION
+		, CHG_EXEC_DT
+		, CHG_CMPLT_DT
+		, ERR_MSG
+		, CLBK_PARAM
+		, ECM_FILE_YN
+		, FST_REG_DT
+		, FST_REG_USER_ID
+		, FNL_EDIT_DT
+		, FNL_EDIT_USER_ID
+		, OGG_CD
+		, OGG_TIME
+  		FROM CO_PDF_CHG_IF
+  		WHERE
+  		PDF_CHG_ID = #pdfChgId#
+  	</select>
+</sqlMap>
+

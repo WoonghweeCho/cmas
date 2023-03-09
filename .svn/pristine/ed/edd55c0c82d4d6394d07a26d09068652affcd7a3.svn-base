@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 :
+* 설      명 : 공통 처리
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveMenu : 메뉴상세정보 조회
+* retrieveMenuList : 메뉴목록 조회
+* retrieveDisabledMenuList : 사용하지않는 메뉴 목록 조회 Test
+*************************************************************************************-->
+<sqlMap namespace="menuSys">
+
+	<resultMap id="rmDetailMenu" class="java.util.HashMap">
+	   <result property="menuId" column="Menu_Id"/>
+	   <result property="menuCd" column="menu_cd"/>
+	   <result property="caption" column="Caption"/>
+	   <result property="navigation" column="Navigation"/>
+	   <result property="depth" column="Depth"/>
+	   <result property="formId" column="Form_Id"/>
+	   <result property="menuVar" column="menu_var"/>
+	   <result property="parentId" column="Parent_Id"/>
+	   <result property="prntMenuCd" column="prnt_menu_cd"/>
+	   <result property="menuSeq" column="array_ord"/>
+	   <result property="qryYn" column="qry_yn"/>
+	   <result property="popupYn" column="popup_yn"/>
+	   <result property="menuHpwrdFileNm" column="menu_hpwrd_file_nm"/>
+	   <result property="hlightYn" column="HLIGHT_YN"/>
+	   <result property="dpmsUrl" column="DPMS_URL"/>
+	   <result property="menuUseUnaResn" column="MENU_USE_UNA_RESN"/>
+	   <result property="state" column="State"/>
+	   <result property="prefix" column="Prefix"/>
+	   <result property="test" column="test"/>
+	   <result property="dutySysCd" column="duty_sys_cd"/>
+	</resultMap>
+
+    <!-- 메뉴 상세 조회 -->
+    <select id="retrieveMenu" parameterClass="map" resultMap="rmDetailMenu" >
+    <![CDATA[ /* menuSys.retrieveMenu */ ]]>
+    SELECT AA.DUTY_SYS_CD
+         , AA.MENU_ID AS MENU_ID
+         , AA.MENU_CD
+         , AA.MENU_NM AS CAPTION
+         , AA.MENU_EXPL AS NAVIGATION
+         , AA.MENU_LVL -
+	      <isEmpty property="menuLvl">0</isEmpty>
+	      <isNotEmpty property="menuLvl">#menuLvl#</isNotEmpty> AS DEPTH
+         , AA.MENU_URL AS FORM_ID
+         , AA.MENU_VAR
+         , AA.HGR_MENU_ID AS PARENT_ID
+         , (SELECT MENU_CD FROM CO_MENU WHERE AA.HGR_MENU_ID = MENU_ID) AS PRNT_MENU_CD
+         , AA.ARRAY_ORD
+         , AA.QRY_YN
+         , AA.POPUP_YN
+         , AA.MENU_HPWRD_FILE_NM
+         , AA.HLIGHT_YN
+         , AA.DPMS_URL
+         , AA.MENU_USE_UNA_RESN
+         , '1' AS STATE
+         , '' AS PREFIX
+         , '1' AS TEST
+     FROM
+	    <isEmpty property="sysAdmin">
+	    	(SELECT DISTINCT A.DUTY_SYS_CD
+                           , A.MENU_ID
+                           , A.MENU_CD
+                           , CASE WHEN B.MLANG_ABBRNM IS NULL THEN
+                                  A.MENU_NM
+                             ELSE
+                                 B.MLANG_ABBRNM
+                           END AS MENU_NM
+                           , A.MENU_EXPL
+                           , A.MENU_LVL
+                           , A.MENU_URL
+                           , A.MENU_VAR
+                           , A.HGR_MENU_ID
+                           , A.ARRAY_ORD
+                           , A.QRY_YN
+                           , A.POPUP_YN
+                           , A.MENU_HPWRD_FILE_NM
+                           , A.HLIGHT_YN
+                           , A.DPMS_URL'
+                           , A.MENU_USE_UNA_RESN
+                           , 'Y' AS USE_YN
+		        FROM CO_MENU A
+		        LEFT OUTER JOIN CO_MLANG  B
+		          ON A.SYS_CD = B.SYS_CD
+		         AND A.MENU_NM = B.MLANG_ID
+		         AND A.SYS_CD = #sysCd#
+		         AND A.USE_YN = 'Y'
+		         AND B.USE_YN = 'Y'
+		         AND B.LOCL_CD = NVL(#loclCd#, 'ko_KR')
+		     )
+	    </isEmpty>
+	    <isNotEmpty property="sysAdmin">
+            (SELECT DISTINCT A.DUTY_SYS_CD
+                           , A.MENU_ID
+                           , A.MENU_CD
+                            , CASE WHEN C.MLANG_ABBRNM IS NULL THEN
+                                    A.MENU_NM
+                             ELSE
+                                    C.MLANG_ABBRNM
+                             END AS MENU_NM
+                           , A.MENU_EXPL
+                           , A.MENU_LVL
+                           , A.MENU_URL
+                           , A.MENU_VAR
+                           , A.HGR_MENU_ID
+                           , A.ARRAY_ORD
+                           , A.QRY_YN
+                           , A.POPUP_YN
+                           , A.MENU_HPWRD_FILE_NM
+                           , A.HLIGHT_YN
+                           , A.DPMS_URL
+                           , A.MENU_USE_UNA_RESN
+                           , 'Y' AS USE_YN
+               FROM CO_MENU A
+         INNER JOIN CO_PRIV_CTG_MENU B ON B.MENU_ID = A.MENU_ID
+                 AND A.SYS_CD = #sysCd#
+                 AND B.PRIV_CD IN <iterate property="privCd" open="(" close=")" conjunction=",">#privCd[]#</iterate>
+                 AND B.SYS_CD = #sysCd#
+                 AND A.USE_YN = 'Y'
+         LEFT OUTER JOIN CO_MLANG  C
+		          ON A.SYS_CD = C.SYS_CD
+		         AND A.MENU_NM = C.MLANG_ID
+		         AND C.USE_YN = 'Y'
+		         AND C.LOCL_CD = NVL(#loclCd#, 'ko_KR')
+                )
+	    </isNotEmpty> AA
+            WHERE AA.USE_YN = 'Y'
+		<isNotEmpty prepend="AND" property="topMenuLvl">
+			<![CDATA[
+				AA.MENU_LVL <> #topMenuLvl#
+			]]>
+		</isNotEmpty>
+            START WITH AA.MENU_CD IN (SELECT DUTY_SYS_CD FROM CO_SYS_DUTY WHERE SYS_CD = #sysCd# AND USE_YN = 'Y')
+           CONNECT BY PRIOR AA.MENU_ID = AA.HGR_MENU_ID
+             ORDER SIBLINGS BY AA.ARRAY_ORD
+    </select>
+
+	<resultMap class="map" id="menuXpList">
+	   <result property="dutySysCd" column="duty_sys_cd"/>
+	   <result property="menuId" column="menu_id" javaType="java.lang.Integer" />
+	   <result property="menuNm" column="menu_nm"/>
+	   <result property="menuExpl" column="menu_expl"/>
+	   <result property="menuCd" column="menu_cd"/>
+	   <result property="menuLvl" column="menu_lvl" javaType="java.lang.Integer"/>
+	   <result property="menuUrl" column="menu_url"/>
+	   <result property="menuVar" column="menu_var"/>
+	   <result property="hgrMenuId" column="hgr_menu_id" javaType="java.lang.Integer"/>
+	   <result property="arrayOrd" column="array_ord" javaType="java.lang.Integer"/>
+	   <result property="qryYn" column="qry_yn"/>
+	   <result property="popupYn" column="popup_yn"/>
+	   <result property="menuHpwrdFileNm" column="menu_hpwrd_file_nm"/>
+	</resultMap>
+
+    <!-- 메뉴 목록 조회 -->
+    <select id="retrieveMenuList" parameterClass="map" resultMap="menuXpList" >
+        <![CDATA[ /* menuSys.retrieveMenuList */ ]]>
+        SELECT DUTY_SYS_CD
+             , MENU_ID
+             , MENU_NM
+             , MENU_EXPL
+             , MENU_CD
+             , MENU_LVL
+             , MENU_VAR
+             , MENU_CD
+             , MENU_URL
+             , HGR_MENU_ID
+             , ARRAY_ORD
+             , USE_YN
+             , QRY_YN
+             , POPUP_YN
+             , MENU_HPWRD_FILE_NM
+          FROM CO_MENU A
+         WHERE SYS_CD = #sysCd#
+         AND A.USE_YN = 'Y'
+        <dynamic>
+		    <isNotEmpty prepend="AND" property="menuId">
+               A.MENU_ID = #menuId#
+		    </isNotEmpty>
+		    <isNotEmpty prepend="AND" property="menuNm">
+               A.MENU_NM LIKE #menuNm#||'%'
+		    </isNotEmpty>
+	    </dynamic>
+         ORDER BY MENU_ID, MENU_LVL, ARRAY_ORD
+    </select>
+
+	<resultMap class="map" id="disabledMenuXpList">
+	   <result property="menuId" column="menu_id" javaType="java.lang.Integer" />
+	</resultMap>
+
+    <!-- 사용하지 않는 메뉴 목록 조회 -->
+    <select id="retrieveDisabledMenuList" parameterClass="map" resultMap="disabledMenuXpList" >
+        <![CDATA[ /* menuSys.retrieveDisabledMenuList */ ]]>
+        SELECT MENU_ID
+          FROM CO_MENU A
+         WHERE SYS_CD = #sysCd#
+         AND A.USE_YN = 'N'
+        <dynamic>
+		    <isNotEmpty prepend="AND" property="menuId">
+               A.MENU_ID = #menuId#
+		    </isNotEmpty>
+		    <isNotEmpty prepend="AND" property="menuNm">
+               A.MENU_NM LIKE #menuNm#||'%'
+		    </isNotEmpty>
+	    </dynamic>
+    </select>
+</sqlMap>

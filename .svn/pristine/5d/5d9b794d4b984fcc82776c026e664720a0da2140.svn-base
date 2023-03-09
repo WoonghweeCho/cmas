@@ -1,0 +1,856 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+
+<!--************************************************************************************
+* 프로그램 :
+* 설      명 : DocfBaro iBatis Sqlmap
+* 작 성 자  : 이은숙
+* 작성일자 : 2016-03-08
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* insertTechDat   : 정보 Table에 데이터를 저장한다.
+* updateTechDat   : DB Table에 데이터를 수정한다.
+* deleteTechDat   : DB Table에 데이터를 삭제한다.
+* retrieveTechDat : DB Table에 데이터를 조회한다.
+* insertTechAppn  : 신청 Table에 데이터를 저장한다.
+* retrieveTechAppn: 신청 Table에 데이터를 조회한다.
+*************************************************************************************-->
+
+<!--
+	- 해당 SQLMap을 다른 Java 소스에서 불러 쓸수 있도록 이름을 정한다.
+	- 규칙 : 물리적인 파일명에서 .xml 확장자를 뺀 이름
+-->
+<sqlMap namespace="TechDatSqlmap">
+	<!-- 건설기술정보 담당자 조회 -->
+	<select id="retrieveLicAdm" parameterClass="map" resultClass="map">
+	  <![CDATA[ /* TechDatSqlmap.retrieveLicAdm */ ]]>
+	    SELECT PRIV_USER_ID
+		  FROM CSYS.CO_USER_CTG_PRIV
+		WHERE PRIV_CD = 'RO_CMAS_CT_BOOK'
+	</select>
+
+	<!-- 신청문서 저장 -->
+	  <insert id="saveTechAppn" parameterClass="map" >
+        <![CDATA[ /* TechDatSqlmap.saveTechAppn */ ]]>
+        MERGE
+        	INTO CMAS.CMAA_CON_TECH_APPN_BAS
+        	USING DUAL
+        	ON (DOC_NO=#docNo#)
+        WHEN MATCHED THEN
+        	UPDATE SET
+        		<isNotEmpty property="orgCd">
+        		ORG_CD = #orgCd#,
+        		</isNotEmpty>
+        		<isNotEmpty property="orgNm">
+        		ORG_NM = #orgNm#,
+        		</isNotEmpty>
+        		<isNotEmpty property="userId">
+        		USER_ID = #userId#,
+        		</isNotEmpty>
+        		FNL_EDIT_DT = SYSDATE,
+        		FNL_EDIT_USER_ID = #fnlEditUserId#,
+        		DOC_STS = #docSts#
+        WHEN NOT MATCHED THEN
+			INSERT
+			(
+				DOC_NO
+				,ORG_CD
+				,ORG_NM
+				,USER_ID
+				,FST_REG_DT
+				,FST_REG_USER_ID
+				,FNL_EDIT_DT
+				,FNL_EDIT_USER_ID
+				,CLS
+				,DOC_STS
+			)
+			VALUES
+			(
+				SELECT LPAD(NVL
+       			(
+              		(SELECT SUBSTR(MAX(DOC_NO),6,6)
+                		FROM CMAS.CMAA_CON_TECH_APPN_BAS
+              		) + 1, 1
+        		),
+          		6,'0') from dual
+				,#orgCd#
+				,#orgNm#
+				,#userId#
+				,SYSDATE
+				,#fstRegUserId#
+				,SYSDATE
+				,#fnlEditUserId#
+				,#cls#
+				,#docSts#
+			)
+    </insert>
+
+
+	<!-- 도서자료 저장  -->
+    <insert id="insertTechDat" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.insertTechDat */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO CMAS.CMAA_CON_TECH_DAT
+    	         (
+    	           REG_NO           <!-- 등록번호 -->
+				 , TITLE    		<!-- 제목 -->
+				 , ISSUE_PL		    <!-- 발행처 -->
+				 , ISSUE_YR     	<!-- 발행년도 -->
+				 , ATH       		<!-- 저자 -->
+				 , CLS   			<!-- 자료분류 -->
+				 , INTER_CLSCD		<!-- UDC코드 -->
+				 , CONT	        	<!-- 내용 -->
+				 , DOC_STS        	<!-- 문서상태 -->
+			     , FST_REG_DT		<!-- 최초 등록일 -->
+    	         , FST_REG_USER_ID  <!-- 최초 등록자 -->
+    	         , FNL_EDIT_DT		<!-- 최종 수정일 -->
+    	         , FNL_EDIT_USER_ID <!-- 최종 수정자 -->
+				 )
+		 SELECT (SELECT NVL(MAX(REG_NO)+1,'1')
+         FROM CMAS.CMAA_CON_TECH_DAT
+         WHERE
+              CASE
+                  WHEN #cls# = 'BK'
+                      AND CLS = 'BK'
+                  THEN 'BK'
+                  WHEN #cls# = 'DV'
+                      AND CLS = 'DV'
+                  THEN 'DV'
+         	      END = #cls#)
+                 , #subject#
+                 , #issuePl#
+                 , #issueYr#
+                 , #ath#
+                 , #cls#
+                 , #interClscd#
+                 , #cont#
+                 , #docSts#
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+            FROM DUAL
+    </insert>
+
+	<!--DVD자료 저장  -->
+    <insert id="insertTechDvdDat" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.insertTechDvdDat */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO CMAS.CMAA_CON_TECH_DAT
+    	         (
+    	           REG_NO           <!-- 등록번호 -->
+				 , TITLE    		<!-- 타이틀 -->
+				 , ACTOR_NM  		<!-- 배우명 -->
+				 , SPV       		<!-- 감독 -->
+				 , PLAY_TIME   		<!-- 상영시간 -->
+				 , DBNG 		    <!-- 더빙 -->
+				 , SBTL      		<!-- 자막 -->
+				 , DVD_CLS     		<!-- 장르분류 -->
+				 , CLS   			<!-- 자료분류 -->
+				 , MKCO   			<!-- 제작사 -->
+				 , REC_TP   		<!-- 녹음유형 -->
+				 , SCRN   			<!-- 화면 -->
+				 , CONT	        	<!-- 내용 -->
+				 , DOC_STS        	<!-- 문서상태 -->
+			     , FST_REG_DT		<!-- 최초 등록일 -->
+    	         , FST_REG_USER_ID  <!-- 최초 등록자 -->
+    	         , FNL_EDIT_DT		<!-- 최종 수정일 -->
+    	         , FNL_EDIT_USER_ID <!-- 최종 수정자 -->
+				 )
+		  	 SELECT (SELECT NVL(MAX(REG_NO)+1,'1')
+         FROM CMAS.CMAA_CON_TECH_DAT
+         WHERE
+              CASE
+                  WHEN #cls# = 'BK'
+                      AND CLS = 'BK'
+                  THEN 'BK'
+                  WHEN #cls# = 'DV'
+                      AND CLS = 'DV'
+                  THEN 'DV'
+         	      END = #cls#)
+                 , #subject#
+                 , #actorNm#
+				 , #spv#
+				 , #playTime#
+				 , #dbng#
+				 , #sbtl#
+				 , #dvdCls#
+                 , #cls#
+                 , #mkco#
+				 , #recTp#
+				 , #scrn#
+                 , #cont#
+                 , #docSts#
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+            FROM DUAL
+    </insert>
+
+    <!--사내간행물자료 저장  -->
+    <insert id="insertTechPubDat" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.insertTechPubDat */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO CMAS.CMAA_CON_TECH_DAT
+    	         (
+    	           REG_NO           <!-- 등록번호 -->
+				 , CLS
+				 , TITLE
+				 , SUMRY
+				 , KEYWD
+				 , ISSUE_TEAM
+				 , ISSUE_ER
+				 , ISSUE_MGR
+				 , ISSUE_DD
+				 , EDT_PERCHRG
+				 , DISTR_CLS
+				 , PRFRD
+				 , ISSUE_CPYS
+				 , DOC_STS
+			     , FST_REG_DT		<!-- 최초 등록일 -->
+    	         , FST_REG_USER_ID  <!-- 최초 등록자 -->
+    	         , FNL_EDIT_DT		<!-- 최종 수정일 -->
+    	         , FNL_EDIT_USER_ID <!-- 최종 수정자 -->
+                 , ATCH_FILE_ID
+                 , IMG_ATCH_FILE_ID
+				 )
+		  	 SELECT (SELECT NVL(MAX(REG_NO)+1,'1')
+    	     FROM CMAS.CMAA_CON_TECH_DAT
+        	 WHERE CLS = 'GR')
+				 , #cls#
+		  		 , #subject#
+				 , #sumry#
+				 , #keywd#
+				 , #issueTeam#
+				 , #issueEr#
+				 , #issueMgr#
+				 , #issueDd#
+				 , #edtPerchrg#
+				 , #distrCls#
+				 , #prfrd#
+				 , #issueCpys#
+				 , #docSts#
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+                 , #fileAtchId#
+                 , #imgAtchFileId#
+            FROM DUAL
+    </insert>
+
+	<!--도서자료/DVD자료 문서상태 update -->
+    <update id="updateTechDat" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.updateTechDat */ ]]>
+    	UPDATE BRN_RNCR_APPN_BAS
+				SET RNCR_APPN_NO	= #rncrAppnNo#
+					, FNL_EDIT_DT		= SYSDATE			<!-- 최종 수정일 -->
+					, FNL_EDIT_USER_ID 	= #fnlEditUserId#	<!-- 최종 수정자 -->
+   		 WHERE SIGN_ID = #signId#
+	</update>
+
+	<!--DVD자료 update -->
+    <update id="updateTechDvdDat" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.updateTechDvdDat */ ]]>
+    	UPDATE CMAS.CMAA_CON_TECH_DAT
+			SET  TITLE    	        = #subject#         <!-- 타이틀 -->
+				, ACTOR_NM          = #actorNm#       	<!-- 배우명 -->
+				, SPV               = #spv#           	<!-- 감독 -->
+				, PLAY_TIME         = #playTime#     	<!-- 상영시간 -->
+				, DBNG  	        = #dbng#            <!-- 더빙 -->
+				, SBTL              = #sbtl#          	<!-- 자막 -->
+				, DVD_CLS           = #dvdCls#     		<!-- 장르분류 -->
+				, MKCO   		    = #mkco#        	<!-- 제작사 -->
+				, REC_TP   			= #recTp#           <!-- 녹음유형 -->
+				, SCRN   			= #scrn#            <!-- 화면 -->
+				, CONT	            = #cont#           	<!-- 내용 -->
+				, FNL_EDIT_DT	    = SYSDATE           <!-- 최종 수정일 -->
+				, FNL_EDIT_USER_ID  = #fnlEditUserId#   <!-- 최종 수정자 -->
+   		 WHERE CLS = #cls# AND REG_NO = #regNo#
+	</update>
+
+	<!--사내간행물 자료 update -->
+    <update id="updateTechPubDat" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.updateTechPubDat */ ]]>
+    	UPDATE CMAS.CMAA_CON_TECH_DAT
+				SET  TITLE         = #subject#        <!-- 타이틀 -->
+				, SUMRY            = #sumry#
+				, KEYWD            = #keywd#
+				, ISSUE_TEAM       = #issueTeam#
+				, ISSUE_ER         = #issueEr#
+				, ISSUE_MGR        = #issueMgr#
+				, ISSUE_DD         = #issueDd#
+				, EDT_PERCHRG      = #edtPerchrg#
+				, DISTR_CLS        = #distrCls#
+				, PRFRD            = #prfrd#
+				, ISSUE_CPYS       = #issueCpys#
+				, DOC_STS          = #docSts#
+				, FNL_EDIT_DT      = SYSDATE
+				, FNL_EDIT_USER_ID = #fnlEditUserId#
+                , ATCH_FILE_ID     = #fileAtchId#
+                , IMG_ATCH_FILE_ID = #imgAtchFileId#
+   		 WHERE CLS = #cls# AND REG_NO = #regNo#
+	</update>
+
+	<!-- 사내간행물 등록완료 문서상태 update -->
+    <update id="updateTechPubDatComp" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.updateTechPubDatComp */ ]]> <!-- SQL 주석 부분 -->
+        UPDATE CMAS.CMAA_CON_TECH_DAT
+				SET DOC_STS	= #docSts#
+    	          , FNL_EDIT_DT	= SYSDATE	                <!-- 최종 수정일 -->
+    	          , FNL_EDIT_USER_ID = #fnlEditUserId#      <!-- 최종 수정자 -->
+    	          , ISSUE_REG_NO =  'DEI-'||TO_CHAR(SYSDATE, 'YYYY')|| '-' || (SELECT LPAD(NVL
+       					(
+              				(SELECT SUBSTR(MAX(ISSUE_REG_NO),10,3)
+                				FROM CMAS.CMAA_CON_TECH_DAT WHERE CLS = 'GR' AND SUBSTR(ISSUE_REG_NO,5,4) like TO_CHAR(SYSDATE, 'YYYY')
+	              			) + 1, 1
+    	    			),
+        	  			3,'0') from dual)
+           			  WHERE CLS = #cls# AND REG_NO = #regNo#
+    </update>
+
+	<!-- 사내간행물 담당자 문서등록 insert -->
+    <insert id="insertTechPubDatComp" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.insertTechPubDatComp */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO CMAS.CMAA_CON_TECH_DAT
+    	         (
+    	           REG_NO           <!-- 등록번호 -->
+				 , CLS
+				 , TITLE
+				 , SUMRY
+				 , KEYWD
+				 , ISSUE_TEAM
+				 , ISSUE_ER
+				 , ISSUE_MGR
+				 , ISSUE_DD
+				 , EDT_PERCHRG
+				 , DISTR_CLS
+				 , PRFRD
+				 , ISSUE_CPYS
+				 , DOC_STS
+				 , ISSUE_REG_NO
+			     , FST_REG_DT		<!-- 최초 등록일 -->
+    	         , FST_REG_USER_ID  <!-- 최초 등록자 -->
+    	         , FNL_EDIT_DT		<!-- 최종 수정일 -->
+    	         , FNL_EDIT_USER_ID <!-- 최종 수정자 -->
+                 , ATCH_FILE_ID
+                 , IMG_ATCH_FILE_ID
+				 )
+		  		 SELECT (SELECT NVL(MAX(REG_NO)+1,'1')
+    	     	 FROM CMAS.CMAA_CON_TECH_DAT
+        	 	 WHERE CLS = 'GR')
+				 , #cls#
+		  		 , #subject#
+				 , #sumry#
+				 , #keywd#
+				 , #issueTeam#
+				 , #issueEr#
+				 , #issueMgr#
+				 , #issueDd#
+				 , #edtPerchrg#
+				 , #distrCls#
+				 , #prfrd#
+				 , #issueCpys#
+				 , #docSts#
+				 , 'DEI-'||TO_CHAR(SYSDATE, 'YYYY')|| '-' || (SELECT LPAD(NVL
+       					(
+              				(SELECT SUBSTR(MAX(ISSUE_REG_NO),10,3)
+                				FROM CMAS.CMAA_CON_TECH_DAT WHERE CLS = 'GR' AND SUBSTR(ISSUE_REG_NO,5,4) like TO_CHAR(SYSDATE, 'YYYY')
+	              			) + 1, 1
+    	    			),
+        	  			3,'0') from dual)
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+                 , #fileAtchId#
+                 , #imgAtchFileId#
+            FROM DUAL
+    </insert>
+
+    <!--목록데이타삭제 -->
+    <delete id="deleteTechDat" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.deleteTechDat */ ]]>
+    	DELETE FROM CMAS.CMAA_CON_TECH_DAT
+   		 WHERE CLS = #cls# AND REG_NO = #regNo#
+    </delete>
+
+
+     <!-- 도서자료 조회   -->
+    <select id="retrieveTechDatList" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechDat" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechDatList */ ]]>
+	  	    SELECT
+					ATH
+					, CLS
+					, TO_CHAR(REG_NO) REG_NO
+					, CLS||REG_NO DISREGNO
+					, CONT
+					, DOC_STS
+					, ISSUE_YR
+					, ISSUE_PL
+					, TITLE
+					, INTER_CLSCD
+			FROM CMAS.CMAA_CON_TECH_DAT
+		    WHERE TITLE IS NOT NULL AND CLS='BK'
+		    <isNotEmpty prepend="AND" property="subject">
+	        	TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="ath">
+	        	ATH LIKE '%'||#ath#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="issueYr">
+	        	ISSUE_YR LIKE '%'||#issueYr#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="issuePl">
+	        	ISSUE_PL LIKE '%'||#issuePl#||'%'
+	        </isNotEmpty>
+			<isNotEmpty prepend="AND" property="interClscd">
+	        	INTER_CLSCD LIKE '%'||#interClscd#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="docSts">
+	        	DOC_STS = #docSts#
+	        </isNotEmpty>
+		    ORDER BY TITLE
+    </select>
+
+     <!--DVD자료 조회 -->
+    <select id="retrieveTechDvdDatList" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechDat" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechDvdDatList */ ]]>
+	  	    SELECT
+					ACTOR_NM
+					, ATH
+					, CHNL
+					, CLS
+					, TO_CHAR(REG_NO) REG_NO
+					, CLS||REG_NO DISREGNO
+					, CONT
+					, DBNG
+					, DISTR_CLS
+					, DOC_STS
+					, DVD_CLS
+					, EDT_PERCHRG
+					, ISSUE_CPYS
+					, ISSUE_DD
+					, ISSUE_ER
+					, ISSUE_MGR
+					, ISSUE_PL
+					, ISSUE_TEAM
+					, ISSUE_YR
+					, KEYWD
+					, PLAY_TIME
+					, PRFRD
+					, SBTL
+					, SPV
+					, SUMRY
+					, TITLE
+					, MKCO
+				    , REC_TP
+				    , SCRN
+			FROM CMAS.CMAA_CON_TECH_DAT
+		    WHERE TITLE IS NOT NULL AND CLS='DV'
+ 			<isNotEmpty prepend="AND" property="dvdCls">
+	        	DVD_CLS = #dvdCls#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="subject">
+	        	TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="docSts">
+	        	DOC_STS = #docSts#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="spv">
+	        	SPV LIKE '%'||#spv#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="actorNm">
+	        	ACTOR_NM LIKE '%'||#actorNm#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="mkco">
+	        	MKCO LIKE '%'||#mkco#||'%'
+	        </isNotEmpty>
+		    ORDER BY TITLE
+    </select>
+
+    <!-- 해외산업규격 조회   -->
+    <select id="retrieveTechOsDatList" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechDat" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechOsDatList */ ]]>
+	  	    SELECT
+					CLS
+					, TO_CHAR(REG_NO) REG_NO
+					, CLS||REG_NO DISREGNO
+					, TITLE
+					, ISSUE_YR
+			FROM CMAS.CMAA_CON_TECH_DAT
+		    WHERE TITLE IS NOT NULL  <!-- AND CLS IN ('API', 'AASHTO','ACI','ASCE','ASHRAE','ASME','ASTM','AWWA','BSI','ICC','IEC','MSS','NACE','NFPA','PIP') -->
+		    <isNotEmpty prepend="AND" property="osCls">
+	        	CLS = #osCls#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="subject">
+	        	<!--TITLE = #subject#  -->
+	        	TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	    ORDER BY TITLE
+    </select>
+
+    <!--사내간행물목록 리스트 조회 -->
+    <select id="retrieveTechPubDatList" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechDat" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechPubDatList */ ]]>
+	  	    SELECT
+	  	    		CLS
+					, TITLE
+					, TO_CHAR(REG_NO) REG_NO
+					, CLS||REG_NO DISREGNO
+					, SUMRY
+					, KEYWD
+					, ISSUE_TEAM
+					, ISSUE_ER
+					, ISSUE_MGR
+					, ISSUE_DD
+					, EDT_PERCHRG
+					, DISTR_CLS
+					, PRFRD
+					, ISSUE_CPYS
+					, DOC_STS
+					, ATCH_FILE_ID
+					, IMG_ATCH_FILE_ID
+					, ISSUE_REG_NO
+			FROM CMAS.CMAA_CON_TECH_DAT
+		    WHERE TITLE IS NOT NULL AND CLS = 'GR' AND DOC_STS IN ('D99','D18')
+	        <isNotEmpty prepend="AND" property="subject">
+	        	TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="issueRegNo">
+	        	ISSUE_REG_NO = #issueRegNo#
+	        </isNotEmpty>
+		    ORDER BY TITLE
+    </select>
+
+        <!--사내간행물 등록신청 리스트 조회 -->
+    <select id="retrieveTechPubDatList1" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechDat" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechPubDatList1 */ ]]>
+  	   		 SELECT
+	  	    		 BAS.CLS
+					, BAS.TITLE
+					, TO_CHAR(BAS.REG_NO) AS REG_NO
+					, BAS.CLS||BAS.REG_NO AS DISREGNO
+					, BAS.DOC_STS
+					, BAS.DOC_STS AS DISDOCSTS
+					, BAS.SUMRY
+					, BAS.KEYWD
+					, BAS.ISSUE_TEAM
+					, BAS.ISSUE_ER
+					, BAS.ISSUE_MGR
+					, BAS.ISSUE_DD
+					, BAS.EDT_PERCHRG
+					, BAS.DISTR_CLS
+					, BAS.PRFRD
+					, BAS.ISSUE_CPYS
+					, BAS.ATCH_FILE_ID
+					, BAS.IMG_ATCH_FILE_ID
+					, BAS.ISSUE_REG_NO
+					, TO_CHAR(TO_DATE(BAS.FST_REG_DT), 'YYYY-MM-DD') AS FST_REG_DT
+  					, BAS.FST_REG_USER_ID AS USER_ID
+          		    , BAS.FST_REG_DT
+
+          	FROM CMAS.CMAA_CON_TECH_DAT BAS
+		    WHERE BAS.TITLE IS NOT NULL AND BAS.CLS='GR' AND BAS.DOC_STS NOT IN('D99')
+	        <isNotEmpty prepend="AND" property="subject">
+	        	BAS.TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="docSts">
+	        	BAS.DOC_STS = #docSts#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="issueRegNo">
+	        	BAS.ISSUE_REG_NO = #issueRegNo#
+	        </isNotEmpty>
+		    ORDER BY BAS.ISSUE_REG_NO DESC
+    </select>
+
+
+    <!-- 도서/DVD 신청조회  -->
+    <select id="retrieveTechAppnList" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechAppn" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechAppnList */ ]]>
+	  	    SELECT
+				BAS.CLS
+				, BAS.DOC_NO
+				, BAS.DOC_STS
+				, BAS.ORG_CD
+				, BAS.ORG_NM
+				, BAS.USER_ID
+				, TO_CHAR(BAS.FST_REG_DT, 'YYYY-MM-DD') AS APPN_DD
+				, DTL.GRD
+				, DTL.REG_NO
+			    , TO_CHAR(TO_DATE(DTL.RENT_DD, 'YYYY-MM-DD'), 'YYYY-MM-DD') AS RENT_DD
+			    , TO_CHAR(TO_DATE(DTL.RTRN_DD, 'YYYY-MM-DD'), 'YYYY-MM-DD') AS RTRN_DD
+				, DTL.TITLE
+				, DTL.USER_ID
+				, DTL.USER_NM
+			FROM CMAS.CMAA_CON_TECH_APPN_BAS BAS, CMAS.CMAA_CON_TECH_APPN_DTL DTL
+		    WHERE BAS.DOC_NO = DTL.DOC_NO AND CLS IN ('BK','DV')
+		    <isNotEmpty prepend="AND" property="cls">
+	        	BAS.CLS = #cls#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="userNm">
+	        	DTL.USER_NM = #userNm#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="subject">
+	        	DTL.TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="docSts">
+	        	BAS.DOC_STS = #docSts#
+	        </isNotEmpty>
+    </select>
+
+    <!-- 해외산업규격 신청조회  -->
+    <select id="retrieveTechOsAppnList" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechAppn" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechOsAppnList */ ]]>
+	  	    SELECT
+				BAS.CLS
+				, BAS.DOC_NO
+				, BAS.DOC_STS
+				, BAS.ORG_CD
+				, BAS.ORG_NM
+				, BAS.USER_ID
+				, TO_CHAR(BAS.FNL_EDIT_DT, 'YYYY-MM-DD') AS APPN_DD
+				, DTL.REG_NO
+			    , DTL.TITLE
+				, DTL.USER_ID
+				, DTL.USER_NM
+			FROM CMAS.CMAA_CON_TECH_APPN_BAS BAS, CMAS.CMAA_CON_TECH_APPN_DTL DTL
+		    WHERE BAS.DOC_NO = DTL.DOC_NO AND CLS IN ('API', 'AASHTO','ACI','ASCE','ASHRAE','ASME','ASTM','AWWA','BSI','ICC','IEC','MSS','NACE','NFPA','PIP')
+	        <isNotEmpty prepend="AND" property="userNm">
+	        	DTL.USER_NM = #userNm#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="subject">
+	        	DTL.TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="docSts">
+	        	BAS.DOC_STS = #docSts#
+	        </isNotEmpty>
+    </select>
+
+        <!-- 사내간행물 신청조회  -->
+    <select id="retrieveTechPubAppnList" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechAppn" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechPubAppnList */ ]]>
+			SELECT
+				BAS.CLS
+				, BAS.DOC_NO
+				, BAS.DOC_STS
+				, BAS.ORG_CD
+				, BAS.ORG_NM
+				, BAS.USER_ID
+				, TO_CHAR(BAS.FST_REG_DT, 'YYYY-MM-DD') AS APPN_DD
+				, TO_CHAR(BAS.FNL_EDIT_DT, 'YYYY-MM-DD') AS FNL_EDIT_DT
+				, DTL.GRD
+				, DTL.REG_NO
+				, DTL.TITLE
+				, DTL.USER_ID
+				, DTL.USER_NM
+				, DAT.ATCH_FILE_ID
+        		, DAT.ISSUE_REG_NO
+			FROM CMAS.CMAA_CON_TECH_APPN_BAS BAS
+			    , CMAS.CMAA_CON_TECH_APPN_DTL DTL
+			    , CMAS.CMAA_CON_TECH_DAT DAT
+			WHERE BAS.DOC_NO = DTL.DOC_NO
+			      AND DTL.REG_NO = DAT.REG_NO
+			      AND BAS.CLS='GR'
+			      AND BAS.CLS = DAT.CLS
+		    <isNotEmpty prepend="AND" property="cls">
+	        	BAS.CLS = #cls#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="userNm">
+	        	DTL.USER_NM = #userNm#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="subject">
+	        	DTL.TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="docSts">
+	        	BAS.DOC_STS = #docSts#
+	        </isNotEmpty>
+	       	<isNotEmpty prepend="AND" property="userId">
+	        	BAS.FST_REG_USER_ID = #userId#
+	        </isNotEmpty>
+    </select>
+
+	<!-- Retrieve DocNo -->
+	<select id="retrieveAppnBaseDocNo" parameterClass="map" resultClass="map" >
+		<![CDATA[ /* TechDatSqlmap.retrieveAppnBaseDocNo */ ]]> <!-- SQL 주석 부분 -->
+    	SELECT
+			MAX(DOC_NO) AS NO
+		FROM CMAS.CMAA_CON_TECH_APPN_BAS
+		WHERE USER_ID = #userId#
+	</select>
+    <!--
+		Insert TechAppnBas
+		1. 도서/간행물 신청 BAS 저장
+	  -->
+    <insert id="insertTechAppnBas" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.insertTechAppnBas */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO CMAS.CMAA_CON_TECH_APPN_BAS
+    	         (
+    	    	   CLS              <!-- 분류 -->
+				 , DOC_NO           <!-- 문서번호 -->
+				 , DOC_STS          <!-- 문서상태 -->
+				 , ORG_CD           <!-- 조직코드 -->
+				 , ORG_NM           <!-- 조직명 -->
+			   	 , USER_ID          <!-- 신청자 -->
+			     , FST_REG_DT		<!-- 최초 등록일 -->
+    	         , FST_REG_USER_ID  <!-- 최초 등록자 -->
+    	         , FNL_EDIT_DT		<!-- 최종 수정일 -->
+    	         , FNL_EDIT_USER_ID <!-- 최종 수정자 -->
+				 )
+			VALUES(
+                   #cls#
+				 , TO_CHAR(SYSDATE, 'YYYY')|| '-' || (SELECT LPAD(NVL
+       				(
+              			(SELECT SUBSTR(MAX(DOC_NO),6,6)
+                			FROM CMAS.CMAA_CON_TECH_APPN_BAS
+                		  WHERE DOC_NO LIKE TO_CHAR(SYSDATE,'YYYY')||'%'
+              			) + 1, 1
+        			),
+          			6,'0') from dual)
+				 , #docSts#
+				 , #orgCd#
+				 , #orgNm#
+				 , #userId#
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+                 )
+    </insert>
+
+       <!--
+		Insert TechAppnBas
+		1. 도서/간행물 신청 DTL 저장
+	  -->
+    <insert id="insertTechAppnDtl" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.insertTechAppnDtl */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO CMAS.CMAA_CON_TECH_APPN_DTl
+    	         (
+    	           REG_NO           <!-- 등록번호 -->
+				 , DOC_NO           <!-- 문서번호 -->
+				 , GRD              <!-- 직급 -->
+				 , ORG_CD           <!-- 조직코드 -->
+				 , ORG_NM           <!-- 조직명 -->
+				 , RENT_DD          <!-- 대여일 -->
+			     , RTRN_DD          <!-- 반납일 -->
+				 , TELNO            <!-- 전화번호 -->
+				 , TITLE            <!-- 제목 -->
+				 , USER_ID          <!-- 신창자사번 -->
+				 , USER_NM          <!-- 신청자명 -->
+			     , FST_REG_DT		<!-- 최초 등록일 -->
+    	         , FST_REG_USER_ID  <!-- 최초 등록자 -->
+    	         , FNL_EDIT_DT		<!-- 최종 수정일 -->
+    	         , FNL_EDIT_USER_ID <!-- 최종 수정자 -->
+				 )
+		 VALUES (
+		  		  #regNo#
+				 , #docNo#
+				 , #userPositCd#
+				 , #orgCd#
+				 , #orgNm#
+				 , TO_CHAR(TO_DATE(#rentDd#, 'YYYY-MM-DD'), 'YYYYMMDD')
+				 , TO_CHAR(TO_DATE(#rtrnDd#, 'YYYY-MM-DD'), 'YYYYMMDD')
+				 , #telno#
+				 , #subject#
+				 , #userId#
+				 , #userNm#
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+                 )
+    </insert>
+
+    <!-- 대출신청/대출/반납시 기존 자료 문서상태 update -->
+    <update id="updateTechAppnDat" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.updateTechAppnDat */ ]]> <!-- SQL 주석 부분 -->
+        UPDATE CMAS.CMAA_CON_TECH_DAT
+				SET DOC_STS	= #docSts#
+    	          , FNL_EDIT_DT	= SYSDATE	                <!-- 최종 수정일 -->
+    	          , FNL_EDIT_USER_ID = #fnlEditUserId#      <!-- 최종 수정자 -->
+   		 WHERE CLS = #cls# AND REG_NO = #regNo#
+    </update>
+
+    <update id="updateTechAppnBas" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.updateTechAppnBas */ ]]>
+    	UPDATE CMAS.CMAA_CON_TECH_APPN_BAS
+				SET DOC_STS     	= #docSts#
+				, FNL_EDIT_DT		= SYSDATE			<!-- 최종 수정일 -->
+				, FNL_EDIT_USER_ID 	= #fnlEditUserId#	<!-- 최종 수정자 -->
+   		WHERE DOC_NO = #docNo#
+	</update>
+
+	<!-- 공지사항 조회   -->
+    <select id="retrieveTechNoticeList" parameterClass="map" resultClass="com.dwenc.cmas.tech.domain.TechDat" >
+	  	<![CDATA[ /* TechDatSqlmap.retrieveTechNoticeList */ ]]>
+	  	   SELECT
+					TECH.CLS
+					, TO_CHAR(TECH.REG_NO) AS REG_NO
+					, TECH.TITLE
+					, TECH.SUMRY
+					, TO_CHAR(TECH.FST_REG_DT, 'YYYY-MM-DD') AS FST_REG_DT
+					, TECH.FST_REG_USER_ID AS USER_ID
+				  	, (SELECT USER_KNM FROM CO_USER WHERE USER_ID = TECH.FST_REG_USER_ID) AS USER_NM
+				  	, ATCH_FILE_ID
+			FROM CMAS.CMAA_CON_TECH_DAT TECH
+			WHERE TITLE IS NOT NULL
+			AND CLS = 'NO'
+	        <isNotEmpty prepend="AND" property="subject">
+	        	TITLE LIKE '%'||#subject#||'%'
+	        </isNotEmpty>
+	       	<isNotEmpty prepend="AND" property="userNm">
+	        	(SELECT USER_KNM FROM CO_USER WHERE USER_ID = TECH.FST_REG_USER_ID) LIKE '%'||#userNm#||'%'
+	        </isNotEmpty>
+	    ORDER BY TITLE
+    </select>
+
+   	<!--공지사항 저장  -->
+    <insert id="insertTechNotice" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.insertTechNotice */ ]]> <!-- SQL 주석 부분 -->
+    	INSERT INTO CMAS.CMAA_CON_TECH_DAT
+    	         (
+    	           REG_NO           <!-- 등록번호 -->
+				 , CLS
+				 , TITLE
+				 , SUMRY
+				 , DOC_STS
+			     , FST_REG_DT		<!-- 최초 등록일 -->
+    	         , FST_REG_USER_ID  <!-- 최초 등록자 -->
+    	         , FNL_EDIT_DT		<!-- 최종 수정일 -->
+    	         , FNL_EDIT_USER_ID <!-- 최종 수정자 -->
+                 , ATCH_FILE_ID
+				 )
+		  	 SELECT (SELECT NVL(MAX(REG_NO)+1,'1')
+    	     FROM CMAS.CMAA_CON_TECH_DAT
+        	 WHERE CLS = 'NO')
+				 , #cls#
+		  		 , #subject#
+				 , #sumry#
+				 , #docSts#
+                 , SYSDATE
+                 , #fstRegUserId#
+                 , SYSDATE
+                 , #fnlEditUserId#
+                 , #fileAtchId#
+            FROM DUAL
+    </insert>
+
+
+    <!--공지사항 update -->
+    <update id="updateTechNotice" parameterClass="map" >
+    	<![CDATA[ /* TechDatSqlmap.updateTechNotice */ ]]>
+    	UPDATE CMAS.CMAA_CON_TECH_DAT
+				SET  TITLE         = #subject#        <!-- 타이틀 -->
+				, SUMRY            = #sumry#
+				, FNL_EDIT_DT      = SYSDATE
+				, FNL_EDIT_USER_ID = #fnlEditUserId#
+                , ATCH_FILE_ID     = #fileAtchId#
+   		 WHERE CLS = #cls# AND REG_NO = #regNo#
+	</update>
+
+
+ </sqlMap>
+

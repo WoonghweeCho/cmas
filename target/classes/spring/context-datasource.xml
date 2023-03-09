@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+   xmlns:aop="http://www.springframework.org/schema/aop"
+   xmlns:context="http://www.springframework.org/schema/context"
+   xmlns:jee="http://www.springframework.org/schema/jee"
+   xmlns:tx="http://www.springframework.org/schema/tx"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xmlns:p="http://www.springframework.org/schema/p"
+   xsi:schemaLocation="http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+      http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+      http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+    <!-- ============================================================= -->
+    <!--  DataSource                                                   -->
+    <!-- ============================================================= -->
+	<context:property-placeholder location="classpath:/properties/environment-database.properties"/>
+
+   <!-- cmas -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	  <property name="driverClassName" value="${com.dwenc.cmas.database.driverClass}"/>
+	  <property name="url" value="${com.dwenc.cmas.database.jdbcUrl}"/>
+	  <property name="username" value="${com.dwenc.cmas.database.user}"/>
+	  <property name="password" value="${com.dwenc.cmas.database.password}"/>
+	  <property name="initialSize"><value>5</value></property>
+	  <property name="maxActive"><value>100</value></property>
+	</bean>
+
+   <!-- cmascims  -->
+	<bean id="dataSource2" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	  <property name="driverClassName" value="${com.dwenc.cmascims.database.driverClass}"/>
+	  <property name="url" value="${com.dwenc.cmascims.database.jdbcUrl}"/>
+	  <property name="username" value="${com.dwenc.cmascims.database.user}"/>
+	  <property name="password" value="${com.dwenc.cmascims.database.password}"/>
+	  <property name="initialSize"><value>5</value></property>
+	  <property name="maxActive"><value>100</value></property>
+	</bean>
+
+
+	<!-- sms  -->
+	<bean id="dataSource3" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	  <property name="driverClassName" value="${com.dwenc.sms.database.driverClass}"/>
+	  <property name="url" value="${com.dwenc.sms.database.jdbcUrl}"/>
+	  <property name="username" value="${com.dwenc.sms.database.user}"/>
+	  <property name="password" value="${com.dwenc.sms.database.password}"/>
+	  <property name="initialSize"><value>5</value></property>
+	  <property name="maxActive"><value>100</value></property>
+	</bean>
+
+
+   <!-- sgns -->
+	<bean id="dataSource4" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	  <property name="driverClassName" value="${com.dwenc.sgns.database.driverClass}"/>
+	  <property name="url" value="${com.dwenc.sgns.database.jdbcUrl}"/>
+	  <property name="username" value="${com.dwenc.sgns.database.user}"/>
+	  <property name="password" value="${com.dwenc.sgns.database.password}"/>
+	  <property name="initialSize"><value>5</value></property>
+	  <property name="maxActive"><value>100</value></property>
+	</bean>
+</beans>

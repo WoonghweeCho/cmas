@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jcfsua="http://www.daewoobrenic.co.kr/schema/jcfsua"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.daewoobrenic.co.kr/schema/jcfsua http://www.daewoobrenic.co.kr/schema/jcfsua/jcf-sua-1.0.xsd">
+
+	<!-- ============================================================= -->
+    <!-- 인터셉터 설정                                                          -->
+    <!-- ============================================================= -->
+	<jcfsua:sua-config auto-config="true">
+		<jcfsua:custom-interceptor ref="webContentInterceptor"/>
+		<jcfsua:custom-interceptor ref="requestContextHandlerInterceptor"/>
+<!-- 		<jcfsua:custom-interceptor ref="cudChkInterceptor"/> -->
+<!-- 		<jcfsua:custom-interceptor ref="timeLogInterceptor"/> -->
+<!-- 		<jcfsua:custom-interceptor ref="crudLoggingInterceptor"/> -->
+	</jcfsua:sua-config>
+
+	<!-- 사용자정의 인터셉터 : RequestContext 초기화 용도로 사용된다.-->
+	<bean id="requestContextHandlerInterceptor" class="jcf.data.web.interceptor.RequestContextHandlerInterceptor"/>
+
+	<!-- 사용자정의 인터셉터 : webContentInterceptor -->
+	<bean id="webContentInterceptor" class="org.springframework.web.servlet.mvc.WebContentInterceptor" p:cacheSeconds="0" />
+	<!-- 사용자정의인터셉터 : OGG, ECM 장애 확인
+	<bean id="cudChkInterceptor" class="com.dwenc.cmas.common.instance.service.support.CudChkInterceptor" />
+	 사용자정의인터셉터 : 처리 시간 로깅
+	<bean id="timeLogInterceptor" class="com.dwenc.cmas.common.sysMng.service.support.TimeLogInterceptor" />
+	사용자정의인터셉터 : CRUD 로깅
+	<bean id="crudLoggingInterceptor" class="com.dwenc.cmas.common.sysMng.service.support.CrudLoggingInterceptor" /> -->
+
+	<!-- ============================================================= -->
+    <!--  ViewResolver 설정                                                   -->
+    <!-- ============================================================= -->
+    <bean id="mciViewResolver" class="jcf.sua.mvc.MciViewResolver">
+		<property name="defaultView">
+			<bean class="jcf.sua.mvc.view.MciView" />
+		</property>
+		<property name="pageViewResolver" ref="pageViewResolver" />
+		<property name="order" value="0" />
+	</bean>
+
+	<bean id="pageViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:order="2" p:prefix="" p:suffix="" />
+
+	<!-- ============================================================= -->
+    <!--  ExceptionViewResolver 설정                                         -->
+    <!-- ============================================================= -->
+ 	<bean class="jcf.sua.mvc.MciExceptionViewResolver" >
+ 		<property name="exceptionStatusCode" value="OK" />
+ 		<property name="order" value="1" />
+ 		<property name="defaultErrMessage" value="failure" />
+ 		<property name="exceptionMessageWriters">
+ 			<list>
+ 				<ref bean="businessExceptionMessageWriter" />
+ 				<ref bean="sqlExceptionMessageWriter" />
+ 			</list>
+ 		</property>
+ 	</bean>
+
+	<bean id="businessExceptionMessageWriter" class="docfbaro.sua.exception.BusinessExceptionExtMessageWriter" />
+	<bean id="sqlExceptionMessageWriter" class="docfbaro.sua.exception.OracleSQLExceptionExtMessageWriter" />
+
+	<bean id="fileHandler" class="jcf.sua.mvc.file.MciFileHandler">
+		<property name="miplatformFileOperator">
+			<bean class="jcf.sua.ux.miplatform.mvc.file.MiplatformFileOperator">
+				<property name="receiver" ref="receiver" />
+				<property name="sender" ref="sender" />
+			</bean>
+		</property>
+		<property name="xplatformFileOperator">
+			<bean class="jcf.sua.ux.xplatform.mvc.file.XplatformFileOperator">
+				<property name="receiver" ref="receiver" />
+				<property name="sender" ref="sender" />
+			</bean>
+		</property>
+		<property name="webFileOperator">
+			<bean class="jcf.sua.ux.webflow.mvc.file.WebFlowFileOperator">
+				<property name="receiver" ref="receiver" />
+				<property name="sender" ref="sender" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="receiver" class="jcf.upload.MultiPartReceiverImpl">
+		<property name="maxUploadSize" value="1000000000" />
+		<property name="persistenceManager" ref="filePersistenceManager" />
+	</bean>
+
+	<bean id="sender" class="jcf.upload.FileSenderImpl">
+		<property name="persistenceManager" ref="filePersistenceManager" />
+	</bean>
+
+	<bean id="policyManager" class="docfbaro.sua.persistence.file.policy.FilePolicyManager">
+		<property name="interceptors">
+			<list>
+				<bean class="docfbaro.sua.persistence.file.policy.FilePolicyInterceptor">
+					<constructor-arg name="pattern" value="*" />
+					<constructor-arg name="policy" ref="default" />
+				</bean>
+				<bean class="docfbaro.sua.persistence.file.policy.FilePolicyInterceptor">
+					<constructor-arg name="pattern" value="excel" />
+					<constructor-arg name="policy" ref="excel" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+    <!-- 기본 업로드 policy  -->
+	<bean id="default" class="docfbaro.sua.persistence.file.policy.FilePolicyImpl">
+		<property name="renamePattern" value="{fileName}[{date:yyyyMMddHHmmssSSS}].{extension}" />
+		<property name="denied" value="*.java" />
+		<property name="allowed" value="*" />
+		<property name="overriding" value="false" />
+		<property name="maxSize" value="83886080" />
+		<property name="subDirectory" value="cmas" />
+	</bean>
+
+	<!-- Excel upload download용  policy  -->
+	<bean id="excel" class="docfbaro.sua.persistence.file.policy.FilePolicyImpl">
+		<property name="renamePattern" value="{fileName}[{date:yyyyMMddHHmmssSSS}].{extension}" />
+		<property name="denied" value="*.java" />
+		<property name="allowed" value="*.xls" />
+		<property name="overriding" value="false" />
+		<property name="maxSize" value="83886080" />
+		<property name="subDirectory" value="excel" />
+	</bean>
+
+
+	<!-- 메세지 관리 -->
+	<bean id="messageSourceAccessor" class="org.springframework.context.support.MessageSourceAccessor">
+		<constructor-arg ref="messageSource" />
+		<constructor-arg value="ko_KR"/>
+	</bean>
+
+	<bean id="messageSource" class="docfbaro.sua.message.DatabaseMessageSource" >
+		<property name="uxMessages">
+			<list>
+				<bean class="docfbaro.sua.message.ux.XplatformMessageSourceGenerator" />
+			</list>
+		</property>
+	</bean>
+	<!-- 메세지 관리 -->
+
+<!-- 	<bean id="queryLoggingInterceptor" class="docfbaro.query.trace.interceptor.QueryLoggingInterceptor" /> -->
+
+	<!-- Transaction Manager -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+   	<!-- Transaction -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+ 			<tx:method name="retrieve*" read-only="true" />
+ 			<tx:method name="get*" read-only="true" />
+ 			<tx:method name="print*" read-only="true" />
+			<tx:method name="*" propagation="REQUIRED" timeout="10000" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- Transaction AOP -->
+	<aop:config proxy-target-class="true">
+		<aop:pointcut id="serviceMethods"
+			expression="execution(* *..*Service.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethods" />
+	</aop:config>
+	<!-- Transaction -->
+
+</beans>

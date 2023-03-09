@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CVA0201
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveGroupCodeList 조건에 의한 그룹 코드 조회
+
+*************************************************************************************-->
+<sqlMap namespace="Bdgt">
+
+	<!-- 현장코드 그룹 조회 -->
+    <select id="getPrctrList" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* Bdgt.getPrctrList */ ]]>
+		  SELECT ORG_ID, ORG_NM, ORG_CHIEF||' '||C51_EMP_PG.EMP_NM(ORG_CHIEF) ORG_CHIEF, ORG_TYPE FROM C51_OM_ORG_CUR_VW
+			WHERE ORG_TYPE LIKE '%현장%'
+	        	<isNotEmpty prepend="AND" property="Prctrnm">
+	        		ORG_NM LIKE '%' || #Prctrnm# || '%'
+	        	</isNotEmpty>
+    </select>
+
+   <!-- 외곽조직코드 그룹 조회 -->
+    <select id="getPrctrList1" parameterClass="map" resultClass="map" >
+        <![CDATA[ /* Bdgt.getPrctrList1 */ ]]>
+		  SELECT ORG_ID, ORG_NM, ORG_CHIEF||' '||C51_EMP_PG.EMP_NM(ORG_CHIEF) ORG_CHIEF, ORG_TYPE FROM C51_OM_ORG_CUR_VW
+			WHERE ORG_TYPE = '외곽조직'
+	        	<isNotEmpty prepend="AND" property="Prctrnm">
+	        		ORG_NM LIKE '%' || #Prctrnm# || '%'
+	        	</isNotEmpty>
+    </select>
+
+</sqlMap>

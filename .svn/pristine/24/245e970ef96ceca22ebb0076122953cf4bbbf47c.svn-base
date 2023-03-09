@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : -
+* 설    명 : 세금계산서 설정 table 업데이트
+* 작 성 자 :
+* 작성일자 : 2011-12-23
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+*************************************************************************************-->
+<sqlMap namespace="ecosConfig">
+	<!-- 세금계산서 설정 table 수정 -->
+	<update id="updateEcosConfig" parameterClass="map">
+		<![CDATA[ /* ecosConfig.updateEcosConfig */ ]]>
+		UPDATE E17_DWCONST_INFO
+		SET CO_NM = #bizcoKnm#,
+			PRESI_NM = #presiNm#,
+			PRESI_PERID = #presiSsno#,
+			HO_POSTCD = #zipcd#,
+			HO_ADDR_1 = #basAddr# || #dtlAddr#,
+			HO_TEL = #telno#,
+			HO_FAX = #faxno#,
+			HO_HOMEPAGE = #hmpage#,
+			BUSICOND = #bizcondNm#,
+			TOI_NM = #toiNm#,
+			SMART_BILL_ID = #smrtbillId#,
+			SMART_BILL_PW = #smrtbillPwd#,
+			DTI_SERVER_IP = #dtiSvr#,
+			PRINT_URL = #printUrl#,
+			EMAIL_URL = #emailUrl#,
+			CHANGE_URL = #chgUrl#
+	</update>
+</sqlMap>

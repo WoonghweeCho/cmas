@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+	<timestamp key="bySecond" datePattern="yyyyMMddHH" />
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</layout>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- Support multiple-JVM writing to the same log file -->
+		<prudent>true</prudent>
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover -->
+			<fileNamePattern>C:/TEMP/logFile.%d{yyyy-MM-dd-HH}.log</fileNamePattern>
+			<!-- keep 72 hours ' worth of history -->
+			<maxHistory>72</maxHistory>
+		</rollingPolicy>
+
+		<encoder >
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="docfbaro.iam" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<logger name="jcf.iam" additivity="false">
+		<level value="INFO" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<logger name="jcf.query.core" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="FILE" />
+	</logger>
+
+	<logger name="jcf.query.core.evaluator" additivity="false">
+		<level value="WARN" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<logger name="jcf.query.core.mapper" additivity="false">
+		<level value="WARN" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<logger name="com.dwenc.cmas.common" additivity="false">
+		<level value="TRACE" />
+		<appender-ref ref="CONSOLE" />
+	</logger>
+
+	<root>
+        <level value="DEBUG" />
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+</configuration>

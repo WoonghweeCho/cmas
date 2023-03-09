@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CoOrg
+* 설    명 : 부서조회 데이타 처리 SQL
+* 작 성 자 : 이재열
+* 작성일자 : 2011-12-16
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveOrgCdList     조직코드 검색
+* retrieveOrgTreeList   조직트리 검색
+* retrieveHqList        본부부서 검색
+*************************************************************************************-->
+<sqlMap namespace="CoOrg">
+
+	<!-- 조직리스트검색 -->
+	<select id="retrieveOrgList" parameterClass="map" resultClass="com.dwenc.cmas.common.org.domain.OrgInfo">
+	<![CDATA[ /* CoOrg.retrieveOrgList */ ]]>
+		SELECT  A.ORG_CD
+		     ,  A.ORG_NM
+		     ,  A.ORG_LVL
+		     ,  A.HGR_ORG_CD
+		     ,  (SELECT FN_CO_GET_ORG_NM(A.HGR_ORG_CD) FROM DUAL) AS HGR_ORG_NM
+		     ,  A.USE_YN
+		     ,  A.HDOFC_ORG_CD
+		  FROM  CO_ORG A
+		 WHERE  USE_YN = 'Y'
+		<dynamic>
+			<isNotEmpty property="hqOrgCd" prepend="AND">
+				A.HDOFC_ORG_CD = #hqOrgCd#
+			</isNotEmpty>
+			<isNotEmpty property="searchVal" prepend="AND">
+				(A.ORG_CD LIKE '%'||#searchVal#||'%' OR A.ORG_NM LIKE '%'||#searchVal#||'%')
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY A.ORG_NM,A.ORG_CD
+	</select>
+
+	<!-- 조직리스트검색 -->
+	<select id="retrieveOrgsList" parameterClass="map" resultClass="com.dwenc.cmas.common.org.domain.OrgInfo">
+	<![CDATA[ /* CoOrg.retrieveOrgsList */ ]]>
+		SELECT  A.ORG_CD
+		     ,  A.ORG_NM
+		     ,  A.ORG_LVL
+		     ,  A.HGR_ORG_CD
+		     ,  (SELECT FN_CO_GET_ORG_NM(A.HGR_ORG_CD) FROM DUAL) AS HGR_ORG_NM
+		     ,  A.USE_YN
+		     ,  A.HDOFC_ORG_CD
+		  FROM  CO_ORG A
+		 WHERE  USE_YN = 'Y'
+		   AND A.ORG_CD IN <iterate property="orgCds" open="(" close=")" conjunction=",">#orgCds[]#</iterate>
+		ORDER BY A.ORG_NM,A.ORG_CD
+	</select>
+
+	<!-- 조직트리 -->
+	<select id="retrieveOrgTreeList" parameterClass="map" resultClass="com.dwenc.cmas.common.org.domain.OrgInfo">
+	<![CDATA[ /* CoOrg.retrieveOrgTreeList */ ]]>
+		SELECT  A.ORG_CD
+		     ,  A.ORG_NM
+		     ,  A.ORG_LVL
+		     ,  A.HGR_ORG_CD
+		     ,  (SELECT FN_CO_GET_ORG_NM(A.HGR_ORG_CD) FROM DUAL) AS HGR_ORG_NM
+		     ,  A.USE_YN
+		     ,  A.HDOFC_ORG_CD
+		  FROM  CO_ORG A
+		 WHERE  A.USE_YN = 'Y'
+       CONNECT  BY PRIOR A.ORG_CD = A.HGR_ORG_CD
+       <dynamic>
+       <isEmpty property="hqOrgCd">
+	     START  WITH A.HGR_ORG_CD IS NULL
+       </isEmpty>
+       <isNotEmpty property="hqOrgCd">
+         START  WITH A.ORG_CD = #queryHqCd#
+       </isNotEmpty>
+       </dynamic>
+	     ORDER  SIBLINGS BY ORG_RNK
+	</select>
+
+	<!-- 본부조직코드조회 -->
+    <select id="retrieveHqList" parameterClass="map" resultClass="com.dwenc.cmas.common.org.domain.OrgInfo">
+	<![CDATA[ /* CoOrg.retrieveHqList */ ]]>
+  		SELECT  DISTINCT HDOFC_ORG_CD          AS ORG_CD
+  	         ,  (SELECT FN_CO_GET_ORG_NM(HDOFC_ORG_CD) FROM DUAL) AS ORG_NM
+	      FROM  CO_ORG
+         WHERE  HDOFC_ORG_CD IS NOT NULL
+           AND  USE_YN = 'Y'
+    </select>
+
+</sqlMap>

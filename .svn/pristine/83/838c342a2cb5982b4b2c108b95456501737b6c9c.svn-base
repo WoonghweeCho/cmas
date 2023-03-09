@@ -1,0 +1,14 @@
+WEBSSO_SSOSERVICE_URL = http://ssodev.daewooenc.com/SSO/AuthWeb/WebServices/SSOService.asmx
+WEBSSO_ENC_KEY = !ssoNetsConfigKey
+WEBSSO_ENC_TYPE = TDES
+CHECKLOGON_VALUE = MEDIUM
+SITESERVER_IP = 172.21.18.201
+SITESERVER_DNS = localsgns.daewooenc.com
+SSO_PROVIDER_DOMAIN = ssodev.daewooenc.com
+SITESERVER_TIMEOUT = 5000
+CLIENT_IP_CHECK_LEVEL = 0
+DEFAULT_BUFFER_TIME = 0
+SUBMITNEXTURL_OPTION = submit
+SCRIPT_OPTION = top
+SITE_ACCESS_DENIED_PAGE = http://ssodev.daewooenc.com/sso/ssoclient/denied.aspx
+

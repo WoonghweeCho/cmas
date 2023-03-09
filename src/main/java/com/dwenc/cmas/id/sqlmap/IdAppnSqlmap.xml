@@ -1,0 +1,859 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : CVA0201
+* 설    명 :
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveGroupCodeList 조건에 의한 그룹 코드 조회
+
+*************************************************************************************-->
+<sqlMap namespace="IdAppn">
+    <!-- 특별ID 신청 조회 -->
+    <select id="retrieveIdAppn" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.IdAppn" >
+        <![CDATA[ /* idAppn.retrieveIdAppn */ ]]>
+		  SELECT
+		  	CLS,
+		  	APPN.FNL_EDIT_DT,
+		  	APPN.DOC_NO,
+		    APPN.ORG_CD,
+		    APPN.ORG_NM,
+		    APPN.USER_ID,
+            USR.USER_KNM AS USER_NM,
+            DOC_STS
+		FROM CMAS.CMAA_ID_APPN APPN, CO_USER USR
+		 WHERE APPN.USER_ID=USR.USER_ID(+)
+		 AND APPN.DOC_STS IS NOT NULL
+		 AND APPN.DOC_STS != 'D06'
+	    <isNotEmpty prepend="AND" property="cls">
+	    	<isNotEqual property="cls" compareValue="ALL">
+	    		APPN.CLS = #cls#
+	    	</isNotEqual>
+	    </isNotEmpty>
+	    <!-- 결재상태 -->
+	    <isNotEmpty prepend="AND" property="docSts">
+	    	<isNotEqual property="docSts" compareValue="ALL">
+	    		APPN.DOC_STS = #docSts#
+	    	</isNotEqual>
+	    </isNotEmpty>
+	    <!-- 소속 -->
+	    <isNotEmpty prepend="AND" property="orgCd">
+	    	APPN.ORG_CD = #orgCd#
+	    </isNotEmpty>
+	    <!-- 조직명(신청자팀 & 대상자팀) -->
+	    <isNotEmpty prepend="AND" property="orgNm">
+       	   (
+       		APPN.ORG_NM LIKE '%' || #orgNm# || '%'
+           OR
+            APPN.DOC_NO IN (
+            				SELECT DOC_NO FROM CMAA_ID_APPN_DTL DTL
+	            			WHERE DTL.ORG_NM LIKE '%' || #orgNm# || '%'
+    	       			   )
+	       )
+	    </isNotEmpty>
+	    <!-- 신청자 -->
+	    <isNotEmpty prepend="AND" property="appnUser">
+	    (
+	    	LOWER(APPN.USER_ID) like '%' || LOWER(#appnUser#) || '%'
+	    	OR
+	    	LOWER(USR.USER_KNM) like '%' || LOWER(#appnUser#) || '%'
+	    )
+	    </isNotEmpty>
+	    <!-- 대상자 -->
+	    <isNotEmpty prepend="AND" property="trgtUser">
+	    (
+	    	APPN.DOC_NO IN (SELECT DOC_NO FROM CMAS.CMAA_ID_APPN_DTL
+	    					WHERE (LOWER(USER_ID) LIKE '%' || LOWER(#trgtUser#) || '%'
+	    						OR LOWER(USER_NM) like '%' || LOWER(#trgtUser#) || '%'
+	    						OR LOWER(USER_NM_EN) like '%' || LOWER(#trgtUser#) || '%'))
+	    )
+	    </isNotEmpty>
+	    <!-- 신청일 기간 -->
+	    <isNotEmpty  property="simpleDt">
+			<isNotEqual property="simpleDt" prepend="AND" compareValue="DT"> <!-- 신청일 상세검색이 아닌 조건 최근 1달, 2달, 3달-->
+				APPN.FNL_EDIT_DT >= SYSDATE - #simpleDt#
+			</isNotEqual>
+			<isEqual property="simpleDt" compareValue="DT"> <!-- 신청일 상세검색인 조건 -->
+				<isNotEmpty property="docStart">
+					<isNotEmpty prepend="AND" property="docEnd">
+						APPN.FNL_EDIT_DT BETWEEN TO_DATE(#docStart#, 'YYYY-MM-DD') AND TO_DATE(#docEnd# || '235959', 'YYYY-MM-DDHH24MISS')
+			        </isNotEmpty>
+				</isNotEmpty>
+			</isEqual>
+		</isNotEmpty>
+		ORDER BY APPN.FST_REG_DT DESC
+    </select>
+
+    <!-- 특별ID 신청 상세 조회 -->
+    <select id="retrieveIdAppnDtl" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.IdAppnDtl" >
+        <![CDATA[ /* idAppn.retrieveIdAppnDtl */ ]]>
+        SELECT DOC_NO,
+		       ORG_CD,
+		       ORG_NM,
+		       USER_ID,
+		       USER_NM,
+		       USER_NM_EN,
+		       GRD,
+		       TO_CHAR(TO_DATE(ST_YMD), 'YYYY-MM-DD') AS ST_YMD,	<!-- 시작일 -->
+		       TO_CHAR(TO_DATE(ED_YMD), 'YYYY-MM-DD') AS ED_YMD,	<!-- 종료일 -->
+		       COMP_MAIL,
+		       MPHONE_NO,
+		       COMP_TELNO,
+		       FAXNO,
+		       MEMO,
+		       EMPMT_NO,
+		       SYSTEM1, <!-- 바로넷 -->
+		       SYSTEM2, <!-- 바로콘 -->
+		       SYSTEM3, <!-- 바로미 -->
+		       SYSTEM4, <!-- 메일 -->
+		       SYSTEM5, <!-- SVPN -->
+		       SYSTEM6, <!-- 모바일 -->
+		       SYSTEM7, <!-- DRM -->
+		       SYSTEM8, <!-- 분양관리 -->
+		       SYSTEM9, <!-- 프로젝트 외주인력 보안 -->
+		       SYSTEM10, <!-- ////똑바로(안전) -->
+		       CF_YN
+		  FROM
+		       (SELECT DTL.*,
+		              SYS.SYS_CD,
+		              DECODE(NVL(SYS.PRIV_CD,'0'), '0', '', '사용') AS PRIV_CD
+		         FROM CMAS.CMAA_ID_APPN_DTL DTL,
+		              CMAS.CMAA_ID_APPN_SYS SYS
+		        WHERE DTL.USER_ID = SYS.USER_ID
+		          AND DTL.DOC_NO = #docNo#
+		       ) PIVOT (MAX(PRIV_CD) FOR SYS_CD IN ('01' AS SYSTEM1, '02' AS SYSTEM2, '03' AS SYSTEM3, '04' AS SYSTEM4, '05' AS SYSTEM5, '06' AS SYSTEM6, '07' AS SYSTEM7, '08' AS SYSTEM8, '09' AS SYSTEM9, '10' AS SYSTEM10<!--////똑바로  -->))
+    </select>
+
+    <!-- 특별ID 연장 신청 사용자 조회 -->
+    <select id="retrieveUserIdList" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.IdAppnDtl" >
+        <![CDATA[ /* idAppn.retrieveUserIdList */ ]]>
+        SELECT DTL.DOC_NO,
+	       DTL.ORG_CD,
+	       DTL.ORG_NM,
+	       DTL.USER_ID,
+	       DTL.USER_NM,
+	       DTL.USER_NM_EN,
+	       DTL.GRD,
+	       TO_CHAR(TO_DATE(DTL.ST_YMD), 'YYYY-MM-DD') AS ST_YMD,
+	       TO_CHAR(TO_DATE(DTL.ED_YMD), 'YYYY-MM-DD') AS ED_YMD,
+	       DTL.COMP_MAIL,
+	       DTL.MPHONE_NO,
+	       DTL.COMP_TELNO,
+	       DTL.FAXNO,
+	       DTL.MEMO,
+	       DTL.EMPMT_NO
+	  FROM CMAA_ID_APPN DOC,
+	       CMAA_ID_APPN_DTL DTL
+	  WHERE DOC.DOC_NO = DTL.DOC_NO
+	  AND DOC.DOC_STS = 'D03'
+	  AND (DTL.ED_YMD >= TO_CHAR(SYSDATE, 'YYYYMMDD') OR DTL.ED_YMD IS NULL)
+	  AND DTL.USE_YN = 'Y'
+	  AND (LOWER(DTL.USER_NM) LIKE '%' || #srchTxt# || '%'
+	  		OR LOWER(DTL.ORG_NM) LIKE '%' || #srchTxt# || '%'
+	        OR LOWER(DTL.USER_NM_EN) LIKE '%' || #srchTxt# || '%'
+	        OR LOWER(DTL.USER_ID) LIKE '%' || #srchTxt# || '%')
+    </select>
+
+    <update id="updateIdAppnDtlForUserId" parameterClass="map" >
+    	<![CDATA[ /* IdAppn.updateIdAppnDtlForUserId */ ]]>
+    	UPDATE
+  			CMAS.CMAA_ID_APPN_DTL
+  			SET USE_YN=#useYn#
+         WHERE USER_ID=#userId#
+    </update>
+
+    <update id="updateIdAppnDtlForDocNo" parameterClass="map" >
+    	<![CDATA[ /* IdAppn.updateIdAppnDtlForDocNo */ ]]>
+    	UPDATE
+  			CMAS.CMAA_ID_APPN_DTL
+  			SET USE_YN=#useYn#
+         WHERE DOC_NO=#docNo#
+    </update>
+
+	<select id="getUserId" parameterClass="map" resultClass="string" >
+	  	<![CDATA[ /* IdAppn.getUserId */ ]]>
+		SELECT 'ZA' || CMA_ID_APPN_SQ_01.NEXTVAL FROM DUAL
+	  </select>
+
+    <select id="getMaxDocNo" parameterClass="map" resultClass="string" >
+	  	<![CDATA[ /* IdAppn.getMaxDocNo */ ]]>
+		SELECT DOC_NO FROM CMAS.CMAA_ID_APPN
+		WHERE DOC_NO LIKE TO_CHAR(SYSDATE, 'YYYY') || '-' || '%'
+		AND ROWNUM =1
+		ORDER BY DOC_NO DESC
+		FOR UPDATE WAIT 3
+	  </select>
+
+	  <select id="getDocNo" parameterClass="map" resultClass="string" >
+	  	<![CDATA[ /* IdAppn.getDocNo */ ]]>
+	  	<isEmpty property="docNo">
+		SELECT TO_CHAR(SYSDATE, 'YYYY') || '-' || '000001' AS DOC_NO
+  		FROM DUAL
+  		</isEmpty>
+  		<isNotEmpty property="docNo">
+  		SELECT TO_CHAR(SYSDATE, 'YYYY') || '-' ||
+		LPAD(NVL(TO_NUMBER(SUBSTR(#docNo#, 6))+1, '1'),6, '0') AS DOC_NO
+  		FROM DUAL
+  		</isNotEmpty>
+	  </select>
+
+	  <insert id="saveIdAppn" parameterClass="map" >
+        <![CDATA[ /* IdAppn.saveIdAppn */ ]]>
+        MERGE INTO CMAS.CMAA_ID_APPN
+        USING DUAL
+        ON (DOC_NO=#docNo#)
+        WHEN MATCHED THEN
+        	UPDATE SET
+        		<isNotEmpty property="orgCd">
+        		ORG_CD = #orgCd#,
+        		</isNotEmpty>
+        		<isNotEmpty property="orgNm">
+        		ORG_NM = #orgNm#,
+        		</isNotEmpty>
+        		<isNotEmpty property="userId">
+        		USER_ID = #userId#,
+        		</isNotEmpty>
+        		FNL_EDIT_DT = SYSDATE,
+        		FNL_EDIT_USER_ID = #fnlEditUserId#,
+        		DOC_STS = #docSts#
+        WHEN NOT MATCHED THEN
+			INSERT
+			(
+				DOC_NO
+				,ORG_CD
+				,ORG_NM
+				,USER_ID
+				,FST_REG_DT
+				,FST_REG_USER_ID
+				,FNL_EDIT_DT
+				,FNL_EDIT_USER_ID
+				,CLS
+				,DOC_STS
+			)
+			VALUES
+			(
+				#docNo#
+				,#orgCd#
+				,#orgNm#
+				,#userId#
+				,SYSDATE
+				,#fstRegUserId#
+				,SYSDATE
+				,#fnlEditUserId#
+				,#cls#
+				,#docSts#
+			)
+    </insert>
+
+    <insert id="mergeIdAppnDtl" parameterClass="map" >
+        <![CDATA[ /* IdAppn.mergeIdAppnDtl */ ]]>
+        MERGE INTO CMAS.CMAA_ID_APPN_DTL
+        USING DUAL
+        ON (DOC_NO=#docNo#
+        AND USER_ID=#userId#)
+        WHEN MATCHED THEN
+        	UPDATE SET
+        		ORG_CD = #orgCd#,
+        		ORG_NM = #orgNm#,
+        		USER_NM = #userNm#,
+        		USER_NM_EN = #userNmEn#,
+        		GRD = #grd#,
+        		ST_YMD = TO_CHAR(TO_DATE(#stYmd#), 'YYYYMMDD'),
+        		ED_YMD = TO_CHAR(TO_DATE(#edYmd#), 'YYYYMMDD'),
+        		COMP_MAIL = LOWER(#compMail#),
+        		MPHONE_NO = #mphoneNo#,
+        		COMP_TELNO = #compTelno#,
+        		FAXNO = #faxno#,
+        		MEMO = #memo#,
+        		EMPMT_NO = #empmtNo#,
+        		FNL_EDIT_DT = SYSDATE,
+        		FNL_EDIT_USER_ID = #fnlEditUserId#
+        WHEN NOT MATCHED THEN
+			INSERT
+			(
+				DOC_NO
+				,ORG_CD
+				,ORG_NM
+				,USER_ID
+				,USER_NM
+				,USER_NM_EN
+				,GRD
+				,ST_YMD
+				,ED_YMD
+				,COMP_MAIL
+				,MPHONE_NO
+				,COMP_TELNO
+				,FAXNO
+				,MEMO
+				,EMPMT_NO
+				,FST_REG_DT
+				,FNL_EDIT_USER_ID
+				,FNL_EDIT_DT
+				,FST_REG_USER_ID
+			)
+			VALUES
+			(
+				#docNo#
+				,#orgCd#
+				,#orgNm#
+				,#userId#
+				,#userNm#
+				,#userNmEn#
+				,#grd#
+				,TO_CHAR(TO_DATE(#stYmd#), 'YYYYMMDD')
+				,TO_CHAR(TO_DATE(#edYmd#), 'YYYYMMDD')
+				,LOWER(#compMail#)
+				,#mphoneNo#
+				,#compTelno#
+				,#faxno#
+				,#memo#
+				,#empmtNo#
+				,SYSDATE
+				,#fstRegUserId#
+				,SYSDATE
+				,#fnlEditUserId#
+			)
+    </insert>
+
+	<!--  신청 상세 Insert -->
+	<insert id="insertIdAppn" parameterClass="map" >
+        <![CDATA[ /* idAppn.insertIdAppn */ ]]>
+		  INSERT INTO CMAS.CMAA_ID_APPN_DTL
+    	         (
+    	         	DOC_NO
+					,ORG_CD
+					,ORG_NM
+					,USER_ID
+					,USER_NM
+					,USER_NM_EN
+					,GRD
+					,ST_YMD
+					,ED_YMD
+					,COMP_MAIL
+					,MPHONE_NO
+					,COMP_TELNO
+					,FAXNO
+					,MEMO
+					,EMPMT_NO
+					,FST_REG_DT
+					,FNL_EDIT_USER_ID
+					,FNL_EDIT_DT
+					,FST_REG_USER_ID
+				 )
+          VALUES (
+					#docNo#
+					,#orgCd#
+					,#orgNm#
+					,#userId#
+					,#userNm#
+					,#userNmEn#
+					,#grd#
+					,TO_CHAR(TO_DATE(#stYmd#), 'YYYYMMDD')
+					,TO_CHAR(TO_DATE(#edYmd#), 'YYYYMMDD')
+					,LOWER(#compMail#)
+					,#mphoneNo#
+					,#compTelno#
+					,#faxno#
+					,#memo#
+					,#empmtNo#
+					,SYSDATE
+					,#fstRegUserId#
+					,SYSDATE
+					,#fnlEditUserId#
+				)
+    </insert>
+
+    <!--  신청 상세 Update -->
+	<update id="updateIdAppn" parameterClass="map" >
+        <![CDATA[ /* idAppn.updateIdAppn */ ]]>
+    	UPDATE CMAS.CMAA_ID_APPN_DTL
+				SET ORG_CD = #orgCd#,
+					ORG_NM = #orgNm#,
+	        		USER_NM = #userNm#,
+	        		USER_NM_EN = #userNmEn#,
+	        		GRD = #grd#,
+	        		ST_YMD = TO_CHAR(TO_DATE(#stYmd#), 'YYYYMMDD'),
+	        		ED_YMD = TO_CHAR(TO_DATE(#edYmd#), 'YYYYMMDD'),
+	        		COMP_MAIL = LOWER(#compMail#),
+	        		MPHONE_NO = #mphoneNo#,
+	        		COMP_TELNO = #compTelno#,
+	        		FAXNO = #faxno#,
+	        		MEMO = #memo#,
+	        		EMPMT_NO = #empmtNo#,
+	        		FNL_EDIT_DT = SYSDATE,
+	        		FNL_EDIT_USER_ID = #fnlEditUserId#
+   		 WHERE DOC_NO = #docNo#
+   		 AND USER_ID=#userId#
+	</update>
+
+    <!--  신청 상세 Delete -->
+    <delete id="deleteIdAppn" parameterClass="map" >
+    	<![CDATA[ /* IdAppn.deleteIdAppn */ ]]>
+    	DELETE
+    	  FROM CMAS.CMAA_ID_APPN_DTL
+         WHERE DOC_NO=#docNo#
+         AND USER_ID=#userId#
+    </delete>
+
+    <!--  해당 결재문서 ID의  모든 결재자 Delete -->
+    <delete id="deleteAllIdAppnDtl" parameterClass="com.dwenc.cmas.id.domain.IdAppnDtl" >
+    	<![CDATA[ /* IdAppn.deleteAllIdAppnDtl */ ]]>
+    	DELETE
+    	  FROM CMAS.CMAA_ID_APPN_DTL
+         WHERE DOC_NO=#docNo#
+    </delete>
+
+	<!-- 특별ID 시스템 조회 -->
+    <select id="retrieveIdAppnSysDtl" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.IdAppnSysDtl" >
+        <![CDATA[ /* idAppn.retrieveIdAppnSysDtl */ ]]>
+       SELECT
+       		SYS_DTL.SYS_CD,
+       		SYS_DTL.MODULE_NM,
+       		SYS_DTL.PERCHRG_ID,
+       		USR.USER_KNM PERCHRG_NM,
+       		USR.ORG_CD ORG_ID
+         FROM CMAS.CMAA_ID_APPN_SYS_DTL SYS_DTL, CSYS.CO_USER USR
+         WHERE SYS_DTL.PERCHRG_ID=USR.USER_ID(+)
+    </select>
+
+    <!-- 시스템 담당자ID 조회 -->
+    <select id="retrievePerchrgId" parameterClass="map" resultClass="String" >
+        <![CDATA[ /* idAppn.retrievePerchrgId */ ]]>
+         SELECT   LISTAGG(FN_CO_DECRYPT_HEX(CO.EMAIL), ';') WITHIN GROUP(ORDER BY EMAIL) AS EMAIL
+         FROM CMAS.CMAA_ID_APPN_SYS_DTL DTL, CSYS.CO_USER CO
+         WHERE DTL.PERCHRG_ID = CO.USER_ID
+         AND DTL.SYS_CD = #sysCd#
+    </select>
+
+    <!-- 시스템신청 조회 -->
+    <select id="retrieveIdAppnSys" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.IdAppnSys" >
+        <![CDATA[ /* idAppn.retrieveIdAppnSys */ ]]>
+       SELECT
+       		USER_ID,
+       		SYS_CD,
+       		PRIV_CD
+         FROM CMAS.CMAA_ID_APPN_SYS
+         WHERE SYS_CD=#sysCd#
+		<dynamic>
+			<isNotEmpty prepend="AND" property="userIdList">
+				USER_ID IN <iterate property="userIdList" open="(" close=")" conjunction=",">#userIdList[]#</iterate>
+			</isNotEmpty>
+		</dynamic>
+    </select>
+
+	<!--  시스템 담당자정보 Insert -->
+	<insert id="insertIdAppnSysDtl" parameterClass="map" >
+        <![CDATA[ /* idAppn.insertIdAppnSysDtl */ ]]>
+		  INSERT INTO CMAS.CMAA_ID_APPN_SYS_DTL
+    	         (
+    	             SYS_CD
+					,MODULE_NM
+					,PERCHRG_ID
+				    ,FST_REG_DT
+				    ,FST_REG_USER_ID
+				    ,FNL_EDIT_DT
+				    ,FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          		    #sysCd#
+          		   ,#moduleNm#
+				   ,#perchrgId#
+		           ,SYSDATE
+                   ,#fstRegUserId#
+                   ,SYSDATE
+                   ,#fnlEditUserId#
+				)
+    </insert>
+
+    <!--  시스템 담당자정보 Update -->
+	<update id="updateIdAppnSysDtl" parameterClass="map" >
+        <![CDATA[ /* idAppn.updateIdAppnSysDtl */ ]]>
+    	UPDATE CMAS.CMAA_ID_APPN_SYS_DTL
+				SET PERCHRG_ID = #perchrgId#,
+					FNL_EDIT_DT = SYSDATE,
+				    FNL_EDIT_USER_ID = #fnlEditUserId#
+   		 WHERE SYS_CD = #sysCd#
+   		 AND MODULE_NM = #moduleNm#
+	</update>
+
+    <!--  시스템 담당자정보 Delete -->
+    <delete id="deleteIdAppnSysDtl" parameterClass="map" >
+    	<![CDATA[ /* IdAppn.deleteIdAppnSysDtl */ ]]>
+    	DELETE
+    	  FROM CMAS.CMAA_ID_APPN_SYS_DTL
+         WHERE SYS_CD=#sysCd#
+         AND MODULE_NM=#moduleNm#
+    </delete>
+
+    <!--  시스템신청 정보 Insert -->
+	<insert id="insertIdAppnSys" parameterClass="map" >
+        <![CDATA[ /* idAppn.insertIdAppnSys */ ]]>
+		  INSERT INTO CMAS.CMAA_ID_APPN_SYS
+    	         (
+    	         	USER_ID
+    	            ,SYS_CD
+					,PRIV_CD
+				    ,FST_REG_DT
+				    ,FST_REG_USER_ID
+				    ,FNL_EDIT_DT
+				    ,FNL_EDIT_USER_ID
+				 )
+          VALUES (
+          		    #userId#
+          		   ,#sysCd#
+				   ,NVL(#privCd#,'0')
+		           ,SYSDATE
+                   ,#fstRegUserId#
+                   ,SYSDATE
+                   ,#fnlEditUserId#
+				)
+    </insert>
+
+    <!--  시스템신청 Update -->
+	<update id="updateIdAppnSys" parameterClass="map" >
+        <![CDATA[ /* idAppn.updateIdAppnSys */ ]]>
+    	UPDATE CMAS.CMAA_ID_APPN_SYS
+				SET PRIV_CD = #privCd#,
+					FNL_EDIT_DT = SYSDATE,
+				    FNL_EDIT_USER_ID = #fnlEditUserId#
+   		 WHERE USER_ID = #userId#
+   		 AND SYS_CD=#sysCd#
+	</update>
+
+    <!--  시스템신청 Delete -->
+    <delete id="deleteIdAppnSys" parameterClass="map" >
+    	<![CDATA[ /* IdAppn.deleteIdAppnSys */ ]]>
+    	DELETE
+    	  FROM CMAS.CMAA_ID_APPN_SYS
+         WHERE USER_ID=#userId#
+         AND SYS_CD=#sysCd#
+    </delete>
+
+    <insert id="mergeDaewooEmp" parameterClass="map" >
+        <![CDATA[ /* IdAppn.mergeDaewooEmp */ ]]>
+        MERGE INTO DAEWOO_EMP  <!-- C51S to EHRS.DAEWOO_EMP -->
+        USING DUAL
+        ON (EMP_ID=#userId#)
+        WHEN MATCHED THEN
+        	UPDATE SET
+        		EMP_NM = #userNm#,
+        		EMP_NM_ENG = #userNmEn#,
+        		TITLE_TYPE = #grd#,
+        		POS_TYPE = #grd#,
+        		ORG_ID = #orgCd#,
+        		ORG_NM = #orgNm#,
+        		UP_ORG_ID = '',			<!-- 처리필요 -->
+        		HEAD_ORG_ID = '',		<!-- 처리필요 -->
+        		COMTEL_NO = #compTelno#,
+        		HP_NO = #mphoneNo#,
+        		MOD_USER_ID = #modUserId#,
+        		MOD_DATE = SYSDATE,
+        		FAX_NO = #faxno#,
+        		COM_EMAIL = LOWER(#compMail#),
+        		ID_START_YMD = TO_CHAR(TO_DATE(#stYmd#), 'YYYYMMDD'),
+        		ID_END_YMD = TO_CHAR(TO_DATE(#edYmd#), 'YYYYMMDD'),
+        		SYSTEM_1 = #system1#,
+        		SYSTEM_2 = #system2#,
+        		SYSTEM_3 = #system3#,
+        		SYSTEM_4 = #system4#,
+        		SYSTEM_5 = #system5#,
+        		BAROMI = #system9#,
+        		DUTY_RANK = '9999'
+        WHEN NOT MATCHED THEN
+			INSERT
+			(
+				EMP_ID
+				,EMP_NM
+				,EMP_NM_ENG
+				,TITLE_TYPE
+				,POS_TYPE
+				,ORG_ID
+				,ORG_NM
+				,UP_ORG_ID
+				,HEAD_ORG_ID
+				,COMTEL_NO
+				,HP_NO
+				,MOD_USER_ID
+				,MOD_DATE
+				,FAX_NO
+				,COM_EMAIL
+				,ID_START_YMD
+				,ID_END_YMD
+				,SYSTEM_1
+				,SYSTEM_2
+				,SYSTEM_3
+				,SYSTEM_4
+				,SYSTEM_5
+				,BAROMI
+				,DUTY_RANK
+			)
+			VALUES
+			(
+				#userId#
+				,#userNm#
+				,#userNmEn#
+				,#grd#
+				,#grd#
+				,#orgCd#
+				,#orgNm#
+				,''				<!-- 처리필요 -->
+				,''				<!-- 처리필요 -->
+				,#compTelno#
+				,#mphoneNo#
+				,#modUserId#
+				,SYSDATE
+				,#faxno#
+				,LOWER(#compMail#)
+				,TO_CHAR(TO_DATE(#stYmd#), 'YYYYMMDD')
+				,TO_CHAR(TO_DATE(#edYmd#), 'YYYYMMDD')
+				,#system1#
+				,#system2#
+				,#system3#
+				,#system4#
+				,#system5#
+				,#system9#
+				,'9999'
+			)
+    </insert>
+
+    <!-- DAEWOO_EMP 입력 데이터 조회 -->
+    <select id="retrieveIdAppnDtlForDaewooEmp" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.DaewooEmp" >
+        <![CDATA[ /* idAppn.retrieveIdAppnDtlForDaewooEmp */ ]]>
+        SELECT DOC_NO,
+		       ORG_CD AS ORG_ID,
+		       ORG_NM AS ORG_NM,
+		       USER_ID AS EMP_ID,
+		       USER_NM AS EMP_NM,
+		       USER_NM_EN AS EMP_NM_ENG,
+		       GRD AS TITLE_TYPE,
+		       GRD AS POS_TYPE,
+		       TO_CHAR(TO_DATE(ST_YMD), 'YYYY-MM-DD') AS ID_START_YMD,
+		       TO_CHAR(TO_DATE(ED_YMD), 'YYYY-MM-DD') AS ID_END_YMD,
+		       COMP_MAIL AS COM_EMAIL,
+		       MPHONE_NO AS HP_NO,
+		       COMP_TELNO AS COMTEL_NO,
+		       FAXNO AS FAX_NO,
+		       MEMO AS NOTE,
+		       SYSTEM1 AS SYSTEM_1,
+		       SYSTEM2 AS SYSTEM_2,
+		       SYSTEM3 AS SYSTEM_3,
+		       SYSTEM4 AS SYSTEM_4,
+		       SYSTEM5 AS SYSTEM_5,
+		       SYSTEM6 AS SYSTEM_6,
+		       SYSTEM7 AS SYSTEM_7,
+		       SYSTEM8 AS SYSTEM_8,
+		       SYSTEM9 AS SYSTEM_9,
+		       SYSTEM10 AS SYSTEM_10,<!--똑바로안전////-->
+		       SYSTEM11 AS SYSTEM_11,<!--똑바로안전////-->
+		       EMPMT_NO AS EMPMT_NO,	<!--(테스트를 위해 commit만 했음)-->
+			   (SELECT X.USER_ID FROM CMAA_ID_APPN X WHERE X.DOC_NO = #docNo#) AS APPN_USER_ID,
+			   (SELECT Y.USER_KNM FROM CMAA_ID_APPN X, CO_USER Y WHERE X.USER_ID = Y.USER_ID AND X.DOC_NO = #docNo#) AS APPN_USER_NM,
+			   (SELECT X.ORG_NM FROM CMAA_ID_APPN X WHERE X.DOC_NO = #docNo#) AS APPN_ORG_NM
+		  FROM
+		       (SELECT DTL.*,
+		              SYS.SYS_CD,
+		              CASE NVL(SYS.PRIV_CD, '0')
+	                  WHEN '0' THEN PRIV_CD
+	                  WHEN '2' THEN PRIV_CD
+	                  WHEN '3' THEN PRIV_CD /*수정한 부분*/
+	                  WHEN 'RO_MSGR_CO_TMPID2' THEN '2'
+	                  ELSE '1'
+	                  END PRIV_CD
+		         FROM CMAS.CMAA_ID_APPN_DTL DTL,
+		              CMAS.CMAA_ID_APPN_SYS SYS
+		        WHERE DTL.USER_ID = SYS.USER_ID
+		          AND DTL.DOC_NO = #docNo#
+		       ) PIVOT (MAX(PRIV_CD) FOR SYS_CD IN ('01' AS SYSTEM1,'02' AS SYSTEM2,'03' AS SYSTEM3,'04' AS SYSTEM4,'05' AS SYSTEM5,'06' AS SYSTEM6,'07' AS SYSTEM7,'08' AS SYSTEM8,'09' AS SYSTEM9, '10' AS SYSTEM10, '11' AS SYSTEM11 <!-- 10,11//// -->))
+    </select>
+
+    <!--  확인 기능 Update -->
+	<update id="confirmIdAppnDtl" parameterClass="map" >
+        <![CDATA[ /* idAppn.confirmIdAppnDtl */ ]]>
+    	UPDATE CMAS.CMAA_ID_APPN_DTL
+				SET CF_YN = 'Y'
+   		 WHERE DOC_NO = #docNo#
+   		 AND USER_ID = #userId#
+	</update>
+
+	<!-- 임시 권한 부여 시작 -->
+	<insert id="insertCoUserCtgPriv" parameterClass="map" >
+        <![CDATA[ /* idAppn.insertCoUserCtgPriv */ ]]>
+		  INSERT INTO CSYS.CO_USER_CTG_PRIV
+    	         (
+    	         	SYS_CD
+    	         	,PRIV_USER_ID
+    	         	,PRIV_CD
+    	         	,PRIV_USER_CLS
+    	         	,SITE_CD
+    	         	,ARRAY_ORD
+    	         	,PRIV_ST_YMD
+    	         	,PRIV_ED_YMD
+    	         	,REM
+    	         	,FST_REG_DT
+    	         	,FST_REG_USER_ID
+    	         	,FNL_EDIT_DT
+    	         	,FNL_EDIT_USER_ID
+    	         	,OGG_CD
+    	         	,OGG_TIME
+				 )
+          (SELECT
+					SYS_CD,
+			        PRIV_USER_ID,
+			        TRIM(REGEXP_SUBSTR(PRIV_CD, '[^,]+', 1, LEVEL)) AS PRIV_CD,
+					PRIV_USER_CLS,
+			        SITE_CD,
+			        ARRAY_ORD,
+			        ST_YMD,
+			        ED_YMD,
+			        REM,
+			        FST_REG_DT,
+			        FST_REG_USER_ID,
+			        FNL_REG_DT,
+			        FNL_REG_USER_ID,
+			        OGG_CD,
+			        OGG_TIME
+			FROM (
+			SELECT
+					CASE SYS.SYS_CD
+			           WHEN '02'
+			           THEN 'icms'
+			           WHEN '03'
+			           THEN 'msgr'
+			           WHEN '06'
+			           THEN 'imms'
+			           WHEN '08'
+			           THEN 'poms'
+			           WHEN '10'     <!--////-->
+			           THEN 'ssfs'   <!--////-->
+			           WHEN '11'     <!--////-->
+			           THEN 'ssms'   <!--////-->
+			  		END SYS_CD,
+					DTL.USER_ID AS PRIV_USER_ID,
+			    	SYS.PRIV_CD AS PRIV_CD,
+			        'U' AS PRIV_USER_CLS,
+                    CASE ORG.ORG_CHRC_CLS
+                    WHEN 'C' THEN
+                      ORG.ORG_CD
+                    WHEN 'J' THEN
+                      ORG.ORG_CD
+                    ELSE
+                      '00000'
+                    END SITE_CD,
+			        ROWNUM AS ARRAY_ORD,
+			        DTL.ST_YMD,
+					DTL.ED_YMD,
+			        '' AS REM,
+					SYSDATE AS FST_REG_DT,
+					'CMASID' AS FST_REG_USER_ID,
+					SYSDATE AS FNL_REG_DT,
+					'CMASID' AS FNL_REG_USER_ID,
+			  		'100' AS OGG_CD,
+					SYSDATE AS OGG_TIME
+			  FROM CMAA_ID_APPN_DTL DTL,
+			       CMAA_ID_APPN_SYS SYS,
+                   CO_ORG ORG
+			 WHERE DTL.USER_ID=SYS.USER_ID
+                   AND ORG.ORG_CD = DTL.ORG_CD
+			       AND DTL.ED_YMD IS NOT NULL
+			       AND SYS.PRIV_CD NOT IN ('0', '1')
+			       AND SYS.SYS_CD = #sysCd#
+			       AND DTL.USER_ID = #userId#)
+			 CONNECT BY LEVEL &lt;= REGEXP_COUNT(PRIV_CD, '[^,]+'))
+    </insert>
+
+    <insert id="insertCoUserCtgPrivForIMMS" parameterClass="map" >
+        <![CDATA[ /* idAppn.insertCoUserCtgPrivForIMMS */ ]]>
+		  INSERT INTO CSYS.CO_USER_CTG_PRIV
+	       (
+	           SYS_CD ,
+	           PRIV_USER_ID ,
+	           PRIV_CD ,
+	           PRIV_USER_CLS ,
+	           SITE_CD ,
+	           ARRAY_ORD ,
+	           PRIV_ST_YMD ,
+	           PRIV_ED_YMD ,
+	           REM ,
+	           FST_REG_DT ,
+	           FST_REG_USER_ID ,
+	           FNL_EDIT_DT ,
+	           FNL_EDIT_USER_ID ,
+	           OGG_CD ,
+	           OGG_TIME
+	       )
+	       (SELECT
+	        'imms' AS SYS_CD,
+	        DTL.USER_ID AS PRIV_USER_ID,
+	        'RO_IMMS_MA_009' AS SYS_CD,
+	        'U' AS PRIV_USER_CLS,
+	        CASE ORG.ORG_CHRC_CLS
+	            WHEN 'C'
+	            THEN ORG.ORG_CD
+	            WHEN 'J'
+	            THEN ORG.ORG_CD
+	            ELSE '00000'
+	        END SITE_CD,
+	        ROWNUM AS ARRAY_ORD,
+	        DTL.ST_YMD,
+	        DTL.ED_YMD,
+	        '' AS REM,
+	        SYSDATE AS FST_REG_DT,
+	        'CMASID' AS FST_REG_USER_ID,
+	        SYSDATE AS FNL_REG_DT,
+	        'CMASID' AS FNL_REG_USER_ID,
+	        '100' AS OGG_CD,
+	        SYSDATE AS OGG_TIME
+	   FROM CMAA_ID_APPN_DTL DTL,
+	        CO_ORG ORG
+	  WHERE
+	        ORG.ORG_CD = DTL.ORG_CD
+	        AND DTL.ED_YMD IS NOT NULL
+	        AND DTL.USER_ID = #userId#)
+    </insert>
+	<!-- 임시 권한 부여 끝 -->
+
+	<!-- 어제날짜 SVPN 해지ID 조회 -->
+    <select id="retrieveSvpnExpId" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.DaewooEmp">
+        <![CDATA[ /* idAppn.retrieveSvpnExpId */ ]]>
+        SELECT
+        	EMP_ID,
+        	EMP_NM,
+        	ORG_NM,
+        	ID_END_YMD
+        FROM DAEWOO_EMP
+        WHERE SYSTEM_5='1'
+        AND ID_END_YMD = TO_CHAR(SYSDATE-1, 'YYYYMMDD')
+    </select>
+
+    <!-- 종료 예정ID 조회 -->
+    <select id="retrieveExpId" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.DaewooEmp">
+        <![CDATA[ /* idAppn.retrieveExpId */ ]]>
+        SELECT
+        	EMP_ID,
+        	EMP_NM,
+        	ORG_NM,
+        	ID_END_YMD,
+        	COM_EMAIL,
+        	SYSTEM_4
+        FROM DAEWOO_EMP
+        WHERE ID_END_YMD = TO_CHAR(SYSDATE+#before#, 'YYYYMMDD')
+    </select>
+
+    <!-- 종료 예정ID 조회(종료예정 메일발송용) -->
+    <select id="retrieveExpIdForMail" parameterClass="map" resultClass="com.dwenc.cmas.id.domain.IdAppnDtl">
+        <![CDATA[ /* idAppn.retrieveExpIdForMail */ ]]>
+        SELECT DOC.USER_ID AS APPN_USER_ID,
+			   SUBSTR(XMLAGG(XMLELEMENT(DTL,',', DTL.USER_ID || ' (' || DTL.ORG_NM || ' ' || DTL.USER_NM || ')')ORDER BY DTL.USER_ID).EXTRACT('//text()').GETCLOBVAL(),2)AS USER_ID
+			   FROM CMAS.CMAA_ID_APPN DOC,
+		       CMAS.CMAA_ID_APPN_DTL DTL
+		 WHERE DOC.DOC_NO=DTL.DOC_NO
+		 	   AND DTL.USE_YN = 'Y'
+		       AND DTL.USER_ID IN <iterate property="userIdList" open="(" close=")" conjunction=",">#userIdList[]#</iterate>
+		 GROUP BY DOC.USER_ID
+    </select>
+
+</sqlMap>

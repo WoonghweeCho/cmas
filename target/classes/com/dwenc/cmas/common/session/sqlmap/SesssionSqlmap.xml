@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : Session
+* 설    명 : 메뉴즐겨찾기 데이타 처리 SQL
+* 작 성 자 : 이재열
+* 작성일자 : 2011-12-01
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* selectCoMenuBkmrkList 메뉴즐겨찾기 정보 검색
+* insertCoMenuBkmrk     메뉴즐겨찾기 정보 1건 추가
+* updateCoMenuBkmrk     메뉴즐겨찾기 정보 1건 수정
+* deleteCoMenuBkmrk     메뉴즐겨찾기 정복 1건 삭제
+* retrieveAdminSysCd    사용자별 admin 권한을 가진 시스템 코드 조회
+*************************************************************************************-->
+<sqlMap namespace="Session">
+
+
+	<!-- 조건에 의한 조회 -->
+	<select id="selectCoMenuBkmrkList" parameterClass="map" resultClass="com.dwenc.cmas.common.session.domain.CoMenuBkmrk">
+	<![CDATA[ /* Session.selectCoMenuBkmrkList */ ]]>
+	SELECT B.SYS_CD
+ 	     , A.USER_ID
+ 	     , A.MENU_ID
+ 	     , A.ARRAY_ORD
+ 	     , A.USE_YN
+	     , TO_CHAR(A.FST_REG_DT,'YYYYMMDDHH24MISS') AS FST_REG_DT
+ 	     , A.FST_REG_USER_ID
+	     , TO_CHAR(A.FNL_EDIT_DT,'YYYYMMDDHH24MISS') AS FNL_EDIT_DT
+ 	     , A.FNL_EDIT_USER_ID
+ 	     , B.MENU_NM
+	  FROM CO_MENU_BKMRK A
+	  JOIN CO_MENU       B ON A.MENU_ID = B.MENU_ID
+	 WHERE B.SYS_CD = #sysCd#
+	   AND A.USER_ID = #userId#
+	 ORDER BY A.ARRAY_ORD
+	</select>
+
+	<!-- MODEL로 추가-->
+	<insert id="insertCoMenuBkmrk" parameterClass="com.dwenc.cmas.common.session.domain.CoMenuBkmrk">
+	<![CDATA[ /* Session.insertCoMenuBkmrk */ ]]>
+	INSERT INTO CO_MENU_BKMRK
+	(
+     	   USER_ID
+ 	     , MENU_ID
+ 	     , ARRAY_ORD
+ 	     , USE_YN
+ 	     , FST_REG_DT
+ 	     , FST_REG_USER_ID
+ 	     , FNL_EDIT_DT
+ 	     , FNL_EDIT_USER_ID
+				, OGG_CD
+				, OGG_TIME
+					)
+	VALUES
+	(
+	      #userId#
+	    , #menuId#
+	    , #arrayOrd#
+	    , #useYn#
+	    , SYSDATE
+	    , #fstRegUserId#
+	    , SYSDATE
+	    , #fnlEditUserId#
+	, #oggCd#
+				, TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+				)
+	</insert>
+
+	<!-- MODEL로 수정 -->
+	<update id="updateCoMenuBkmrk" parameterClass="com.dwenc.cmas.common.session.domain.CoMenuBkmrk">
+	<![CDATA[ /* Session.updateCoMenuBkmrk */ ]]>
+     UPDATE CO_MENU_BKMRK
+        SET ARRAY_ORD   = #arrayOrd#
+          , USE_YN      = #useYn#
+          , FNL_EDIT_DT = SYSDATE
+          , FNL_EDIT_USER_ID = #fnlEditUserId#
+				
+				, OGG_TIME  = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	  WHERE USER_ID = #userId#
+       AND MENU_ID  = #menuId#
+	</update>
+
+	<!-- MODEL로 삭제	-->
+	<delete id="deleteCoMenuBkmrk" parameterClass="com.dwenc.cmas.common.session.domain.CoMenuBkmrk">
+	<![CDATA[ /* Session.deleteCoMenuBkmrk */ ]]>
+	DELETE FROM CO_MENU_BKMRK
+	 WHERE USER_ID = #userId#
+       AND MENU_ID = #menuId#
+	</delete>
+
+	 <!-- 사용자별 admin 권한을 가진 시스템 코드 조회 system admin 체크를 위해 추가 2012-05-24 변형구  -->
+    <resultMap class="java.util.Map" id="sysCdMap">
+	   <result property="sysCd" column="SYS_CD"/>
+	   <result property="sysNm" column="SYS_NM"/>
+	</resultMap>
+    <select id="retrieveAdminSysCd" parameterClass="map" resultMap="sysCdMap" >
+    <![CDATA[ /* Session.retrieveAdminSysCd */ ]]>
+
+	    SELECT
+             	DISTINCT B.SYS_CD, C.SYS_NM || '(' || B.SYS_CD || ')' AS SYS_NM
+ 		  FROM
+             	CO_USER_CTG_PRIV A
+        LEFT JOIN CO_PRIV B ON ( A.PRIV_CD = B.PRIV_CD )
+        LEFT JOIN CO_SYS C  ON ( A.SYS_CD = C.SYS_CD)
+        WHERE A.PRIV_USER_ID = #userId#
+        <![CDATA[
+          AND A.PRIV_ST_YMD <= TO_CHAR(SYSDATE, 'YYYYMMDD')
+          AND A.PRIV_ED_YMD >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+        ]]>
+          AND B.ADMIN_YN     = 'Y'
+          AND B.USE_YN       = 'Y'
+          AND C.USE_YN       = 'Y'
+
+    </select>
+	 <!-- 권한별 현장유형  -->
+    <resultMap class="java.util.Map" id="privTpMap">
+	   <result property="sysCd" column="SYS_CD"/>
+	   <result property="privTpCd" column="PRIV_TP_CD"/>
+	   <result property="privCd" column="PRIV_CD"/>
+	   <result property="qrylang" column="QRYLANG"/>
+	</resultMap>
+
+    <select id="retrievePrivTpList" parameterClass="map" resultMap="privTpMap" >
+    <![CDATA[ /* Session.retrievePrivTpList */ ]]>
+		SELECT A.SYS_CD, A.PRIV_TP_CD, B.PRIV_CD
+		     , CASE A.PRIV_TP_CLS
+               WHEN 'A' THEN
+                   A.QRYLANG
+               ELSE
+                   TO_CLOB('( SELECT ORG_CD FROM CO_PRIV_CTG_SITE WHERE PRIV_TP_CD = ''' ||A.PRIV_TP_CD||''' AND PRIV_CD = '''||B.PRIV_CD||''' )'  )
+           END QRYLANG
+		FROM CO_PRIV_TP A
+		INNER JOIN CO_PRIV_TP_CTG_PRIV B ON A.SYS_CD = B.SYS_CD AND A.PRIV_TP_CD = B.PRIV_TP_CD
+		WHERE A.SYS_CD = #sysCd#
+    </select>
+</sqlMap>

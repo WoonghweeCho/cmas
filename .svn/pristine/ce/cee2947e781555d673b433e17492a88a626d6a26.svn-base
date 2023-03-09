@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>::: Download for barocon installation :::</title>
+		<link type="text/css" href="common/css/redmond/jquery-ui-1.7.3.custom.css" rel="stylesheet" />
+		<script type="text/javascript" src="common/js/jquery-1.3.2.min.js"></script>
+		<script type="text/javascript" src="common/js/jquery-ui-1.7.3.custom.min.js"></script>
+		<script type="text/javascript">
+			$(function(){
+
+				// Accordion
+				$("#accordion").accordion({ header: "h3" });
+
+				// Tabs
+				$('#tabs').tabs();
+
+
+
+				// Datepicker
+				$('#datepicker').datepicker({
+					inline: true
+				});
+
+				// Slider
+				$('#slider').slider({
+					range: true,
+					values: [17, 67]
+				});
+
+				// Progressbar
+				$("#progressbar").progressbar({
+					value: 20
+				});
+
+				//hover states on the static widgets
+				$('#dialog_link, ul#icons li').hover(
+					function() { $(this).addClass('ui-state-hover'); },
+					function() { $(this).removeClass('ui-state-hover'); }
+				);
+
+
+			});
+		</script>
+
+
+		<script type="text/javascript">
+		function ActiveXInspection(ProgId){
+		  var isInstall = false;
+		  try {
+		    var obj = new ActiveXObject(ProgId);
+		    if (obj) return true;
+		  } catch (e) {
+		    return false;
+		  }
+
+		  return false;
+		}
+
+
+
+		function ActiveXInspectionInnerHtml(class_id,ProgId,down_url){
+
+			var isInstall=ActiveXInspection(ProgId);
+			var exp_url;
+			if(isInstall){
+
+			 exp_url="<p>Installed</p>";
+
+			}else{
+				 //exp_url="<p><a href='"+down_url+"' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>DownLoad</a></p>";
+				  exp_url="<p><font color=red>N/A</font></p>";
+
+			}
+
+		$('#'+class_id).html(exp_url);
+
+		return exp_url ;
+		}
+
+
+
+
+
+
+
+$(function(){
+
+
+		ActiveXInspectionInnerHtml('code1_xplatform','XPlatformAX.XPlatformAXCtrl92.1','../ManualDeploy/TOBESOFT/XPLATFORM9.2_SetupEngine.exe');
+		ActiveXInspectionInnerHtml('code2_xplatformLancher','XLauncher.Cy_XLauncher.1','../ManualDeploy/TOBESOFT/XPLATFORM9.2_SetupEngine.exe');
+		ActiveXInspectionInnerHtml('code3_jre','JavaPlugin.160_33','../ManualDeploy/JRE/jre-6u33-windows-i586.exe');
+		ActiveXInspectionInnerHtml('code4_eSonicLinker','ESONICLINKER.ESonicLinkerCtrl.1','../ManualDeploy/ecm/eSonicLinker.exe');
+
+	    ActiveXInspectionInnerHtml('code14_eSonicLinker','ESONICLINKER.ESonicLinkerCtrl.1','../ManualDeploy/ecm/extra/eSonicLinker.exe');
+
+	    ActiveXInspectionInnerHtml('code5_rexpert30','ClipSoft.RexViewer30Ctrl.1','../ManualDeploy/rexpert/rexpert30viewer.exe');
+	    ActiveXInspectionInnerHtml('code6_papyrus','nppapyrus.PapyrusPlugIn.1','../ManualDeploy/pdfviewer/Papyrus-PlugIn.exe');
+		ActiveXInspectionInnerHtml('code7_Foxit','Foxit.FoxitPDFSDKProCtrl.4','../ManualDeploy/pdfFoxit/PDFCommunicatorReader.msi');
+		ActiveXInspectionInnerHtml('code8_OfficeViewer','EDOFFICE.EDOfficeCtrl.1','../ManualDeploy/edofficeviewer/EdOfficeViewer.exe');
+
+		ActiveXInspectionInnerHtml('code9_miplatform','Cy_MiInstaller3.CyMiInstaller321.1','../ManualDeploy/TOBESOFT/MiPlatform320u_ecos_setup20120717.exe');
+		ActiveXInspectionInnerHtml('code10_rexpert25','Rexviewer.RexViewerCtrl25U.1','../ManualDeploy/ecos/Rexpert25ViewerU.exe');
+		ActiveXInspectionInnerHtml('code11_AxECM','AxECM.Viewer','../ManualDeploy/ecos/ecos_AxEcm.exe');
+		ActiveXInspectionInnerHtml('code12_SecuTax','Signgate.SecuTax.Client.SGSecuTax','../ManualDeploy/ecos/SecutaxInstaller_full.exe');
+		ActiveXInspectionInnerHtml('code13_Singate','SGCAPPATX.SGCAppAtxCtrl.1','../ManualDeploy/ecos/ewsinstaller_full.exe');
+
+
+});
+
+
+
+
+
+		</script>
+
+
+
+
+
+
+
+		<style type="text/css">
+			/*demo page css*/
+			body{ font: 70.5% "Trebuchet MS", sans-serif; margin: 50px;}
+			.demoHeaders { margin-top: 2em; }
+			#dialog_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
+			#dialog_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
+			ul#icons {margin: 0; padding: 0;}
+			ul#icons li {margin: 2px; position: relative; padding: 4px 0; cursor: pointer; float: left;  list-style: none;}
+			ul#icons span.ui-icon {float: left; margin: 0 4px;}
+
+
+
+			.tableType01 {width:100%;border-bottom:1px solid #ccc;table-layout:fixed;z-index:10;}
+			.tableType01{table-layout:auto !important}
+			.tableType01 th {padding:6px 3px 5px 3px;text-align:center;font-weight:normal;background:#f6f6f5;border-top:1px solid #ccc;border-right:1px solid #e6e5e5;border-bottom:1px solid #e6e5e5}
+			.tableType01 th.th01{background:#fcfcfc;border-top:1px solid #e6e5e5;}
+			.tableType01 th.th02{font-weight:bold;background:#fff}
+			.tableType01 th.th03{border-top:1px solid #e6e5e5}
+			.tableType01 th.last{border-bottom:1px solid #ccc}
+			.tableType01 th img {vertical-align:middle;padding-bottom:3px}
+			.tableType01 td {height:20px;padding:6px 3px 4px 3px;text-align:center;border-top:1px solid #e6e5e5;border-right:1px solid #e6e5e5;background:#fff;word-wrap:break-word;word-break:normal;*word-wrap:normal}
+			.tableType01 .tLeft {padding-left:10px !important;text-align:left}
+			.tableType01 .tbLeft {padding:15px 0 15px 15px;text-align:left}
+			.tableType01 .tRight {padding-right:5px;text-align:right}
+			.tbl_btn{padding:11px 20px 11px 0 !important;border-right:none !important;text-align:right !important;background:#f9f9f9 !important}
+			.tbl_btn .btn{margin-left:3px}
+			.tableType01 tfoot td{padding:11px 0 9px 13px;text-align:left;border-right:none;background:#f9f9f9}
+			.tableType01 tfoot td span{padding-right:18px}
+
+
+			.nbr {border-right:none !important;}
+			.s1{margin-top:10px !important}
+
+		</style>
+	</head>
+	<body>
+
+
+ <table align="center" width="90%">
+
+  <tr><td><h1>Download for barocon installation</h1></td></tr>
+  <tr><td>
+
+		<table  class="tableType01 s1" width="100%" >
+		    <colgroup>
+		      <col width="40%" />
+		      <col  />
+		    </colgroup>
+		<thead>
+		</thead>
+		<tbody>
+
+		 <tr>
+		    <td class="tLeft">
+			<button  class="ui-state-default ui-corner-all" style="cursor:hand" onclick="window.open('./install_barocon.jsp', '_activeX_Barocon_', 'width=610,height=300,scrollbars=auto');"	>[Automatic installer for Barocon exclusive utilities]</button>
+			 </td>
+			 <td class="nbr">When you select it, a install window will be closed right after automatic activex installation.. </td>
+		  </tr>
+
+		 <tr>
+		    <td class="tLeft">
+			 <button  class="ui-state-default ui-corner-all" style="cursor:hand" onclick="window.open('http://dwecos.dwconst.co.kr/lib/miplatform_deploy/baroconInstall.jsp', '_ecosInstall_', 'width=800,height=500,scrollbars=yes');"	>[Automatic installer for (  eCos  ) exclusive utilities]</button>
+			 </td>
+			 <td class="nbr"> When you select it, a install window will be closed right after automatic activex installation. </td>
+		  </tr>
+		</tbody>
+		</table>
+
+	   </td></tr>
+	  <tr><td>
+
+
+
+
+	<!-- Tabs -->
+
+		<div id="tabs">
+			<ul>
+				<li><a href="#tabs-1">Download only for each barocon application</a></li>
+				<li><a href="#tabs-2">Download only for each eCos application</a></li>
+				<li><a href="#tabs-3">Integrated instatllation</a></li>
+				<li><a href="#tabs-4">Help desk</a></li>
+			</ul>
+
+			<div id="tabs-1">
+
+
+				<table class="tableType01 s1" width="100%" >
+				    <colgroup>
+				      <col width="20%" />
+				       <col width="6%" />
+				      <col />
+				      <col width="5%" />
+				      <col width="15%" />
+				    </colgroup>
+				<thead>
+				<tr>
+				    <th scope="col">Utility Name</th>
+				    <th scope="col">Version</th>
+				    <th scope="col">Description</th>
+				    <th scope="col">Size</th>
+				    <th scope="col">Install</th>
+				    <th class="nbr">Download</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+				    <td class="tLeft">
+				  		X-PLATFORM 9.2
+				    </td>
+				    <td class="tCenter">9.2</td>
+				    <td class="tLeft">Platform for Barocon</td>
+				    <td class="tCenter">13.7M</td>
+   					<td class="tCenter"><div id="code1_xplatform"></div></td>
+   					<td class="nbr"><p><a href='../ManualDeploy/TOBESOFT/XPLATFORM9.2_SetupEngine.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>download</a></p></td>
+				</tr>
+
+
+
+				<tr>
+				    <td class="tLeft">Gantt chart(JRE) viewer</td>
+				    <td class="tCenter">1.6</td>
+				    <td class="tLeft">Chart viewr for Project business, Estimate business</td>
+				    <td class="tCenter">20.8M</td>
+				    <td class="tCenter"><div id="code3_jre"></div></td>
+				    <td class="nbr"><p><a href='../ManualDeploy/JRE/jre-6u33-windows-i586.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>download</a></p></td>
+				</tr>
+
+
+
+				<tr>
+				    <td class="tLeft">ECM</td>
+				    <td class="tCenter">3.0.0.4</td>
+				    <td class="tLeft">upload / download component for attathment</td>
+				    <td class="tCenter">0.2M</td>
+				    <td class="tCenter"><div id="code4_eSonicLinker"></div></td>
+				    <td class="nbr"><p><a href='../ManualDeploy/ecm/eSonicLinker.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>download</a></p></td>
+				</tr>
+
+
+				<tr>
+				    <td class="tLeft">ECM(Subcontractor)</td>
+				    <td class="tCenter">3.0.0.5</td>
+				    <td class="tLeft">upload / download component for attathment</td>
+				    <td class="tCenter">0.2M</td>
+				    <td class="tCenter"><div id="code14_eSonicLinker"></div></td>
+				    <td class="nbr"><p><a href='../ManualDeploy/ecm/extra/eSonicLinker.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>download</a></p></td>
+				</tr>
+
+				<tr>
+				    <td class="tLeft">Rexpert 3.0</td>
+				    <td class="tCenter">3.0</td>
+				    <td class="tLeft">Report tool for tax bill supporting</td>
+				    <td class="tCenter">4.6M</td>
+				    <td class="tCenter"><div id="code5_rexpert30"><p><a href="../ManualDeploy/rexpert/rexpert30viewer.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>DownLoad</a></p>
+				    </div>
+				    </td>
+				    <td class="nbr"><p><a href='../ManualDeploy/rexpert/rexpert30viewer.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>download</a></p></td>
+				</tr>
+
+
+				<tr>
+				    <td class="tLeft">PDF Viewer(ePapyrus)</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">for barocon electronic approval system</td>
+				    <td class="tCenter">15.2M</td>
+				    <td class="tCenter"><div id="code6_papyrus"><p><a href="../ManualDeploy/pdfviewer/Papyrus-PlugIn.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>DownLoad</a></p>
+				    </div>
+				    </td>
+				    <td class="nbr"><p><a href='../ManualDeploy/pdfviewer/Papyrus-PlugIn.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>DownLoad</a></p></td>
+				</tr>
+
+				<tr>
+				    <td class="tLeft">PDF View(Foxit)</td>
+				    <td class="tCenter">5.0.0.2</td>
+				    <td class="tLeft">PDF reader for document management business</td>
+				    <td class="tCenter">7.2M</td>
+				    <td class="tCenter"><div id="code7_Foxit"></div></td>
+				    <td class="nbr"><p><a href='../ManualDeploy/pdfFoxit/PDFCommunicatorReader.msi' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>DownLoad</a></p></td>
+				</tr>
+
+				<tr>
+				    <td class="tLeft">Office viewer</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">Installation for MS office file viewer</td>
+				    <td class="tCenter">2.4M</td>
+ 					<td class="tCenter"><div id="code8_OfficeViewer"></div></td>
+ 					<td class="nbr"><p><a href='../ManualDeploy/edofficeviewer/EdOfficeViewer.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>DownLoad</a></p></td>
+
+				</tr>
+
+
+				<tr>
+				    <td class="tLeft">Hangul extended component</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">Hangul Security Information pop-up removal patch </td>
+				    <td class="tCenter">120 KB</td>
+				    <td class="tCenter">-</td>
+ 					<td class="nbr"><p><a href='../BarconInstall/hwpModule.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>DownLoad</a></p></td>
+				</tr>
+
+				<tr>
+				    <td class="tLeft">DRM(32Bit)</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">Installation for DRM 32Bit (Caution : only 32bit OS available.)</td>
+				    <td class="tCenter">20.6 MB</td>
+ 					<td class="tCenter">-</td>
+ 					<td class="nbr"><p><a href='../BarconInstall/docsafer_Ext.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>DownLoad</a></p></td>
+				</tr>
+
+				<tr>
+				    <td class="tLeft">DRM(64Bit)</td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">Installation for DRM 64Bit (Caution : only 64bit OS available.)</td>
+				    <td class="tCenter">30.4 MB</td>
+ 					<td class="tCenter">-</td>
+ 					<td class="nbr"><p><a href='../BarconInstall/docsaferx64_Ext.exe' id='dialog_link' class='ui-state-default ui-corner-all'><span class='ui-icon ui-icon-newwin'></span>DownLoad</a></p></td>
+				</tr>
+
+
+				</tbody>
+				</table>
+
+
+
+
+
+
+			</div>
+			<div id="tabs-2">
+
+
+				<table class="tableType01 s1" width="100%" >
+					<colgroup>
+					  <col width="20%" />
+					  <col width="6%" />
+					  <col />
+					  <col width="5%" />
+					  <col width="15%" />
+					</colgroup>
+				<thead>
+				<tr>
+					<th scope="col">Utility Name</th>
+					<th scope="col">Version</th>
+					<th scope="col">Description</th>
+					<th scope="col">Size</th>
+					<th class="nbr">Download</th>
+				</tr>
+				</thead>
+				<tbody>
+
+				<tr>
+					<td class="tLeft">
+						MI-PLATFORM 3.2
+					</td>
+					<td class="tCenter">3.2</td>
+					<td class="tLeft">Platform for eCos</td>
+					<td class="tCenter">7.7M</td>
+					<td class="nbr"><div id="code9_miplatform"></div></td>
+				</tr>
+
+
+				<tr>
+					<td class="tLeft">
+						Rexpert2.5
+					</td>
+					<td class="tCenter">2.5.1.158</td>
+					<td class="tLeft">Report tool for eCos tax bill</td>
+					<td class="tCenter">10.1M</td>
+					<td class="nbr"><div id="code10_rexpert25"></div></td>
+				</tr>
+
+
+				<tr>
+					<td class="tLeft">
+						AxECM
+					</td>
+					<td class="tCenter">1.0.01</td>
+					<td class="tLeft">Upload / download component for eCose files</td>
+					<td class="tCenter">0.1M</td>
+					<td class="nbr"><div id="code11_AxECM"></div></td>
+				</tr>
+				<tr>
+					<td class="tLeft">
+						Secutax
+					</td>
+					<td class="tCenter">2.0.1.4</td>
+					<td class="tLeft">Authentication Module for eCos tax bill report - KICA inc.</td>
+					<td class="tCenter">3.7M</td>
+					<td class="nbr"><div id="code12_SecuTax"></div></td>
+
+				</tr>
+
+				<tr>
+					<td class="tLeft">
+						KICA inc. Encryption toolkit
+					</td>
+					<td class="tCenter">4.0.1.7</td>
+					<td class="tLeft">Authentication Module for eCos contract job - KICA inc.</td>
+					<td class="tCenter">3.5M</td>
+					<td class="nbr"><div id="code13_Singate"></div></td>
+
+				</tr>
+
+				</tbody>
+				</table>
+
+
+			</div>
+
+
+
+
+
+
+
+
+
+
+			<div id="tabs-3">
+
+
+				<table class="tableType01 s1" width="100%" >
+				    <colgroup>
+				      <col width="20%" />
+				      <col width="6%" />
+				      <col />
+				      <col width="5%" />
+				      <col width="15%" />
+				    </colgroup>
+				<thead>
+				<tr>
+				    <th scope="col">Utility Name</th>
+				    <th scope="col">Version</th>
+				    <th scope="col">Description</th>
+				    <th scope="col">Size</th>
+				    <th class="nbr">Download</th>
+				</tr>
+				</thead>
+				<tbody>
+
+				<tr>
+				    <td class="tLeft">
+				  		Barocon integrated installation version<br/>
+				    </td>
+				    <td class="tCenter">1.3</td>
+				    <td class="tLeft">X-Platform 9.2,ECM ,PDF Reader(Papyrus),PDF Reader(foxit),<BR/>
+				    				  RexPert3.0 MI-Platform 3.2,SIGNGATE, <BR/>AxEcm,RexPert2.5,SGSeuTax</td>
+				    <td class="tCenter">106M</td>
+				    <td class="nbr"><p><a href="../BarconInstall/Barocon_Install.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>DownLoad</a></p></td>
+				</tr>
+
+
+
+				<tr>
+				    <td class="tLeft">
+				  		Exclusive barocon version<br/>(Except for eCos Util)
+				    </td>
+				    <td class="tCenter">1.3</td>
+				    <td class="tLeft">X-Platform 9.2,ECM ,PDF Reader(adobe reader),PDF Reader(foxit),<BR/>
+				    				  PDF Reader(Papyrus),RexPert3.0<BR/>
+
+				    </td>
+				    <td class="tCenter">67.8M</td>
+ 					<td class="nbr"><p><a href="../BarconInstall/BaroconOnly_Install.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>DownLoad</a></p></td>
+
+				</tr>
+
+
+				<tr>
+				    <td class="tLeft">
+				  		eCos exclusive integrated installation version
+				    </td>
+				    <td class="tCenter">1.0</td>
+				    <td class="tLeft">MI-Plaform 3.2, SIGNGATE,<br/>AxEcm,RexPert2.5,SGSeuTax</td>
+				    <td class="tCenter">36.6M</td>
+					<td class="nbr"><p><a href="../BarconInstall/ECOS_Install.exe" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>DownLoad</a></p></td>
+
+				</tr>
+
+				</tbody>
+				</table>
+
+
+
+
+			</div>
+
+
+
+			<div id="tabs-4">
+				Barocon project website has been built with materials such as training materials and manuals online helpdesk.</br>
+				Barocon project to access the site below if you want to access through the "shortcut" links, please</br>
+				<p><a href="http://icm.daewooenc.com" target="_blank" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>shortcut</a></p>
+			 </div>
+
+		</div>
+
+
+
+
+
+
+</td></tr></table>
+
+	</body>
+</html>
+
+

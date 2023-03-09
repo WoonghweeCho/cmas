@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<!--************************************************************************************
+* 프로그램 : 첨부파일 다운로드 로그 쌓기
+* 설    명 : 첨부파일 다운로드 로그
+* 작 성 자 : 변형구
+* 작성일자 : 2012-11-26
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+*insertFileDownLog    신규 파일묶음번호 조회
+*************************************************************************************-->
+<sqlMap namespace="commonFileDownLog">
+
+	<typeAlias alias="coFileDownLog" type="com.dwenc.cmas.common.file.domain.CoFileDownLog"/>
+
+
+    <!--***************************************************************
+    * 설명    		: 파일 다운로드 로그 추가
+    * 작성일자     	: 2012.11.26
+    * 작성자        	: 변형구
+    ****************************************************************-->
+	<insert id="insertFileDownLog" parameterClass="coFileDownLog">
+	  <![CDATA[ /* commonFileDownLog.insertFileDownLog */ ]]>
+		INSERT INTO CO_ATCH_FILE_DWLD_LOG
+                    (SEQ,
+                     USER_ID,
+                     CLNT_IP,
+                     FILE_ATCH_ID,
+                     FILE_ID,
+                     ECM_NO,
+                     FILE_NM,
+                     DWLD_DT,
+                     FST_REG_DT,
+                     FST_REG_USER_ID,
+                     FNL_EDIT_DT,
+                     FNL_EDIT_USER_ID,
+                     OGG_CD,
+                     OGG_TIME)
+		   SELECT DISTINCT
+		   		  (
+		   		  	SELECT NVL (MAX (SEQ), 0) + 1
+		   		  	  FROM CO_ATCH_FILE_DWLD_LOG
+		   		   ),
+		          #userId#,
+		          #clntIp#,
+		          <isNotEmpty property="ecmNo" >
+		          FILE_ATCH_ID,
+		          FILE_ID,
+		          </isNotEmpty>
+		          <isEmpty property="ecmNo" >
+		          #fileAtchId#,
+		          #fileId#,
+		          </isEmpty>
+		          ECM_NO,
+		          FILE_NM,
+		          SYSDATE,
+		          SYSDATE,
+		          #userId#,
+		          SYSDATE,
+		          #userId#,
+		          #oggCd#,
+		          TO_TIMESTAMP (#oggTime#, 'YYYYMMDDHH24MISSFF')
+		     FROM CO_FILE
+		    WHERE 1 = 1
+		   <isEmpty property="ecmNo" prepend="AND">
+	           FILE_ATCH_ID = #fileAtchId#
+		       <isNotEmpty property="fileId" prepend="AND">
+		         FILE_ID = TO_NUMBER(#fileId#)
+		       </isNotEmpty>
+		       <isEmpty property="fileId" prepend="AND">
+		         ROWNUM = 1
+		       </isEmpty>
+		   </isEmpty>
+	       <isNotEmpty property="ecmNo" prepend="AND">
+	         ECM_NO = #ecmNo#
+	       </isNotEmpty>
+	</insert>
+
+</sqlMap>
+

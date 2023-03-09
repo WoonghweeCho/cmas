@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+ <!--************************************************************************************
+* 프로그램 : TDMS 이관
+* 설    명 : TDMS 이관
+* 작 성 자 : 변형구
+* 작성일자 : 2013-07-03
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* insertBarnetDoc 바로넷문서 마스터 테이블 인서트
+* insertBarnetDocReadtn 바로넷 문서 회람 정보 인서트
+* insertBarnetDocPriv 바로넷 문서권한 인서트
+* insertBarnetDocSign 바로넷 문서 결재선 인서트
+*************************************************************************************-->
+<sqlMap namespace="TDMS">
+
+    <!-- 바로넷문서 마스터 테이블 인서트 -->
+    <insert id="insertBarnetDoc" parameterClass="map"  >
+        <![CDATA[ /* TDMS.insertBarnetDoc */ ]]>
+    	INSERT INTO ICMS.DMB_BARNET_DOC
+				(
+					DOCNO
+					,DOCKND
+					,TITLE
+					,WRITER_ID
+					,STRG_DLINE
+					,MGM_RANGE_CD
+					,FILE_ATCH_ID
+					,FST_REG_DT
+					,FST_REG_USER_ID
+					,FNL_EDIT_DT
+					,FNL_EDIT_USER_ID
+					,OGG_CD
+					,OGG_TIME
+				)
+			SELECT
+		            SSDD.SIGN_ID,
+		            CASE
+		                    WHEN  SSDL.DUTY_LNK_CD = 'cmas010001' THEN   /*기안문*/
+		                                '1'
+		                    WHEN  SSDL.DUTY_LNK_CD = 'cmas010002' THEN   /*협조전*/
+		                                '2'
+		                    ELSE
+		                                '3'
+	           		END AS DOCNKD,
+	           		SSD.SIGN_DOC_TITLE,
+	           		SSD.DRFT_USER_ID,
+	           		SSDD.STRG_DLINE,
+		           	CASE
+		                    WHEN SSDD.DOC_SCRT_GRDCD = 'S' THEN   /*비밀*/
+		                            '01'
+		                    WHEN SSDD.DOC_SCRT_GRDCD = 'D' THEN   /*부서*/
+		                            '02'
+		                    WHEN SSDD.DOC_SCRT_GRDCD = 'O' THEN   /*사내*/
+		                            '03'
+		                    ELSE '02'
+		           	END AS RANG_CD,
+		           	'' ,
+		           	SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#oggCd#,
+					TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+	  		   FROM SG_SIGN_DOC SSD
+	  		INNER JOIN SG_SIGN_DOC_DTL SSDD 	ON ( SSD.SIGN_ID = SSDD.SIGN_ID )
+	  		INNER JOIN SG_SIGN_DUTY_LNK SSDL 	ON ( SSD.SIGN_ID = SSDL.SIGN_ID )
+	  		LEFT JOIN SG_SIGN_FILE_ATCH SSFA 	ON ( SSD.SIGN_ID = SSFA.SIGN_ID )
+	 		WHERE SSD.SIGN_ID = #signId#
+	 		  AND 0 = (SELECT COUNT(*) FROM ICMS.DMB_BARNET_DOC WHERE DOCNO = #signId#)
+    </insert>
+
+    <!-- 바로넷문서 결재선  인서트 -->
+    <delete id="deleteBarnetDoc" parameterClass="map"  >
+    	DELETE
+    	  FROM ICMS.DMB_BARNET_DOC
+    	 WHERE DOCNO = #signId#
+    </delete>
+
+    <!-- 바로넷문서 회람정보 인서트 -->
+    <insert id="insertBarnetDocReadtn" parameterClass="map"  >
+        <![CDATA[ /* TDMS.insertBarnetDocReadtn */ ]]>
+       INSERT INTO ICMS.DMB_BARNET_DOC_READTN
+					(
+						DOCNO
+						,SEQ
+						,DEM_USER_ID
+						,READTN_USER_ID
+						,READTN_DEPT
+						,OPN
+						,DEMDT
+						,FST_REG_DT
+						,FST_REG_USER_ID
+						,FNL_EDIT_DT
+						,FNL_EDIT_USER_ID
+						,OGG_CD
+						,OGG_TIME
+					)
+		 	SELECT 	SSR.SIGN_ID,
+             		( SELECT NVL(MAX(SEQ)+1, 1) FROM ICMS.DMB_BARNET_DOC_READTN  WHERE DOCNO = SSR.SIGN_ID) AS SEQ,
+             		'' AS DEM_USER_ID,
+             		SSR.READTN_USER_ID,
+             		CASE
+                        WHEN SSR.READTN_USER_CLS = 'O' THEN
+                                SSR.READTN_USER_ORG_CD
+                        ELSE
+                                ''
+             		END AS READTN_USER_ORG_CD,
+             		SSRO.SIGN_OPN_CONT,
+             		NULL AS DEMDT ,
+             		SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#oggCd#,
+					TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    			FROM SG_SIGN_READTN SSR
+    			LEFT OUTER JOIN SG_SIGN_READTN_OPN SSRO ON ( SSR.READTN_ID = SSRO.READTN_ID AND SSR.SIGN_ID = SSRO.SIGN_ID )
+  		WHERE
+             	SSR.SIGN_ID = #signId#
+    </insert>
+
+
+    <!-- 바로넷문서 권한 인서트 -->
+    <insert id="insertBarnetDocPriv" parameterClass="map"  >
+        <![CDATA[ /* TDMS.insertBarnetDocPriv */ ]]>
+       INSERT INTO ICMS.DMB_BARNET_DOC_PRIV
+					(
+						DOCNO
+						,PRIV_SEQ
+						,PRIV_KIND_CD
+						,PRIV_ORG_CD
+						,PRIV_USER_ID
+						,FST_REG_DT
+						,FST_REG_USER_ID
+						,FNL_EDIT_DT
+						,FNL_EDIT_USER_ID
+						,OGG_CD
+						,OGG_TIME
+					)
+		 	SELECT 	SSR.SIGN_ID,
+             		( SELECT NVL(MAX(PRIV_SEQ)+0, 0) FROM ICMS.DMB_BARNET_DOC_PRIV  WHERE DOCNO = SSR.SIGN_ID)+ROWNUM AS SEQ,
+             		CASE
+                        WHEN SSR.READTN_TP = 'G' AND READTN_USER_CLS = 'O' THEN '1'
+                        WHEN SSR.READTN_TP = 'A' THEN '2'
+                        WHEN SSR.READTN_TP = 'B' THEN '4'
+                        WHEN SSR.READTN_TP = 'G' AND READTN_USER_CLS = 'G' THEN '5'
+                        ELSE ''
+             		END AS READTN_TP,
+             		SSR.READTN_USER_ORG_CD,
+             		SSR.READTN_USER_ID,
+             		SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#oggCd#,
+					TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    			FROM SG_SIGN_READTN SSR
+    			   LEFT JOIN ICMS.DMB_BARNET_DOC_PRIV DBDP
+    			          ON(SSR.SIGN_ID = DBDP.DOCNO
+    			             AND SSR.READTN_USER_ORG_CD = DBDP.PRIV_ORG_CD
+    			             AND SSR.READTN_USER_ID = DBDP.PRIV_USER_ID)
+  	       	   WHERE SSR.SIGN_ID = #signId#
+  	       	     AND SSR.READTN_TP IN ('A', 'B', 'G')
+  	       	     AND DBDP.DOCNO IS NULL
+    </insert>
+
+    <!-- 바로넷문서 결재선  인서트 -->
+    <delete id="deleteBarnetDocPriv" parameterClass="map"  >
+    	DELETE
+    	  FROM ICMS.DMB_BARNET_DOC_PRIV
+    	 WHERE DOCNO = #signId#
+    </delete>
+
+    <!-- 바로넷문서 결재선  인서트 -->
+    <insert id="insertBarnetDocSign" parameterClass="map"  >
+        <![CDATA[ /* TDMS.insertBarnetDocSign */ ]]>
+       INSERT INTO ICMS.DMB_BARNET_DOCSIGN
+					(
+						DOCNO
+						,SIGN_SEQ
+						,SIGN_USER_ID
+						,SIGN_DT
+						,OPN
+						,FST_REG_DT
+						,FST_REG_USER_ID
+						,FNL_EDIT_DT
+						,FNL_EDIT_USER_ID
+						,OGG_CD
+						,OGG_TIME
+					)
+			SELECT 	SS.SIGN_ID,
+	              	SS.SIGN_SEQ,
+	              	SS.SIGN_USER_ID,
+	              	SS.SIGN_DT,
+	              	SSO.SIGN_OPN_CONT,
+	              	SYSDATE,
+					#fstRegUserId#,
+					SYSDATE,
+					#fnlEditUserId#,
+					#oggCd#,
+					TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+    		  FROM 	SG_SIGN SS
+    		LEFT OUTER JOIN SG_SIGN_OPN SSO
+    		      ON ( SS.SIGN_ID = SSO.SIGN_ID AND SS.SIGN_SEQ = SSO.SIGN_SEQ AND SS.SIGN_USER_ID = SSO.SIGN_USER_ID )
+  			WHERE SS.SIGN_ID = #signId#
+    </insert>
+
+    <!-- 바로넷문서 결재선  인서트 -->
+    <delete id="deleteBarnetDocSign" parameterClass="map"  >
+    	DELETE
+    	  FROM ICMS.DMB_BARNET_DOCSIGN
+    	 WHERE DOCNO = #signId#
+    </delete>
+
+
+     <!-- 바로넷문서 URL 정보   인서트 -->
+    <insert id="insertBarnetDocUrl" parameterClass="map"  >
+        <![CDATA[ /* TDMS.insertBarnetDocUrl */ ]]>
+       INSERT INTO  ICMS.DMB_BARNET_DOC_URL
+					(
+						SEQ
+						,URL
+						,WRITE_DT
+						,ACT_DT
+						,ACT_STS
+						,FST_REG_DT
+						,FST_REG_USER_ID
+						,FNL_EDIT_DT
+						,FNL_EDIT_USER_ID
+						,OGG_CD
+						,OGG_TIME
+						,REM
+					)
+				SELECT
+		            	ICMS.DMB_BARNET_DOC_URL_SQ01.NEXTVAL SEQ,
+		            	#proxyUrl# ||'signId=' || SSD.SIGN_ID ||'&amp;proxyDialogType=VIEW&amp;signUserId=' || SSD.DRFT_USER_ID URL,
+		             	SSD.DRFT_DT,
+		             	NULL ACT_DT,
+		             	'R' ACT_STS,
+		             	SYSDATE,
+						#fstRegUserId#,
+						SYSDATE,
+						#fnlEditUserId#,
+						#oggCd#,
+						TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF'),
+						#rem#
+  				 FROM  	SG_SIGN_DOC SSD
+ 				WHERE 	SIGN_ID = #signId#
+ 				  AND   0 = (SELECT COUNT(*)
+ 				               FROM DMB_BARNET_DOC_URL
+ 				              WHERE URL = #proxyUrl# ||'signId=' || SSD.SIGN_ID ||'&amp;proxyDialogType=VIEW&amp;signUserId=' || SSD.DRFT_USER_ID)
+
+    </insert>
+
+
+</sqlMap>
+

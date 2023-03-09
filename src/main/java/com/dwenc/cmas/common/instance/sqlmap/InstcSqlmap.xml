@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+ <!--************************************************************************************
+* 프로그램 : instc
+* 설    명 : 인스턴스 관리
+* 작 성 자 :
+* 작성일자 :
+* SQL 목록
+***************************************************************************************
+* SQLID                 설명
+***************************************************************************************
+* retrieveInstcList 메시지 목록 조회
+*************************************************************************************-->
+<sqlMap namespace="instc">
+
+	<resultMap class="java.util.HashMap" id="rmInstcList">
+    	<result column="INSTC_ID" property="instcId" />
+    	<result column="INSTC_NM" property="instcNm" />
+    	<result column="SITE_CD" property="siteCd" />
+    	<result column="LOCL_CD" property="loclCd" />
+    	<result column="IP" property="ip" />
+    	<result column="ECM_IP" property="ecmIp" />
+    	<result column="ECM_DOMAIN_ADDR" property="ecmDomainAddr" />
+    	<result column="ECM_SVC_ID" property="ecmSvcId" />
+    	<result column="OGG_IP" property="oggIp" />
+    	<result column="NETWK_BDWTH" property="netwkBdwth" />
+    	<result column="OPR_METH_CLS" property="oprMethCls" />
+    	<result column="INCHRG_USER_ID" property="inchrgUserId" />
+    	<result column="USE_YN" property="useYn" />
+    	<result column="EXPL" property="expl" />
+    	<result column="TIME_GAP" property="timeGap" />
+    	<result column="WAS_ID" property="wasId" />
+    	<result column="SVC_URL" property="svcUrl" />
+    	<result column="OGG_OK_YN" property="oggOkYn" />
+    	<result column="WAS_OK_YN" property="wasOkYn" />
+    	<result column="ECM_OK_YN" property="ecmOkYn" />
+    	<result column="REAL_SITE_CD" property="realSiteCd" />
+		<result column="REP_SITE_CD" property="repSiteCd" />
+	</resultMap>
+
+	<resultMap class="java.util.HashMap" id="map">
+		<result column="CURR_DATE" property="currDate" />
+	</resultMap>
+
+    <!-- 인스턴스 목록 조회 -->
+    <select id="retrieveInstcList" parameterClass="map" resultMap="rmInstcList" >
+        <![CDATA[ /* instc.retrieveInstcList */ ]]>
+        SELECT  A.INSTC_ID
+             , A.INSTC_NM
+             , NVL(A.SITE_CD, '100') AS SITE_CD
+             , A.LOCL_CD
+             , A.IP
+             , A.ECM_IP
+             , A.DOMAIN_ADDR AS ECM_DOMAIN_ADDR
+             , A.ECM_SVC_ID
+             , A.OGG_IP
+             , A.NETWK_BDWTH
+             , A.OPR_METH_CLS
+             , A.INCHRG_USER_ID
+             , A.USE_YN
+             , A.EXPL
+             , A.TIME_GAP
+             , A.OGG_OK_YN
+             , A.WAS_OK_YN
+             , A.ECM_OK_YN
+             , TO_CHAR(A.FST_REG_DT,'YYYY-MM-DD') AS FST_REG_DT
+             , A.FST_REG_USER_ID
+             , TO_CHAR(A.FNL_EDIT_DT, 'YYYY-MM-DD') AS FNL_EDIT_DT
+             , A.FNL_EDIT_USER_ID
+             , B.SITE_CD AS REAL_SITE_CD
+             , NVL( ( SELECT SITE_CD FROM  ICMS.CO_INSTC_CTG_SITE WHERE INSTC_ID = A.INSTC_ID AND REP_SITE_YN = 'Y'), '100')  AS REP_SITE_CD
+          FROM ICMS.CO_INSTC A
+         LEFT OUTER JOIN ICMS.CO_INSTC_CTG_SITE B
+         ON ( A.INSTC_ID = B.INSTC_ID )
+		<dynamic prepend="WHERE">
+   	    <isNotEmpty prepend="AND" property="instcId">
+           A.INSTC_ID = #instcId#
+	    </isNotEmpty>
+	    <isNotEmpty prepend="AND" property="siteCd">
+           A.SITE_CD = #siteCd#
+	    </isNotEmpty>
+	    <isNotEmpty prepend="AND" property="useYn">
+           A.USE_YN = #useYn#
+	    </isNotEmpty>
+	    </dynamic>
+         ORDER BY INSTC_ID
+    </select>
+
+    <!-- 와스 목록 조회 -->
+    <select id="retrieveInstcWas" parameterClass="map" resultMap="rmInstcList" >
+        <![CDATA[ /* instc.retrieveInstcWas */ ]]>
+        SELECT A.INSTC_ID
+             , A.INSTC_NM
+             , A.SITE_CD
+             , A.LOCL_CD
+             , A.IP
+             , A.ECM_IP
+             , A.ECM_SVC_ID
+             , A.OGG_IP
+             , A.NETWK_BDWTH
+             , A.OPR_METH_CLS
+             , A.INCHRG_USER_ID
+             , A.USE_YN
+             , A.EXPL
+             , A.TIME_GAP
+             , B.WAS_ID
+             , B.SVC_URL
+             , A.OGG_OK_YN
+             , A.WAS_OK_YN
+             , A.ECM_OK_YN
+             , TO_CHAR(A.FST_REG_DT,'YYYY-MM-DD') AS FST_REG_DT
+             , A.FST_REG_USER_ID
+             , TO_CHAR(A.FNL_EDIT_DT, 'YYYY-MM-DD') AS FNL_EDIT_DT
+             , A.FNL_EDIT_USER_ID
+          FROM ICMS.CO_INSTC A
+          LEFT OUTER JOIN ICMS.CO_WAS B
+            ON (A.INSTC_ID = B.INSTC_ID)
+		<dynamic prepend="WHERE">
+   	    <isNotEmpty prepend="AND" property="instcId">
+           A.INSTC_ID = #instcId#
+	    </isNotEmpty>
+	    <isNotEmpty prepend="AND" property="siteCd">
+           A.SITE_CD = #siteCd#
+	    </isNotEmpty>
+	    <isNotEmpty prepend="AND" property="useYn">
+           A.USE_YN = #useYn#
+	    </isNotEmpty>
+	    </dynamic>
+         ORDER BY A.INSTC_ID, B.WAS_ID
+    </select>
+
+	<resultMap class="java.util.HashMap" id="rmInstc">
+    	<result column="OGG_OK_YN" property="oggOkYn" />
+    	<result column="WAS_OK_YN" property="wasOkYn" />
+    	<result column="ECM_OK_YN" property="ecmOkYn" />
+	</resultMap>
+
+    <!-- 인스턴스 checkInstc -->
+    <select id="checkInstc" parameterClass="map" resultMap="rmInstc" >
+        <![CDATA[ /* instc.checkInstc */ ]]>
+        SELECT OGG_OK_YN
+             , WAS_OK_YN
+             , ECM_OK_YN
+          FROM ICMS.CO_INSTC
+		  <dynamic prepend="WHERE">
+   	    <isNotEmpty prepend="AND" property="instcId">
+           INSTC_ID = #instcId#
+	    </isNotEmpty>
+	    </dynamic>
+    </select>
+
+    <!-- 인스턴스 WAS상태 UPDATE -->
+	<update id="updateWasOkYn" parameterClass="map">
+		UPDATE ICMS.CO_INSTC
+		   SET WAS_OK_YN = #bChk#
+				, OGG_TIME  = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+		 WHERE INSTC_ID = #instcId#
+	</update>
+
+    <!-- 인스턴스 OGG 상태 UPDATE -->
+	<update id="updateOggOkYn" parameterClass="map">
+		UPDATE ICMS.CO_INSTC
+		   SET OGG_OK_YN = #bChk#
+				, OGG_TIME  = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+		 WHERE INSTC_ID = #instcId#
+	</update>
+
+    <!-- 인스턴스 상태 UPDATE -->
+	<update id="updateInstcOkYn" parameterClass="map">
+		UPDATE ICMS.CO_INSTC
+			SET
+			OGG_TIME  = TO_TIMESTAMP(#oggTime#, 'YYYYMMDDHH24MISSFF')
+			<isNotEmpty property="wasOkYn">
+			, WAS_OK_YN = #wasOkYn#
+			</isNotEmpty>
+			<isNotEmpty property="oggOkYn">
+		   	, OGG_OK_YN = #oggOkYn#
+		   	</isNotEmpty>
+		   	<isNotEmpty property="ecmOkYn">
+		   	, ECM_OK_YN = #ecmOkYn#
+		   	</isNotEmpty>
+		 WHERE INSTC_ID = #instcId#
+	</update>
+
+	<!-- WAS와 DB간의 연결 상태를 check하기 위한 dummy -->
+	<select id="retriveSysdate" resultMap="map">
+		SELECT
+		SYSDATE AS CURR_DATE
+		FROM DUAL
+	</select>
+
+	<resultMap class="java.util.HashMap" id="rmInstcSiteLst">
+    	<result column="INSTC_ID" property="instcId" />
+    	<result column="SITE_CD" property="siteCd" />
+    	<result column="REP_SITE_YN" property="repSiteYn" />
+	</resultMap>
+	<select id="retrieveInstcSiteLst"  parameterClass="map" resultMap="rmInstcSiteLst">
+		SELECT INSTC_ID, SITE_CD, REP_SITE_YN
+		  FROM ICMS.CO_INSTC_CTG_SITE
+	</select>
+
+</sqlMap>
+

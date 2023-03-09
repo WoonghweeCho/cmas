@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="authentication">
+
+	<insert id="insertItem">
+		INSERT INTO CO_LOGIN_HST (
+			SEQ,
+			SYS_CD,
+			USER_ID,
+			DT,
+			PATH_CONT,
+			ADDR_CONT,
+			OPRS_NM,
+			PROG_NM,
+			SESS_ID,
+			OUTCOM_CONT,
+			FST_REG_USER_ID,
+			FST_REG_DT,
+			FNL_EDIT_USER_ID,
+			FNL_EDIT_DT
+		)
+		VALUES (
+			TO_CHAR(SYSTIMESTAMP, 'YYMMDDHH24MISSFF3'),
+			SUBSTR(#sysCd#, 1, 4),
+			SUBSTR(#userId#, 1, 10),
+			SYSDATE,
+			SUBSTR(#pathCont#, 1, 4000),
+			SUBSTR(#addrCont#, 1, 100),
+			SUBSTR(#oprsNm#, 1, 100),
+			SUBSTR(#progNm#, 1, 100),
+			SUBSTR(#sessId#, 1, 1000),
+			SUBSTR(#outcomCont#, 1, 50),
+			SUBSTR(#userId#, 1, 10),
+			SYSDATE,
+			SUBSTR(#userId#, 1, 10),
+			SYSDATE
+		)
+	</insert>
+
+</sqlMap>
