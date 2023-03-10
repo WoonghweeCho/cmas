@@ -378,7 +378,7 @@
 						<tr>
 							<td class='tit'>* 스마티<br>(안전)</td>
 						 	<td class='inpt' id='safety' name='safety'></td>
-						 	<td class='inpt'>※ 사용 선택 시, 협의자로 스마티 담당자 추가됨<br>
+						 	<td class='inpt'>※ 사용 선택 시, 협의자로 똑바로 담당자 추가됨<br>
 						 					※ (웹)스마티 접근 URL : https://smarty.daewooenc.com<br>
 						 					※ (모바일) 설치 URL : http://dstore.daewooenc.com/sf.html<br>
 						 					※ 담당자: 안전보건팀 김정규 과장 (02-2288-2182)
